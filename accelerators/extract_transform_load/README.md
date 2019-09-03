@@ -274,7 +274,9 @@ The most common modifications would be to replace the code for three Lambda func
 
 ## FAQ and Help
 
-* The `docker-compose` command shows `etl-greengrass exited with code 143`
+### The `docker-compose` command shows `etl-greengrass exited with code 143`
+
+#### Resolution
 
    1. Check that the certificate and private key files are in the correct location, and they are referenced by the correct names in the `config.json` file.
    1. Ensure there is at least one Lambda function defined within the Greengrass group and that all container-based settings such as Isolation mode are set properly.

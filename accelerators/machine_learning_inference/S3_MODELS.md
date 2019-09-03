@@ -226,7 +226,7 @@ Check the region of the Greengrass Core endpoint in the `/greengrass/config/conf
 
 ### ML model resource download issue
 
-If you encountered the follow error in `var/logs/system/runtime.log`, it is due to the isolcation mode of the Lambda function that is associated with the ML resource. 
+If you encountered the follow error in `var/logs/system/runtime.log`, it is due to the isolation mode of the Lambda function that is associated with the ML resource. 
 
 ```
 We cannot deploy because the group definition is invalid or corrupted for the following reasons: {ErrorSet(errorSet=[ErrorModel(errorCode=RESOURCE_TYPE_UNEXPECTED_ERROR, errorMsg=Function arn:aws:lambda:<AWS Region>:<AWS Account ID>:function:pinned-s3-mli2:GreenGrassAlias refers to resource of type 'ML_Model.S3_Object' that is not allowed in IsolationMode='NoContainer')])}

@@ -1,0 +1,113 @@
+Diagrams for Greengrass Accelerators
+
+@startuml
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/master/dist
+!includeurl AWSPuml/AWSCommon.puml
+!include AWSPuml/InternetOfThings/IoTGreengrass.puml
+!include AWSPuml/InternetOfThings/IoTLambdaFunction.puml
+!include AWSPuml/General/GenericDatabase.puml
+skinparam participant {
+    BackgroundColor AWS_BG_COLOR
+    BorderColor AWS_BORDER_COLOR
+}
+hide footbox
+title Extract
+participant "<color:#3F8624><$IoTGreengrass></color>\nGreengrass Core" as gg order 10
+box "<color:#D86613><$IoTLambdaFunction></color>\nExtract Function"
+    participant "Query\nODB Thread" as odb order 20
+    participant "Python\nQueue" as queue order 30
+    participant "Persist Data\nThread" as persist order 40
+end box
+participant "<$GenericDatabase>\nRedis\nExtract Queue" as redis order 50
+
+gg -> queue : Create queue
+gg -> odb : Start thread
+gg -> persist : Start thread
+
+loop While True
+  odb -> odb : Send/receive PIDs\nevery X time period
+  odb -> queue : Put message
+end
+
+loop While True
+  persist -> queue : "Read message\n(block on empty)"
+  queue -> persist : Message
+  persist -> redis : Put message (FIFO)
+end
+@enduml
+
+@startuml
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/master/dist
+!includeurl AWSPuml/AWSCommon.puml
+!include AWSPuml/InternetOfThings/IoTGreengrass.puml
+!include AWSPuml/InternetOfThings/IoTLambdaFunction.puml
+!include AWSPuml/General/GenericDatabase.puml
+skinparam participant {
+    BackgroundColor AWS_BG_COLOR
+    BorderColor AWS_BORDER_COLOR
+}
+hide footbox
+title Transform
+participant "<color:#3F8624><$IoTGreengrass></color>\nGreengrass Core" as gg order 10
+participant "<$GenericDatabase>\nRedis\nExtract Queue" as extract order 20
+participant "<color:#D86613><$IoTLambdaFunction>\nTransform Function" as transform order 30
+participant "<$GenericDatabase>\nRedis\nLoad Queue" as load order 40
+participant "<$GenericDatabase>\nRedis\nTime Series" as ts order 50
+
+gg -> transform : Start process
+transform -> transform : Load conversion logic
+loop While True
+    transform -> extract : Read message\n(block on empty)
+    extract -> transform : ODB-II message
+    transform -> transform : Convert message
+    transform -> load : Put message (FIFO)
+    alt every 30 seconds (default)
+        ts -> transform : Read values for last N seconds
+        transform -> transform : Calculate Avg/Min/Max message
+        transform -> load : Put message (FIFO)
+    end
+end
+@enduml
+
+@startuml
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/master/dist
+!includeurl AWSPuml/AWSCommon.puml
+!include AWSPuml/InternetOfThings/IoTTopic.puml
+!include AWSPuml/InternetOfThings/IoTGreengrass.puml
+!include AWSPuml/InternetOfThings/IoTLambdaFunction.puml
+!include AWSPuml/Analytics/KinesisDataFirehose.puml
+!include AWSPuml/General/GenericDatabase.puml
+skinparam participant {
+    BackgroundColor AWS_BG_COLOR
+    BorderColor AWS_BORDER_COLOR
+}
+hide footbox
+title Load
+participant "<color:#3F8624><$IoTGreengrass></color>\nGreengrass Core" as gg order 10
+participant "<$GenericDatabase>\nRedis\nLoad Queue" as load order 30
+participant "<color:#D86613><$IoTLambdaFunction></color>\nLoad Function" as loadfunc order 30
+participant "<color:#693CC5><$KinesisDataFirehose></color>\nFirehose" as firehose order 40
+participant "<color:#3F8624><$IoTTopic></color>\nTopic: core_name/telemetry" as telem order 50
+participant "<color:#3F8624><$IoTTopic></color>\nTopic: core_name/alert" as alert order 60
+participant "<color:#3F8624><$IoTGreengrass></color>\nMQTT\nTopic: rt" as rt order 70
+
+
+gg -> loadfunc : Start process
+loop While True
+    loadfunc -> load : Read message\n(block on empty)
+    load -> loadfunc : Transformed messages
+    loadfunc -> rt : Publish message
+    alt OBD-II message
+        loadfunc -> firehose : Put message
+    else CAN Bus message
+        loadfunc -> firehose : Put message
+        loadfunc -> alert : Publish message
+    else rolling averages
+        loadfunc -> telem : Publish message
+    end
+end
+@enduml
+
+@startuml
+listfonts
+@enduml

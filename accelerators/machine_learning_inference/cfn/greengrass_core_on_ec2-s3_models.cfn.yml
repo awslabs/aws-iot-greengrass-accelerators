@@ -1,0 +1,308 @@
+AWSTemplateFormatVersion: "2010-09-09"
+
+Description: Create Greengrass resources and group, with supporting AWS services
+
+Parameters:
+  CoreName:
+    Description: Green Core name to be created. A "Thing" with be created with _Core appended to the name
+    Type: String
+    Default: gg-ec2_cfn
+  SecurityAccessCIDR:
+    Description: CIDR block to limit inbound access for only SSH
+    Type: String
+    Default: '0.0.0.0/0'
+  myKeyPair:
+    Description: Amazon EC2 Key Pair for accessing Greengrass Core instance
+    Type: "AWS::EC2::KeyPair::KeyName"
+
+Mappings:
+  # If Greengrass becomes available in other regions, add the x86 AMI Id for the
+  # image description:  "Ubuntu Server 18.04 LTS (HVM), SSD Volume Type"
+  # AMI can be found in https://cloud-images.ubuntu.com/locator/ec2/
+  RegionMap: 
+    us-east-1: 
+      "HVM": "ami-064a0193585662d74"
+    us-west-2: 
+      "HVM": "ami-09a3d8a7177216dcf"
+    eu-west-1: 
+      "HVM": "ami-01cca82393e531118"
+    eu-central-1: 
+      "HVM": "ami-0cdab515472ca0bac"
+    ap-northeast-1: 
+      "HVM": "ami-0cb1c8cab7f5249b6"
+    ap-southeast-2: 
+      "HVM": "ami-08a648fb5cc86fb74"
+
+Resources:
+  #############################################################################
+  # SUPPORTING RESOURCES SECTION
+  # This section contains all the resources that support the Greengrass
+  # section above. The VPC and EC2 instance to run Greengrass core software, the
+  # AWS IoT Thing, Certificate, and IoT Policy required for the Greengrass
+  # Core definition, and finally custom resources to assist with CloudFormation
+  # stack setup and teardown.
+  #############################################################################
+
+  # Supporting resources from VPC, EC2 Instance, AWS IoT Core
+  VPC:
+    Type: 'AWS::EC2::VPC'
+    Properties:
+      CidrBlock: 172.31.0.0/24
+      EnableDnsSupport: true
+      EnableDnsHostnames: true
+      InstanceTenancy: default
+  InternetGateway:
+    Type: 'AWS::EC2::InternetGateway'
+  VPCGatewayAttachment:
+    Type: 'AWS::EC2::VPCGatewayAttachment'
+    Properties:
+      VpcId: !Ref VPC
+      InternetGatewayId: !Ref InternetGateway
+  SubnetAPublic:
+    Type: 'AWS::EC2::Subnet'
+    Properties:
+      # Use returned AZ to ensure instance type available
+      AvailabilityZone: !GetAtt InstanceAZ.AvailabilityZone
+      CidrBlock: 172.31.0.0/24
+      MapPublicIpOnLaunch: true
+      VpcId: !Ref VPC
+  RouteTablePublic:
+    Type: 'AWS::EC2::RouteTable'
+    Properties:
+      VpcId: !Ref VPC
+  RouteTableAssociationAPublic:
+    Type: 'AWS::EC2::SubnetRouteTableAssociation'
+    Properties:
+      SubnetId: !Ref SubnetAPublic
+      RouteTableId: !Ref RouteTablePublic
+  RouteTablePublicInternetRoute:
+    Type: 'AWS::EC2::Route'
+    DependsOn: VPCGatewayAttachment
+    Properties:
+      RouteTableId: !Ref RouteTablePublic
+      DestinationCidrBlock: '0.0.0.0/0'
+      GatewayId: !Ref InternetGateway
+  InstanceSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: Allow inbound SSH access
+      VpcId:
+        Ref: VPC
+      SecurityGroupIngress:
+      - IpProtocol: tcp
+        FromPort: 22
+        ToPort: 22
+        CidrIp: !Ref SecurityAccessCIDR
+
+  GreengrassInstance:
+    Type: "AWS::EC2::Instance"
+    Properties:
+      ImageId: !FindInMap [RegionMap, !Ref "AWS::Region", HVM]
+      InstanceType: t3.micro
+      KeyName: !Ref myKeyPair
+      SecurityGroupIds: !Split [",", !GetAtt InstanceSecurityGroup.GroupId]
+      Tags:
+       - Key: Name
+         Value: !Sub "Greengrass Core HSA - ${CoreName}"
+      SubnetId: !Ref SubnetAPublic
+      UserData:
+        # All the steps to install dependencies and create the specific
+        # Greengrass core config and certificate/private key files.
+        Fn::Base64: !Sub |
+          #!/bin/bash
+          export DEBIAN_FRONTEND=noninteractive
+          apt update -y
+          apt upgrade -y
+          apt install python3.7 python3-pip -y
+          apt-get install -y libsm6 libxext6 libxrender-dev libglib2.0-0
+          python3.7 -m pip install opencv-python
+          python3.7 -m pip install greengrasssdk
+          python3.7 -m pip install mxnet
+          adduser --system ggc_user
+          groupadd --system ggc_group
+
+          wget https://d1onfpft10uf5o.cloudfront.net/greengrass-core/downloads/1.9.1/greengrass-linux-x86-64-1.9.1.tar.gz
+          tar xzvf greengrass-linux-x86-64-1.9.1.tar.gz -C /
+
+          # Installing necessary libraries
+          apt-get install unzip # to unzip the greengrass-setup.zip
+
+          cd /tmp
+          # Create Greengrass systemd file - thanks to: https://gist.github.com/matthewberryman/fa21ca796c3a2e0dfe8224934b7b055c
+          cat <<EOT > greengrass.service
+          [Unit]
+          Description=greengrass daemon
+          After=network.target
+
+          [Service]
+          ExecStart=/greengrass/ggc/core/greengrassd start
+          Type=simple
+          RestartSec=2
+          Restart=always
+          User=root
+          PIDFile=/var/run/greengrassd.pid
+
+          [Install]
+          WantedBy=multi-user.target
+          EOT
+          cp greengrass.service /etc/systemd/system
+          systemctl enable greengrass.service
+          reboot
+
+  InstanceAZ:
+    # Returns an AZ that supports the t3.micro instance type
+    Type: Custom::InstanceAZ
+    Properties:
+      ServiceToken: !GetAtt InstanceAZFunction.Arn
+      Region: !Ref "AWS::Region"
+  InstanceAZFunction:
+    Type: AWS::Lambda::Function
+    Properties:
+      Description: Queries account and region for supported AZ
+      Handler: index.handler
+      Runtime: python3.6
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 60
+      Code:
+        ZipFile: |
+          import sys
+          import cfnresponse
+          import boto3
+          from botocore.exceptions import ClientError
+          import json
+          import logging
+          logger = logging.getLogger()
+          logger.setLevel(logging.INFO)
+
+          c = boto3.client('ec2')
+
+
+          def handler(event, context):
+              responseData = {}
+              try:
+                  logger.info('Received event: {}'.format(json.dumps(event)))
+                  result = cfnresponse.FAILED
+                  if event['RequestType'] == 'Create':
+                      r = c.describe_reserved_instances_offerings(
+                          Filters=[
+                              {
+                                  'Name': 'scope',
+                                  'Values': [
+                                      'Availability Zone',
+                                  ]
+                              },
+                          ],
+                          IncludeMarketplace=False,
+                          InstanceType='t3.micro',
+                      )
+                      x = r['ReservedInstancesOfferings']
+                      while 'NextToken' in r:
+                          r = c.describe_reserved_instances_offerings(
+                              Filters=[
+                                  {
+                                      'Name': 'scope',
+                                      'Values': [
+                                          'Availability Zone',
+                                      ]
+                                  },
+                              ],
+                              IncludeMarketplace=False,
+                              InstanceType='t3.micro',
+                              NextToken=r['NextToken']
+                          )
+                          x.extend(r['ReservedInstancesOfferings'])
+                      responseData['AvailabilityZone'] = set(d['AvailabilityZone'] for d in x).pop()
+                      result = cfnresponse.SUCCESS
+                  else:
+                      result = cfnresponse.SUCCESS
+              except ClientError as e:
+                  logger.error('Error: {}'.format(e))
+                  result = cfnresponse.FAILED
+              logger.info('Returning response of: %s, with result of: %s' % (result, responseData))
+              sys.stdout.flush()
+              cfnresponse.send(event, context, result, responseData)
+
+  # Roles
+  LambdaExecutionRole:
+    # Role used by CloudFormation created Lambda functions, used by the custom
+    # resource functions to perform their objectives.
+    # Overly permissive for iot:* and greengrass:* to reduce Statement complexity
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: arn:aws:logs:*:*:*
+          - Effect: Allow
+            Action:
+            - iot:*
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - greengrass:*
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - ec2:DescribeReservedInstancesOfferings
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - iam:CreateRole
+            - iam:AttachRolePolicy
+            - iam:GetRole
+            - iam:DeleteRole
+            - iam:PassRole
+            Resource: !Join ["", ["arn:aws:iam::", !Ref "AWS::AccountId", ":role/greengrass_cfn_", !Ref "AWS::StackName", "_ServiceRole"] ]
+  GreengrassResourceRole:
+    # Role for deployed Lambda functions to a Greengrass core to call other
+    # AWS services directly
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: greengrass.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: arn:aws:logs:*:*:*
+          - Effect: Allow
+            Action:
+            - iot:*
+            Resource: "*"
+
+Outputs:
+  # Emit values needed for deployment status (e.g., where to SSH to)
+  EC2IPAddress:
+    Description: "EC2 Instance Public IP Address"
+    Value: !GetAtt GreengrassInstance.PublicIp
+  ConnectCommand:
+    Description: "Command to connect to the EC2"
+    Value: !Sub "ssh -i ${myKeyPair} ubuntu@${GreengrassInstance.PublicIp}"
+  SCPCommand:
+    Description: "Command to scp greengrass-setup.zip to the EC2"
+    Value: !Sub "scp -i ${myKeyPair} greengrass-setup.zip ubuntu@${GreengrassInstance.PublicIp}:~/"

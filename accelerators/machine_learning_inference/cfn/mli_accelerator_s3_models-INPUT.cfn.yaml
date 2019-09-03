@@ -1,0 +1,257 @@
+AWSTemplateFormatVersion: "2010-09-09"
+Transform: "AWS::Serverless-2016-10-31"
+
+Description: Create Machine Learning Inference (MLI) Greengrass accelerator resources and deployment with pre-trained model uploaded to S3
+
+Parameters:
+  CoreName:
+    Description: Green Core name to be created. A "Thing" with be created with _Core appended to the name
+    Type: String
+    Default: gg_mli_accel_s3model
+  CertIdParam:
+    Description: ID of the activate AWS IoT certificate
+    Type: String
+  ModelS3Uri:
+    Description: S3 Uri for the ML model uploaded, such as s3://<s3 bucket>/<ml model>
+    Type: String
+
+Resources:
+  #############################################################################
+  # GREENGRASS RESOURCES SECTION
+  # This section contains all the Greengrass related resources
+  #############################################################################
+  GreengrassGroup:
+    Type: AWS::Greengrass::Group
+    Properties:
+      Name: !Ref CoreName
+      RoleArn: !GetAtt GreengrassResourceRole.Arn
+  GreengrassGroupVersion:
+    Type: AWS::Greengrass::GroupVersion
+    Properties: 
+      GroupId: !Ref GreengrassGroup
+      CoreDefinitionVersionArn: !Ref GreengrassCoreDefinitionVersion
+      FunctionDefinitionVersionArn: !GetAtt FunctionDefinition.LatestVersionArn
+      LoggerDefinitionVersionArn: !GetAtt LoggerDefinition.LatestVersionArn
+      SubscriptionDefinitionVersionArn: !GetAtt SubscriptionDefinition.LatestVersionArn
+      ResourceDefinitionVersionArn: !Ref ResourceDefinitionVersion
+  GreengrassCoreDefinition:
+    Type: AWS::Greengrass::CoreDefinition
+    Properties:
+      # use CoreName + "_Core" as "thingName"
+      Name: !Sub ${CoreName}_Core
+  GreengrassCoreDefinitionVersion:
+    # Example of using GreengrassCoreDefinition referring to this
+    # "Version" resource
+    Type: AWS::Greengrass::CoreDefinitionVersion
+    Properties:
+      CoreDefinitionId: !Ref GreengrassCoreDefinition
+      Cores:
+        - Id: !Sub ${CoreName}_Core
+          ThingArn: !Sub arn:aws:iot:${AWS::Region}:${AWS::AccountId}:thing/${CoreName}_Core
+          CertificateArn: !Sub arn:aws:iot:${AWS::Region}:${AWS::AccountId}:cert/${CertIdParam}
+          SyncShadow: "false"
+  LoggerDefinition:
+    Type: 'AWS::Greengrass::LoggerDefinition'
+    Properties:
+      Name: MLILoggerDefinition
+      InitialVersion:
+        Loggers:
+          - Id: PredictionCloudWatchLog
+            Type: AWSCloudWatch
+            Component: Lambda
+            Level: INFO
+          - Id: SystemLogLocal
+            Type: FileSystem
+            Component: GreengrassSystem
+            Level: INFO
+            Space: '128'
+          - Id: LambdaLogLocal
+            Type: FileSystem
+            Component: Lambda
+            Level: INFO
+            Space: '128'
+  FunctionDefinition:
+    Type: 'AWS::Greengrass::FunctionDefinition'
+    Properties:
+      Name: FunctionDefinition
+      InitialVersion:
+        Functions:
+        - 
+          Id: ImageLongRunningClassification
+          FunctionArn: !Ref PredictionFunction.Alias
+          FunctionConfiguration:
+            Pinned: True
+            MemorySize: 120000 #KB
+            Timeout: 15 #seconds
+            EncodingType: json
+            Environment:
+              AccessSysfs: True
+              Execution: 
+                IsolationMode: GreengrassContainer
+              ResourceAccessPolicies: 
+                - ResourceId: mlModelId
+                  Permission: ro
+              Variables: 
+                  MXNET_ENGINE_TYPE: NaiveEngine     
+                  THINGNAME: !Ref CoreName
+  PredictionFunction: 
+    Type: AWS::Serverless::Function
+    Properties: 
+      FunctionName: !Sub pinned-${AWS::StackName}
+      Handler: "greengrass_long_run.function_handler"
+      CodeUri: ./lambda_functions/s3_models
+      Runtime: "python3.7"
+      Timeout: 25
+      AutoPublishAlias: GreenGrassAlias
+  SubscriptionDefinition:
+    Type: 'AWS::Greengrass::SubscriptionDefinition'
+    Properties:
+      Name: SubscriptionDefinition
+      InitialVersion:
+        # Example of one-to-many subscriptions in single definition version
+        Subscriptions:
+          - Id: Subscription1
+            Source: !Ref PredictionFunction.Alias
+            Subject: !Sub mli/predictions/${CoreName}
+            Target: 'cloud'
+  ResourceDefinition:
+    Type: AWS::Greengrass::ResourceDefinition
+    Properties:
+      Name: MLIResourceDefinition
+  ResourceDefinitionVersion:
+    Type: AWS::Greengrass::ResourceDefinitionVersion
+    Properties: 
+      ResourceDefinitionId: !Ref ResourceDefinition
+      Resources: 
+        - Id: mlModelId
+          Name: mlModelmxnetInception
+          ResourceDataContainer:
+            S3MachineLearningModelResourceData: 
+              DestinationPath: /greengrass-machine-learning/mxnet/inception_bn
+              S3Uri: !Ref ModelS3Uri            
+
+  #############################################################################
+  # SUPPORTING RESOURCES SECTION
+  # This section contains all the resources that support the Greengrass
+  # section above. It uses custom resources to assist with CloudFormation
+  # stack setup and teardown.
+  #############################################################################
+  IoTThing:
+    # Resource creates thing, certificate key pair, IoT policy, and associates all
+    Type: Custom::IoTThing
+    Properties:
+      ServiceToken: !GetAtt CreateThingFunction.Arn
+      ThingName: !Sub ${CoreName}_Core
+      CertificateArn: !Sub arn:aws:iot:${AWS::Region}:${AWS::AccountId}:cert/${CertIdParam}
+  CreateThingFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-CreateThingAndPolicy
+      Description: Create thing and policy, attach certificate
+      Handler: create_thing.handler
+      Runtime: python3.7
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 60
+      CodeUri: ./lambda_functions/cfn_custom_resources
+  GroupDeploymentReset:
+    # Allows for deletion of Greengrass group if the deployment status is not
+    # reset manually via the console or API
+    Type: Custom::GroupDeploymentReset
+    DependsOn: GreengrassGroup
+    Properties:
+      ServiceToken: !GetAtt GroupDeploymentResetFunction.Arn
+      # Region: !Ref "AWS::Region"
+      GroupId: !Ref GreengrassGroup
+  GroupDeploymentResetFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: !Sub ${AWS::StackName}-GroupDeployReset
+      Description: Resets any deployments during stack delete and manages Greengrass service role needs
+      Handler: group_deployment_reset.handler
+      Runtime: python3.7
+      Role: !GetAtt LambdaExecutionRole.Arn
+      Timeout: 60
+      Environment:
+        Variables:
+          STACK_NAME: !Ref "AWS::StackName"
+      CodeUri: ./lambda_functions/cfn_custom_resources
+  # Roles
+  LambdaExecutionRole:
+    # Role used by CloudFormation created Lambda functions, used by the custom
+    # resource functions to perform their objectives.
+    # Overly permissive for iot:* and greengrass:* to reduce Statement complexity
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: lambda.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: arn:aws:logs:*:*:*
+          - Effect: Allow
+            Action:
+            - iot:*
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - greengrass:*
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - ec2:DescribeReservedInstancesOfferings
+            Resource: "*"
+          - Effect: Allow
+            Action:
+            - iam:CreateRole
+            - iam:AttachRolePolicy
+            - iam:GetRole
+            - iam:DeleteRole
+            - iam:PassRole
+            Resource: !Sub "arn:aws:iam::${AWS::AccountId}:role/greengrass_cfn_${AWS::StackName}_ServiceRole"
+  GreengrassResourceRole:
+    # Role for deployed Lambda functions to a Greengrass core to call other
+    # AWS services directly
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: 2012-10-17
+        Statement:
+        - Effect: Allow
+          Principal:
+            Service: greengrass.amazonaws.com
+          Action: sts:AssumeRole
+      Policies:
+      - PolicyName: root
+        PolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+          - Effect: Allow
+            Action:
+            - logs:CreateLogGroup
+            - logs:CreateLogStream
+            - logs:PutLogEvents
+            Resource: arn:aws:logs:*:*:*
+          - Effect: Allow
+            Action:
+            - iot:*
+            Resource: "*"
+Outputs:
+  # Emit values needed for deployment status
+  CommandToDeployGroup:
+    Description: "Command to deploy to the group"
+    Value: !Sub aws --region ${AWS::Region} greengrass create-deployment --group-id ${GreengrassGroup} --deployment-type NewDeployment --group-version-id $(aws --region ${AWS::Region} greengrass list-group-versions --group-id ${GreengrassGroup} --query "sort_by(Versions, &CreationTimestamp)[-1].Version" --output text)
+  GreengrassConfig:
+    Description: "Config file contents (copy and paste into local config.json file and modify"
+    Value: !GetAtt IoTThing.configJSON

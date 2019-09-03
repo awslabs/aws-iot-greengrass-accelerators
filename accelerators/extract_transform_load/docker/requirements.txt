@@ -1,0 +1,10 @@
+# Common AWS SDKs
+greengrasssdk
+boto3
+
+# Redis library
+redis
+redistimeseries
+
+# Python CAN Bus
+python-can

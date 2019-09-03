@@ -1,0 +1,12 @@
+{
+  "RequestType": "Delete",
+  "StackId": "foo",
+  "RequestId": "97503c92-dead-beef-bf6b-b292bd66ac7d",
+  "ResponseURL": "http://localhost/foo",
+  "LogicalResourceId": "CreateThing",
+  "ServiceToken": "arn:aws:lambda:us-west-2:904880203774:function:createThing-test",
+  "ResourceProperties": {
+    "ThingName": "etl_test",
+    "CertificateArn": "arn:aws:iot:us-west-2:904880203774:cert/27b42dc56308b58f869b3346687e196af3fdbcf416c38de9c202719d4120017a"
+  }
+}

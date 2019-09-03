@@ -1,0 +1,28 @@
+# Harness to test lambda functions locally via SAM locally
+# Does not consider permissions. All extensions handled in
+# CloudFormation template to create full API.
+
+# Copy this file to template.yaml and replace the following references
+#
+# REGION - AWS region (e.g., us-west-2)
+
+# To test, run the following with "sam" installed
+
+# sam local invoke --region us-west-2 -e create_cr_create_thing.json CreateThing
+
+AWSTemplateFormatVersion : '2010-09-09'
+Transform: AWS::Serverless-2016-10-31
+
+Description: Testing CloudFormation Lambdas
+Resources:
+  CreateThing:
+    Type: AWS::Serverless::Function
+    Properties:
+      CodeUri: ../cfn/lambda_functions/cr_create_thing
+      Runtime: python3.7
+      Handler: create_thing.handler
+      Timeout: 120
+      # Not used - only calling resources
+      # Environment:
+      #   Variables:
+      #     AWS_REGION: REGION

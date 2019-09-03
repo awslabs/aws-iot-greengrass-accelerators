@@ -1,4 +1,4 @@
-Diagrams for Greengrass Accelerators
+Diagrams for ETL Greengrass Accelerator
 
 @startuml
 !define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/master/dist

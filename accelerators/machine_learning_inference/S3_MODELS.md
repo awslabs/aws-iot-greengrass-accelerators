@@ -78,7 +78,7 @@ The CloudFormation template does most of the heavy lifting. Prior to running, ea
 
 To create or overwrite the templates, perform the following steps from a command line or terminal session:
 
-1. Clone the repository `git clone TODO: URL GOES HERE` and change to `tld/accelerators/machine_learning_inference`, where this `s3_models.MD` file is located.
+1. Clone the repository `git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git` and change to `aws-iot-greengrass-accelerators/accelerators/machine_learning_inference`, where this `s3_models.MD` file is located.
 
 1. Create the CloudFormation output file using the AWS CLI.  Using the commands below, you can either preset the \$AWS_PROFILE, \$REGION, \$CFN_S3_BUCKET, \$ML_S3_BUCKET_URI, \$THINGNAME and \$CERTIFICATE_ID variables, or reference those directly via the `aws cloudformation package` command. The result of that command will be an *OUTPUT* CloudFormation template file, along with the packaged Lambda functions being copied to the S3 bucket. The `AWS_PROFILE` contains the credentials, account details, and optionally region to create the CloudFormation stack.
 
@@ -213,7 +213,7 @@ The predictions will be published from the Greengrass Core to the cloud, via top
 
 Good reference of common issues can be found in https://github.com/awsdocs/aws-greengrass-developer-guide/blob/master/doc_source/gg-troubleshooting.md
 
-## Model S3 bucket in different region
+### Model S3 bucket in different region
 
 If you see the following error in the Greengrass Core log `/greengrass/ggc/var/log/system/runtime.log`, one of the reason could be that the S3 bucket holding the machine learning model is in the different region where the Greengrass Core is connecting to. 
 
@@ -221,10 +221,10 @@ If you see the following error in the Greengrass Core log `/greengrass/ggc/var/l
 [2019-08-15T20:51:21.259-07:00][ERROR]-Greengrass deployment error: unable to download the artifact.	{"artifactId": "5a7a5480-661d-4f8a-9e5b-bbcf81943fcc", "errorString": "error while downloading: error while downloading the ML Model with arn: be266506b5356d86781618dfe5922502bc60d38d1931e6feaccc7e68ca4ac02b.zip::1565927368000: Error status code received while downloading file: /tmp/greengrass/artifacts/be266506b5356d86781618dfe5922502bc60d38d1931e6feaccc7e68ca4ac02b.zip::1565927368000/mlmodel, status code: 400"}
 ```
 
-### Resolution
+#### Resolution
 Check the region of the Greengrass Core endpoint in the `/greengrass/config/config.json` and ensure that the S3 bucket holding the model is in the same region.
 
-## ML model resource download issue
+### ML model resource download issue
 
 If you encountered the follow error in `var/logs/system/runtime.log`, it is due to the isolcation mode of the Lambda function that is associated with the ML resource. 
 
@@ -232,10 +232,10 @@ If you encountered the follow error in `var/logs/system/runtime.log`, it is due 
 We cannot deploy because the group definition is invalid or corrupted for the following reasons: {ErrorSet(errorSet=[ErrorModel(errorCode=RESOURCE_TYPE_UNEXPECTED_ERROR, errorMsg=Function arn:aws:lambda:<AWS Region>:<AWS Account ID>:function:pinned-s3-mli2:GreenGrassAlias refers to resource of type 'ML_Model.S3_Object' that is not allowed in IsolationMode='NoContainer')])}
 ```
 
-### Resolution
+#### Resolution
 Either change the isolation mode of the lambda to `GreengrassContainer`, or check if the resources have accidentally associated to the wrong Lambda function
 
-## Missing MXNet libraries in the Greengrass Core
+### Missing MXNet libraries in the Greengrass Core
 
 If you see the follow errors in `/greengrass/ggc/var/log/user/<AWS REGION>/<AWS ACCOUNT>/pinned-ggc-mli-stack.log`, you might be missing the mxnet libraries 
 
@@ -243,14 +243,14 @@ If you see the follow errors in `/greengrass/ggc/var/log/user/<AWS REGION>/<AWS 
 [2019-08-28T16:21:01.581Z][FATAL]-lambda_runtime.py:347,Failed to initialize Lambda runtime due to exception: No module named mxnet
 ```
 
-### Resolution
+#### Resolution
 
 Remote access to the Greengrass Core, and install the libraries following the steps in https://docs.aws.amazon.com/greengrass/latest/developerguide/what-is-gg.html#gg-ml-runtimes-pc-libs
 
 1. Download the correct library according to your hardware type to the Greengrass Core hardware
 2. Extract and run the installer
 
-## Out-of-memory
+### Out-of-memory
 
 ```
 [2019-08-28T21:29:03.757Z][WARN]-Worker consumed all allocated memory! Memory Usage (KB).	{"workerId": "e544111a-03f5-40da-5e5c-23df2f6ced65", "funcArn": "arn:aws:lambda:<AWS Region>:<AWS Account ID>:function:pinned-ggc-mli-stack:6", "memSize": 120000, "memUsed": 165172}

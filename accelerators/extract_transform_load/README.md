@@ -193,15 +193,15 @@ With the stack deployed, we use one output from the CloudFormation stack, the *G
 
 1. Change to the to `docker/config` directory and create a new file named `config.json`. From the CloudFormation console, select the stack and output tab. Copy the entire contents of the *GreengrassConfig* value, including the opening and close braces. Use your favorite JSON formatting tool to "prettify" the content. If you are using Linux or macOS with `jq` installed, the following will query and format the `config.json` content for you:
 
-   ```bash
-$ aws --region $REGION cloudformation describe-stacks --stack greengrass-etl-accelerator | jq '.Stacks | to_entries | .[].value.Outputs | .[].OutputValue | fromjson'
-   
-   # Output
-   {
-     "coreThing": {
-       ...
-     }
-   }
+    ```bash
+    $ aws --region $REGION cloudformation describe-stacks --stack greengrass-etl-accelerator | jq '.Stacks | to_entries | .[].value.Outputs | .[].OutputValue | fromjson'
+    
+    # Output
+    {
+      "coreThing": {
+        ...
+      }
+    }
    ```
    
 1. Paste into the newly created `config.json` file and replace *CERTIFICATE_NAME_HERE* with the file name and extension of your certificate (e.g., `123beef-certificate.pem.crt`).
@@ -257,7 +257,7 @@ WITH SERDEPROPERTIES (
 TBLPROPERTIES ('has_encrypted_data'='false');
 ```
 
-Once create, you can then directly query the data from Athena, or use the database and table as a data source for Amazon QuickSight. Here is an Athena query of vehicle speed, limited to first 10 records:
+Once create, you can then directly query the data from Amazon Athena, or use the database and table as a data source for Amazon QuickSight. Here is an Amazon Athena query of vehicle speed, limited to first 10 records:
 
 ```sql
 SELECT * FROM default.gg_etl WHERE pid = 'VehicleSpeed'

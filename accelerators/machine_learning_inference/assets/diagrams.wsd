@@ -1,0 +1,26 @@
+Diagrams for Machine Learning Inference Greengrass Accelerator
+
+@startuml
+!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v3.0/dist
+!includeurl AWSPuml/AWSCommon.puml
+!includeurl AWSPuml/InternetOfThings/all.puml
+
+skinparam activity {
+  FontName Aapex
+}
+skinparam wrapWidth 100
+start
+:Perform Machine Learning Inference at the edge on AWS IoT Greengrass Core v1.6 or later;
+if (Uses Amazon SageMaker tools?) then (yes)
+  if(Algorithm available in Greengrass connectors?) then (yes)
+    :Use one of the connectors, such as **//Greengrass Image Classification connector//** or **//Greengrass Object Detection connector//**;
+  elseif (Model trained in SageMaker and optimize with NEO?) then (yes)
+    :Use **//NEO-AI runtime//** to run the model compiled by AWS SageMaker Neo in the Greengrass Group;
+  else (no)
+    :Deploy **//Amazon SageMaker//** model as the machine learning resource in the Greengrass Group with MXNet, TensorFlow or Chainer runtimes;
+  endif
+else (no)
+  :Upload the pre-trained model in S3 and configure the model as machine learning resource in the Greengrass Group;
+endif
+stop
+@enduml

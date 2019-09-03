@@ -48,32 +48,7 @@ The  processing flow of the accelerator is:
 
 The diagram below summarize the decision tree to which Greengrass Machine Learning Runtime can be used:
 
-```plantuml
-@startuml
-!define AWSPuml https://raw.githubusercontent.com/awslabs/aws-icons-for-plantuml/v3.0/dist
-!includeurl AWSPuml/AWSCommon.puml
-!includeurl AWSPuml/InternetOfThings/all.puml
-
-skinparam activity {
-  FontName Aapex
-}
-skinparam wrapWidth 100
-start
-:Perform Machine Learning Inference at the edge on AWS IoT Greengrass Core v1.6 or later;
-if (Uses Amazon SageMaker tools?) then (yes)
-  if(Algorithm available in Greengrass connectors?) then (yes)
-    :Use one of the connectors, such as **//Greengrass Image Classification connector//** or **//Greengrass Object Detection connector//**;
-  elseif (Model trained in SageMaker and optimize with NEO?) then (yes)
-    :Use **//NEO-AI runtime//** to run the model compiled by AWS SageMaker Neo in the Greengrass Group;
-  else (no)
-    :Deploy **//Amazon SageMaker//** model as the machine learning resource in the Greengrass Group with MXNet, TensorFlow or Chainer runtimes;
-  endif
-else (no)
-  :Upload the pre-trained model in S3 and configure the model as machine learning resource in the Greengrass Group;
-endif
-stop
-@enduml
-```
+![MLI Decision Tree Diagram](assets/runtime_tree.png)
 
 ### Algorithm available as Greengrass connectors
 If the algorithm is available as Greengrass connectors, such as Image Classification, run the model using the Greengrass connector
@@ -111,5 +86,5 @@ For example, the `cfn/lambda_functions/s3_models/` folder contains the Lambda fu
 
 Details of how to run the machine learning inference is in separate document:
 
-* [Machine Learning Inference using pre-trained model uploaded to S3](file://S3_MODELS.md)
+* [Machine Learning Inference using pre-trained model uploaded to S3](S3_MODELS.md)
 

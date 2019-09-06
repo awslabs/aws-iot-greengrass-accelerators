@@ -1,5 +1,8 @@
 # Greengrass Accelerators
 
-Placeholder for repo readme.
+Each folder contains a Greengrass accelerator based around common design patterns or use cases.
 
-Will describe repo and have links to specific accelerators, each with their own docs.
+## Accelerators
+
+- [Extract, Transform, and Load](accelerators/extract_transform_load/README.md)
+- [Machine Learning Inference](accelerators/machine_learning_inference/README.md)

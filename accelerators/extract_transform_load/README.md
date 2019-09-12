@@ -238,7 +238,7 @@ etl-greengrass | Greengrass successfully started with PID: 17
 
 8. From the Greengrass Console, navigate to your created Greengrass Group and perform *Actions->Deploy* to deploy to the running Docker container.
 
-To verify operation, you can look at the log files `docker/logs/user/…/` for the Lambda functions for messages. Also, the S3 bucket used by Firehose should start to receive events. And, every 30 seconds, statistical messages will start to be published on the MQTT topic `core_name/telemetry` (default being `gg_etl_accel/telemetry`).
+To verify operation, you can look at the log files `docker/log/user/…/` for the Lambda functions for messages. Also, the S3 bucket used by Firehose should start to receive events. And, every 30 seconds, statistical messages will start to be published on the MQTT topic `core_name/telemetry` (default being `gg_etl_accel/telemetry`).
 
 ### Visualizing the Data
 

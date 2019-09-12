@@ -145,9 +145,13 @@ To create or overwrite the templates, perform the following steps from a command
 
 1. Clone the repository `git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git` and change to `aws-iot-greengrass-accelerators/accelerators/extract_transform_load/cfn`, where this README.md file is located.
 
-1. Create the CloudFormation output file using the AWS CLI.  Using the commands below, you can either preset the \$AWS_PROFILE, \$REGION, and \$S3_BUCKET variables, or reference those directly via the `aws cloudformation package` command. The result of that command will be an *OUTPUT* CloudFormation template file, along with the packaged Lambda functions being copied to the S3 bucket. The `AWS_PROFILE` contains the credentials, account details, and optionally region to create the CloudFormation stack.
+1. Create the CloudFormation output file using the AWS CLI.  Using the commands below, replace or set these environment variables:
 
-   Complete list of commands to create the CloudFormation template file, upload assets, and create a stack (note the changes for the `--parameter-overrides` section).
+    * **\$AWS_PROFILE** - Reference an AWS CLI profile in `~/.aws` with the account credentials needed to build and deploy the CloudFormation template.
+    * **\$REGION** - The AWS region for deploying the stack.
+    * **\$S3_BUCKET** - A pre-created S3 bucket to hold the CloudFormation artifacts (e.g., Lambda function zip files).
+
+   Below is a list of the commands to create the CloudFormation template file, upload assets, and create a stack (note the changes for the `--parameter-overrides` section where you need to provide the `ThingName` and `CertificateArn` values).
    
    ```bash
    # BASH commands (replace exports with your AWSCLI profile, region, and S3 bucket settings)
@@ -171,7 +175,7 @@ To create or overwrite the templates, perform the following steps from a command
      --capabilities CAPABILITY_NAMED_IAM \
      --parameter-overrides \
        ThingName="gg_etl_accel" \
-    CertificateArn="certificate ARN from prerequisites"
+       CertificateArn="certificate ARN from prerequisites"
    
    # Output of stack deploy command:
    Waiting for changeset to be created..

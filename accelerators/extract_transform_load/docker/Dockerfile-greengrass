@@ -1,5 +1,3 @@
-# Once Python dependencies are in the amazon/aws-iot-greengrass:latest
-# image, remove the complete build steps and use:
 FROM amazon/aws-iot-greengrass:latest
 
 # Install system dependencies and supporting services for accelerator
@@ -35,5 +33,3 @@ RUN pip3.7 install -r requirements.txt
 
 # Replace entrypoint with one that start supporting services
 COPY greengrass-entrypoint.sh /
-
-# Cleanup

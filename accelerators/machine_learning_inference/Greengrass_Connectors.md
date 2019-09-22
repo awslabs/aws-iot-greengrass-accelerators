@@ -1,6 +1,13 @@
 # Greengrass Machine Learning Inference (MLI) using Greengrass Connectors 
 
-This document describe the steps in setting up Greengrass Machine Learning Inference, using Greengrass Image Classification with a SageMaker training job. Greengrass ML Feedback connector will also be used, for future model retraining or prediction results analysis.
+This document describe the steps in setting up Greengrass Machine Learning Inference, using Greengrass Image Classification Connector with Amazon SageMaker training job. Greengrass ML Feedback connector will be used to collect data from the field for future model retraining or prediction results analysis.
+
+## Greengrass Machine Learning (ML) Connectors
+
+Using Greengrass Connectors for Machine Learning at the edge offers the following advantages: 
+
+1. Greengrass ML Connectors are prebuilt modules to help accelerate the development lifecycle for ML at the edge. Deployment of Greengrass ML Connectors includes the libraries optimized for the hardware platform, eliminates the complexity of having to manage the libraries for dfferent hardware platform which is required if [running the ML without any Greengrass Connector](https://github.com/awslabs/aws-iot-greengrass-accelerators/blob/master/accelerators/machine_learning_inference/S3_MODELS.md#how-to-deploy-the-accelerator)
+2. Greengrass ML Feedback Connector supports [sampling strategies](https://docs.aws.amazon.com/en_pv/greengrass/latest/developerguide/ml-feedback-connector), offering cost effectiveness in collecting data in the field. 
 
 ## Design Pattern
 
@@ -12,10 +19,13 @@ The common design patterns of using Greengrass Connectors:
 2. **Data acquisition** - This function periodically acquire the raw data inputs from a image source. In this example, we are using static images to simulate image sources.
 3. **Data preprocessor** - This function pre-process the image by resize to the images used to train the model.
 4. **Estimator** - This function predict the data input with the connector via IPC
-5. The Connector loads the model from local Greengrass resource and invoke the model. **The Greengrass Image Classification connector is bundled with a precompiled MXNet library, so you don't need to install the MXNet framework on the core device.**
+5. **Greengrass ML Image Classification Connector** - The Connector loads the model from local Greengrass resource and invoke the model. 
 6. The process will handle the prediction result, with object detected and confidence level.
 7. The result can be used to trigger an action, or send it back to the cloud for further processing.
-8. Using a Greengrass ML Feedback Connector, the result from prediction can be sent back to AWS for model retraining and analysis.
+8. **Greengrass ML Feedback Connector** - Greengrass ML Feedback Connector sends field data back to AWS according to the sampling strategy configured
+9. Greengrass ML Feedback Connector sends unlabeled data to AWS
+10. Unlabled data can be labeled using Amazon Ground Truth, and the labeled data can be used to retrain the model
+11. Greengrass ML Feedback Connector sends prediction performance which can be used for performance analysis in realtime using AWS services.
 
 ## How to Deploy the Accelerator
 

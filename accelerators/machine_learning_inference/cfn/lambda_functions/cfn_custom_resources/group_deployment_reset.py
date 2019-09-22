@@ -16,21 +16,21 @@ def handler(event, context):
     try:
         logger.info("Received event: {}".format(json.dumps(event)))
         result = cfnresponse.FAILED
-        group_id = event["ResourceProperties"]["GroupId"]
+
         # role_name = event["ResourceProperties"]["RoleName"]
         if event["RequestType"] == "Create":
             result = cfnresponse.SUCCESS
-        elif event["RequestType"] == "Update":
-            # No action required on Update
-            result = cfnresponse.SUCCESS
-        elif event["RequestType"] == "Delete":
-            logger.info("Group id to delete: %s" % group_id)
+        # Update in CDK is a delete and create, thus need to reset the deployment to avoid error
+        # "This group is currently deployed, so it cannot be deleted."
+        elif event["RequestType"] == "Update" or event["RequestType"] == "Delete":
+            group_id = event["ResourceProperties"].get("GroupId")    
             if group_id:
+                logger.info("Group id to delete: %s" % group_id)
                 c.reset_deployments(Force=True, GroupId=group_id)
                 result = cfnresponse.SUCCESS
                 logger.info("Forced reset of Greengrass deployment")
             else:
-                logger.error("No group Id %s found, reset not required" % group_id)
+                logger.error("No group Id %s found, reset not required")
     except ClientError as e:
         logger.error("Error: %s" % e)
         result = cfnresponse.FAILED

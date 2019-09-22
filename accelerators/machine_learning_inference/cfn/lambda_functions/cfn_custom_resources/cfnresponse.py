@@ -11,7 +11,7 @@ import json
 SUCCESS = "SUCCESS"
 FAILED = "FAILED"
 
-def send(event, context, responseStatus, responseData, physicalResourceId=None):
+def send(event, context, responseStatus, responseData, physicalResourceId=None, noEcho=False):
     responseUrl = event['ResponseURL']
 
     print(responseUrl)
@@ -23,6 +23,7 @@ def send(event, context, responseStatus, responseData, physicalResourceId=None):
     responseBody['StackId'] = event['StackId']
     responseBody['RequestId'] = event['RequestId']
     responseBody['LogicalResourceId'] = event['LogicalResourceId']
+    responseBody['NoEcho'] = noEcho
     responseBody['Data'] = responseData
 
     json_responseBody = json.dumps(responseBody)

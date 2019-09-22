@@ -87,4 +87,5 @@ For example, the `cfn/lambda_functions/s3_models/` folder contains the Lambda fu
 Details of how to run the machine learning inference is in separate document:
 
 * [Machine Learning Inference using pre-trained model uploaded to S3](S3_MODELS.md)
+* [Machine Learning Inference using Greengrass connector with Amazon SageMaker training job](Greengrass_Connectors.md)
 

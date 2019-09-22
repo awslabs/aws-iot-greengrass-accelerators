@@ -11,7 +11,7 @@ The common design patterns of using Greengrass Connectors:
 1. Creates a Amazon SageMaker training job to create the model. When the Greengrass configuration is being deployed, the Greengrass Core will download the model from the *Amazon SageMaker* training job as a local machine learning resource.
 2. **Data acquisition** - This function periodically acquire the raw data inputs from a image source. In this example, we are using static images to simulate image sources.
 3. **Data preprocessor** - This function pre-process the image by resize to the images used to train the model.
-4. **Inference** - This function forwards the data to the connector for prediction
+4. **Estimator** - This function predict the data input with the connector via IPC
 5. The Connector loads the model from local Greengrass resource and invoke the model. **The Greengrass Image Classification connector is bundled with a precompiled MXNet library, so you don't need to install the MXNet framework on the core device.**
 6. The process will handle the prediction result, with object detected and confidence level.
 7. The result can be used to trigger an action, or send it back to the cloud for further processing.

@@ -11,7 +11,7 @@ The common design patterns of using a pre-trained model in S3 bucket:
 1. When the Greengrass configuration is being deployed, the Greengrass Core will download the model from the S3 bucket as configured in the Machine Learning Resources, to the local disk, and extract the files from the compressed `.tar.gz` or `.zip`.
 2. **Data acquisition** - This function periodically acquire the raw data inputs from a image source. In this example, we are using static images to simulate image sources.
 3. **Data preprocessor** - This function pre-process the image by resize to the images used to train the model.
-4. **Inference** - This function forwards the image through the MXNet model
+4. **Estimator** - This function predict the data input with data loaded in MXNet runtime
 5. The MXNet runtime loads the model from the local path 
 6. The process will handle the prediction result, with object detected and confidence level.
 7. The result can be used to trigger an action, or send it back to the cloud for further processing.

@@ -1,13 +1,13 @@
 # Greengrass Machine Learning Inference (MLI) using Greengrass Connectors 
 
-This document describe the steps in setting up Greengrass Machine Learning Inference, using Greengrass Image Classification Connector with Amazon SageMaker training job. Greengrass ML Feedback connector will be used to collect data from the field for future model retraining or prediction results analysis.
+This document describe the steps in setting up Greengrass Machine Learning Inference, using Greengrass Image Classification ML Connector with model trained with Amazon SageMaker, and Greengrass ML Feedback connector to send data back to AWS for  model retraining or prediction performance analysis.
 
 ## Greengrass Machine Learning (ML) Connectors
 
-Using Greengrass Connectors for Machine Learning at the edge offers the following advantages: 
+Greengrass ML Connectors are prebuilt modules to help accelerate the development lifecycle for ML at the edge. Using Greengrass ML Connectors for machine learning inference at the edge, offers these advantages: 
 
-1. Greengrass ML Connectors are prebuilt modules to help accelerate the development lifecycle for ML at the edge. Deployment of Greengrass ML Connectors includes the libraries optimized for the hardware platform, eliminates the complexity of having to manage the libraries for dfferent hardware platform which is required if [running the ML without any Greengrass Connector](https://github.com/awslabs/aws-iot-greengrass-accelerators/blob/master/accelerators/machine_learning_inference/S3_MODELS.md#how-to-deploy-the-accelerator)
-2. Greengrass ML Feedback Connector supports [sampling strategies](https://docs.aws.amazon.com/en_pv/greengrass/latest/developerguide/ml-feedback-connector), offering cost effectiveness in collecting data in the field. 
+1. Deployment of Greengrass ML Connectors includes the libraries optimized for the hardware platform, eliminates the complexity of having to manage the libraries for dfferent hardware platform, [which is required if running the ML without any Greengrass Connector](https://github.com/awslabs/aws-iot-greengrass-accelerators/blob/master/accelerators/machine_learning_inference/S3_MODELS.md#how-to-deploy-the-accelerator)
+2. Greengrass ML Feedback Connector supports various [sampling strategies](https://docs.aws.amazon.com/en_pv/greengrass/latest/developerguide/ml-feedback-connector#ml-feedback-connector-sampling-strategies), offering cost effectiveness in collecting data in the field. 
 
 ## Design Pattern
 
@@ -25,7 +25,7 @@ The common design patterns of using Greengrass Connectors:
 8. **Greengrass ML Feedback Connector** - Greengrass ML Feedback Connector sends field data back to AWS according to the sampling strategy configured
 9. Greengrass ML Feedback Connector sends unlabeled data to AWS
 10. Unlabled data can be labeled using Amazon Ground Truth, and the labeled data can be used to retrain the model
-11. Greengrass ML Feedback Connector sends prediction performance which can be used for performance analysis in realtime using AWS services.
+11. Greengrass ML Feedback Connector sends prediction performance which can be used for realtime performance analysis.
 
 ## How to Deploy the Accelerator
 
@@ -33,7 +33,7 @@ To launch this accelerator, there are a few prerequisites and steps to complete.
 
 The main steps for deployment are:
 1. _Complete prerequisites._ Ensure there is an AWS IoT certificate and private key created and accessible locally for use.
-2. _Create the Amazon SageMaker training job._ We will use an example notebook from Amazon SageMaker to create the model with a Amazon SageMaker training job.
+2. _Train the ML model._ We will use an example notebook from Amazon SageMaker to train the model with the Image Classification Algorithm provided by Amazon SageMaker.
 3. _Generate and launch the CloudFormation stack._ This will create the Lambda functions, the Greengrass resources, and an AWS IoT thing to be used as the Greengrass Core. The certificate will be associated with the newly created Thing. At the end, a Greengrass deployment will be created and ready to be pushed to the Greengrass core hardware.
 4. _Create the config.json file_, using the outputs from the CloudFormation. Then place all files into the `/greengrass/certs` and `/greengrass/config` directories.
 5. _Deploy to Greengrass_. From the AWS Console, perform a Greengrass deployment that will push
@@ -62,11 +62,11 @@ The following is a list of prerequisites to deploy the accelerator:
      * **OpenCV** for Python3.7
   * Steps on running Greengrass on EC2 can be found in [AWS Greengrass Core on AWS EC2](#AWS-Greengrass-Core-on-AWS-EC2)
 
-### Amazon SageMaker training job
+### Train the model with Amazon SageMaker
 
-Amazon SageMaker Notebook Instances contains example notebook (also available from https://github.com/awslabs/amazon-sagemaker-examples). 
+We will train the model using algorithm provided by Amazon SageMaker, [Amazon SageMaker Image Classification Algorithm](https://docs.aws.amazon.com/en_pv/sagemaker/latest/dg/image-classification.html) and [Caltech-256 dataset](http://www.vision.caltech.edu/Image_Datasets/Caltech256/).
 
-In this Greengrass Connector accelerator, we will be using the notebook that uses Caltech ImageNet for Image Classification (https://github.com/awslabs/amazon-sagemaker-examples/tree/master/sagemaker_neo_compilation_jobs/imageclassification_caltech)
+We will be using [the sample notebook from Amazon SageMaker](https://github.com/awslabs/amazon-sagemaker-examples/blob/master/sagemaker_neo_compilation_jobs/imageclassification_caltech/Image-classification-fulltraining-highlevel-neo.ipynb) to create the training job.
 
 1. Login to Amazon SageMaker Notebook Instances console https://console.aws.amazon.com/sagemaker/home?#/notebook-instances
 2. Select `Create notebook instance`
@@ -76,16 +76,14 @@ In this Greengrass Connector accelerator, we will be using the notebook that use
 6. Wait for the instance status to be `InService`, and select `Open Jupyter`
 7. Select `SageMaker Example` tab, expand `Sagemaker Neo Compilation Jobs`, `Image-classification-fulltraining-highlevel-neo.ipynb`, select `Use`
 8. Keep default option for the file name and select `Create copy`
-9. We need to update the hyper-parameter of the sample notebook with `use_pretrained_model=1`, otherwise the training will requires larger epochs for better accuracy
-10. Locate the cell that configure the `hyper-parameters` and add the additional `use_pretrained_model=1`
+9. We are to use transfer learning approach with `use_pretrained_model=1`. Locate the cell that configure the `hyper-parameters` and add the additional `use_pretrained_model=1`. Details of the hyperparameters can be found in [Amazon SageMaker Developer Guide - Image Classification Hyperparameters](https://docs.aws.amazon.com/en_pv/sagemaker/latest/dg/IC-Hyperparameter.html)
 ```
 ic.set_hyperparameters(num_layers=18,
 [...]
                        precision_dtype='float32',
                        use_pretrained_model=1)
 ```
-11. Let's make sure the training job is easily identifiable, by using a `base_job_name` in the `sagemaker.estimator`. **You will need this name prefix when creating the stack**
-12. Locate the cell that initialize the `sagemaker.estimator` and add the `base_job_name`, for example, using `greengrass-connector` as the prefix:
+11. We will also be setting the prefix for our training job so that the [Cloudformation Custom Resources](cfn/lambda_functions/cfn_custom_resources/get_latest_sagemaker_trainingjobs.py) is able to get the latest training job. Configure a `base_job_name` in the `sagemaker.estimator`. Locate the cell that initialize the `sagemaker.estimator` and add the `base_job_name`, for example, using `greengrass-connector` as the prefix. **You will need this name prefix when creating the stack**.
 ```
 ic = sagemaker.estimator.Estimator(training_image,
                                    role, 
@@ -93,10 +91,10 @@ ic = sagemaker.estimator.Estimator(training_image,
                                    sagemaker_session=sess,
                                    base_job_name= 'greengrass-connector')
 ```
-14. Add a cell below the cell that do the training `ic.fit()` and the command `ic.latest_training_job.name` in the empty cell. This will give us the name of the training job we need for the Greengrass Connector
+14. Add a cell below the cell that do the training `ic.fit()` and the command `ic.latest_training_job.name` in the empty cell. This will give you the name of the training job that you can verify to make sure the Cloudformation stack picks up the correct job.
 15. Select the `Cell` from thet notebook menu and `Run All`
 
-[Sample notebook Image-classification-fulltraining.ipynb](notebooks/Image-classification-fulltraining.ipynb) with all these changes is in the `notebooks/` folder.
+[Sample notebook](notebooks/Image-classification-fulltraining.ipynb) with all these changes is in the `notebooks/` folder.
 
 ### Launch the CloudFormation Stack
 

@@ -81,7 +81,7 @@ Resources:
           FunctionArn: !Ref PredictionFunction.Alias
           FunctionConfiguration:
             Pinned: True
-            MemorySize: 120000 #KB
+            MemorySize: 500000 #KB
             Timeout: 15 #seconds
             EncodingType: json
             Environment:
@@ -255,3 +255,6 @@ Outputs:
   GreengrassConfig:
     Description: "Config file contents (copy and paste into local config.json file and modify"
     Value: !GetAtt IoTThing.configJSON
+  GreengrassGroupID:
+    Description: "AWS IoT Greengrass Group ID"
+    Value: !Ref GreengrassGroup

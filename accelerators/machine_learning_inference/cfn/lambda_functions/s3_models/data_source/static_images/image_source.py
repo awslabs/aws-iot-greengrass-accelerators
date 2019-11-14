@@ -22,7 +22,7 @@ class ImageSource():
             image_name = self.images[self.image_index]
             self.log.info('image name: {}'.format(image_name))
             image = cv2.imread(image_name)
-            return image
+            return image, image_name
         except:
             e = sys.exc_info()[0]
             self.log.exception("Exception occured during prediction: {}".format(e))

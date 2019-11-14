@@ -36,12 +36,12 @@ prediction_topic = "mli/predictions/{}".format(thing_name)
 def greengrass_long_run():
     if global_model is not None:
         try:
-            image = source.get_image()
+            image, image_name = source.get_image()
             predictions = global_model.predict(image, N=1)
 
             # predictions = global_model.predict_from_cam()
             log.info('predictions: {}'.format(predictions))
-            result=map(lambda x: {'confidence':str(x[0]),'prediction':str(x[1])}, predictions)
+            result=map(lambda x: {'confidence':str(x[0]),'prediction':str(x[1]),'image_name':str(os.path.basename(image_name))}, predictions)
             client.publish(topic=prediction_topic, payload=json.dumps(list(result)))
         except:
             e = sys.exc_info()[0]

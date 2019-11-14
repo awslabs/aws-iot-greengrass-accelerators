@@ -302,7 +302,7 @@ Outputs:
     Value: !GetAtt GreengrassInstance.PublicIp
   ConnectCommand:
     Description: "Command to connect to the EC2"
-    Value: !Sub "ssh -i ${myKeyPair} ubuntu@${GreengrassInstance.PublicIp}"
+    Value: !Sub "ssh -i ${myKeyPair}.pem ubuntu@${GreengrassInstance.PublicIp}"
   SCPCommand:
     Description: "Command to scp greengrass-setup.zip to the EC2"
-    Value: !Sub "scp -i ${myKeyPair} greengrass-setup.zip ubuntu@${GreengrassInstance.PublicIp}:~/"
+    Value: !Sub "scp -i ${myKeyPair}.pem greengrass-setup.zip ubuntu@${GreengrassInstance.PublicIp}:~/"

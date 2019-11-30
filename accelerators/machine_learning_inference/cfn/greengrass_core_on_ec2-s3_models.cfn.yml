@@ -121,8 +121,8 @@ Resources:
           adduser --system ggc_user
           groupadd --system ggc_group
 
-          wget https://d1onfpft10uf5o.cloudfront.net/greengrass-core/downloads/1.9.1/greengrass-linux-x86-64-1.9.1.tar.gz
-          tar xzvf greengrass-linux-x86-64-1.9.1.tar.gz -C /
+          wget https://d1onfpft10uf5o.cloudfront.net/greengrass-core/downloads/1.10.0/greengrass-linux-x86-64-1.10.0.tar.gz
+          tar xzvf greengrass-linux-x86-64-1.10.0.tar.gz -C /
 
           # Installing necessary libraries
           apt-get install unzip # to unzip the greengrass-setup.zip

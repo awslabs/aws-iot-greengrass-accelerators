@@ -3,10 +3,6 @@ AWSTemplateFormatVersion: "2010-09-09"
 Description: Create Greengrass resources and group, with supporting AWS services
 
 Parameters:
-  CoreName:
-    Description: Green Core name to be created. A "Thing" with be created with _Core appended to the name
-    Type: String
-    Default: gg-ec2_cfn
   SecurityAccessCIDR:
     Description: CIDR block to limit inbound access for only SSH
     Type: String
@@ -93,7 +89,12 @@ Resources:
         FromPort: 22
         ToPort: 22
         CidrIp: !Ref SecurityAccessCIDR
-
+  Ec2WaitCondition:
+    Type: AWS::CloudFormation::WaitCondition
+    CreationPolicy:
+      ResourceSignal:
+        Count: 1
+        Timeout: "PT20M"
   GreengrassInstance:
     Type: "AWS::EC2::Instance"
     Properties:
@@ -103,7 +104,7 @@ Resources:
       SecurityGroupIds: !Split [",", !GetAtt InstanceSecurityGroup.GroupId]
       Tags:
        - Key: Name
-         Value: !Sub "Greengrass Core HSA - ${CoreName}"
+         Value: !Sub "Greengrass Core HSA on EC2"
       SubnetId: !Ref SubnetAPublic
       UserData:
         # All the steps to install dependencies and create the specific
@@ -145,8 +146,17 @@ Resources:
           [Install]
           WantedBy=multi-user.target
           EOT
+
           cp greengrass.service /etc/systemd/system
           systemctl enable greengrass.service
+
+          apt-get -y install python-pip
+          mkdir aws-cfn-bootstrap-latest
+          wget https://s3.amazonaws.com/cloudformation-examples/aws-cfn-bootstrap-latest.tar.gz
+          pip install aws-cfn-bootstrap-latest.tar.gz
+          tar xzf aws-cfn-bootstrap-latest.tar.gz -C aws-cfn-bootstrap-latest --strip-components 1
+          /usr/local/bin/cfn-signal -e $? --stack ${AWS::StackName} --resource Ec2WaitCondition --region ${AWS::Region}            
+
           reboot
 
   InstanceAZ:
@@ -175,7 +185,6 @@ Resources:
           logger.setLevel(logging.INFO)
 
           c = boto3.client('ec2')
-
 
           def handler(event, context):
               responseData = {}

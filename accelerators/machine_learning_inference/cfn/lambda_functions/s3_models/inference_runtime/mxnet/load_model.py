@@ -3,7 +3,7 @@ import numpy as np
 import io
 import cv2
 import os
-import urllib.request
+import urllib
 import argparse
 from collections import namedtuple
 Batch = namedtuple('Batch', ['data'])
@@ -18,17 +18,17 @@ class ImagenetModel:
 
         # Download the symbol set and network if URLs are provided
         if params_url is not None:
-            fetched_file = urllib.request.urlopen(params_url)
+            fetched_file = urllib.urlopen(params_url)
             with open(network_prefix + "-0000.params", 'wb') as output:
                 output.write(fetched_file.read())
 
         if symbol_url is not None:
-            fetched_file = urllib.request.urlopen(symbol_url)
+            fetched_file = urllib.urlopen(symbol_url)
             with open(network_prefix + "-symbol.json", 'wb') as output:
                 output.write(fetched_file.read())
 
         if synset_url is not None:
-            fetched_file = urllib.request.urlopen(synset_url)
+            fetched_file = urllib.urlopen(synset_url)
             with open(synset_path, 'wb') as output:
                 output.write(fetched_file.read())
 

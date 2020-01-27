@@ -65,7 +65,7 @@ wget http://data.mxnet.io/models/imagenet/inception-bn/Inception-BN-symbol.json 
 
 1. Create a zip file that contains the 3 artifacts
 ```bash
-zip inception-bn.zip Inception-BN-symbol.json synset.txt Inception-BN-0126.params
+zip inception-bn.zip Inception-BN-symbol.json synset.txt Inception-BN-0000.params
 ```
 
 1. Upload the model to the S3 bucket created to hold the pre-trained model, such as the example bucket `${AWS Account ID}-us-east-1-greengrass-ml`.
@@ -156,7 +156,7 @@ With the stack deployed, we use one output from the CloudFormation stack, the *G
 1. Unzip the contents from the 2 folders in `greengrass-setup.zip` into `certs/` and `config/` folders respectively, using the command `sudo unzip -o greengrass-setup.zip -d /greengrass`
 1. Verify that all certificates are in the `certs/` folder, and `config.json` is in the `config/` folder.
 1. Restart the Greengrass software, such as using the command `sudo /greengrass/ggc/core/greengrassd restart`, or `sudo systemctl restart greengrass` if Greengrass Core is under `systemctl` management.
-1. Monitor the log file of the Greengrass software to make sure that Greengrass software started properly, such as using the command `tail -F /greengrass/ggc/var/log/system/runtime.log`.
+1. Monitor the log file of the Greengrass software to make sure that Greengrass software started properly, such as using the command `sudo tail -F /greengrass/ggc/var/log/system/runtime.log`.
 1. If the Greengrass software started properly, you should see these in the log file
    ```log
    [2019-08-18T01:14:55.69-07:00][INFO]-===========================================
@@ -273,3 +273,6 @@ Remote access to the Greengrass Core, and install the libraries following the st
 [2019-08-28T21:29:03.757Z][WARN]-Worker consumed all allocated memory! Memory Usage (KB).	{"workerId": "e544111a-03f5-40da-5e5c-23df2f6ced65", "funcArn": "arn:aws:lambda:<AWS Region>:<AWS Account ID>:function:pinned-ggc-mli-stack:6", "memSize": 120000, "memUsed": 165172}
 [2019-08-28T21:29:03.757Z][ERROR]-Worker is ungracefully killed.	{"workerId": "e544111a-03f5-40da-5e5c-23df2f6ced65", "funcArn": "arn:aws:lambda:<AWS Region>:<AWS Account ID>:function:pinned-ggc-mli-stack:6", "state": "signal: killed"}
 ```
+#### Resolution
+
+You need to increase the memory used for the Lambda function. In the example above, you need to increase it to at least 165MB

@@ -103,7 +103,7 @@ Resources:
     Properties: 
       FunctionName: !Sub pinned-${AWS::StackName}
       Handler: "mlconnector.handler"
-      CodeUri: ../lambda_functions/greengrass_connector
+      CodeUri: lambda_functions/greengrass_connectors
       Runtime: "python3.7"
       Timeout: 25
       AutoPublishAlias: GreenGrassAlias
@@ -201,7 +201,7 @@ Resources:
       Runtime: python3.7
       Role: !GetAtt LambdaExecutionRole.Arn
       Timeout: 60
-      CodeUri: ../lambda_functions/cfn_custom_resources  
+      CodeUri: lambda_functions/cfn_custom_resources  
       Environment:
         Variables:
           STACK_NAME: !Ref "AWS::StackName"
@@ -223,7 +223,7 @@ Resources:
       Runtime: python3.7
       Role: !GetAtt LambdaExecutionRole.Arn
       Timeout: 60
-      CodeUri: ../lambda_functions/cfn_custom_resources
+      CodeUri: lambda_functions/cfn_custom_resources
       Environment:
         Variables:
           STACK_NAME: !Ref "AWS::StackName"
@@ -243,7 +243,7 @@ Resources:
       Runtime: python3.7
       Role: !GetAtt CustomResourceTrainingJobLambdaExecutionRole.Arn
       Timeout: 60
-      CodeUri: ../lambda_functions/cfn_custom_resources
+      CodeUri: lambda_functions/cfn_custom_resources
       Environment:
         Variables:
           STACK_NAME: !Ref "AWS::StackName"

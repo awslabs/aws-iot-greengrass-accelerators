@@ -161,14 +161,14 @@ With the stack deployed, we use one output from the CloudFormation stack, the *G
    1. Retrieve the `config.json` created from the CloudFormation, using the AWS CLI command
    ```bash
    aws cloudformation describe-stacks \
-   --stack-name greengrass-mli-accelerator \
+   --stack-name ${STACK_NAME} \
    --output text \  
    --query 'Stacks[*].Outputs[?OutputKey==`GreengrassConfig`].OutputValue' 
    ```
    or you can pipe through a Python json tool for pretty print:
    ```bash
    aws cloudformation describe-stacks \
-   --stack-name greengrass-mli-accelerator \
+   --stack-name ${STACK_NAME} \
    --output text \  
    --query 'Stacks[*].Outputs[?OutputKey==`GreengrassConfig`].OutputValue' 
    | python -m json.tool 

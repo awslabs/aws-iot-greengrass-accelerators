@@ -1,0 +1,27 @@
+{
+  "name": "gg-accelerator-stream-manager",
+  "version": "1.0.0",
+  "description": "Deploy stack to test Stream Manager and Docker deployment connector",
+  "private": true,
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "cdk": "cdk"
+  },
+  "author": {
+    "name": "Amazon Web Services",
+    "url": "https://aws.amazon.com",
+    "organization": true
+  },
+  "license": "Apache-2.0",
+  "devDependencies": {
+    "@types/uuid": "^3.4.6",
+    "typescript": "~3.7.2"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-cloudformation": "*",
+    "@aws-cdk/aws-lambda": "*",
+    "@aws-cdk/core": "*",
+    "uuid": "^3.4.0"
+  }
+}

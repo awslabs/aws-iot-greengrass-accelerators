@@ -1,0 +1,34 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const cfn = require("@aws-cdk/aws-cloudformation");
+const lambda = require("@aws-cdk/aws-lambda");
+const iam = require("@aws-cdk/aws-iam");
+const cdk = require("@aws-cdk/core");
+const uuid = require("uuid/v5");
+class CustomResourceIoTThingCertPolicy extends cdk.Construct {
+    constructor(scope, id, props) {
+        super(scope, id);
+        props.physicalId = props.functionName;
+        // Core name is change to all lower-case and adding _Core designation to end
+        props.greengrassCoreName = props.stackName.split("-").join("_") + "_Core";
+        const resource = new cfn.CustomResource(this, 'Resource', {
+            provider: cfn.CustomResourceProvider.fromLambda(new lambda.SingletonFunction(this, 'Singleton', {
+                functionName: props.functionName,
+                uuid: uuid(props.functionName, uuid.DNS),
+                code: lambda.Code.fromAsset('cr-create-iot-thing-cert-policy/cr_iot_thing_cert_policy'),
+                handler: 'index.main',
+                timeout: cdk.Duration.seconds(30),
+                runtime: lambda.Runtime.PYTHON_3_8,
+                initialPolicy: [
+                    new iam.PolicyStatement({ actions: ['iot:*'], resources: ['*'] })
+                ]
+            })),
+            properties: props
+        });
+        // Set resource return values for use by cdk.cfnOutput
+        this.certificatePem = resource.getAttString('certificatePem');
+        this.privateKeyPem = resource.getAttString('privateKeyPem');
+    }
+}
+exports.CustomResourceIoTThingCertPolicy = CustomResourceIoTThingCertPolicy;
+//# sourceMappingURL=data:application/json;base64,eyJ2ZXJzaW9uIjozLCJmaWxlIjoiY3ItaW90LXRoaW5nLWNlcnQtcG9saWN5LmpzIiwic291cmNlUm9vdCI6IiIsInNvdXJjZXMiOlsiY3ItaW90LXRoaW5nLWNlcnQtcG9saWN5LnRzIl0sIm5hbWVzIjpbXSwibWFwcGluZ3MiOiI7O0FBQUEsbURBQW9EO0FBQ3BELDhDQUErQztBQUMvQyx3Q0FBeUM7QUFDekMscUNBQXNDO0FBRXRDLGdDQUFpQztBQWVqQyxNQUFhLGdDQUFpQyxTQUFRLEdBQUcsQ0FBQyxTQUFTO0lBSWpFLFlBQVksS0FBb0IsRUFBRSxFQUFVLEVBQUUsS0FBNEM7UUFDeEYsS0FBSyxDQUFDLEtBQUssRUFBRSxFQUFFLENBQUMsQ0FBQztRQUNqQixLQUFLLENBQUMsVUFBVSxHQUFHLEtBQUssQ0FBQyxZQUFZLENBQUM7UUFDdEMsNEVBQTRFO1FBQzVFLEtBQUssQ0FBQyxrQkFBa0IsR0FBRyxLQUFLLENBQUMsU0FBUyxDQUFDLEtBQUssQ0FBQyxHQUFHLENBQUMsQ0FBQyxJQUFJLENBQUMsR0FBRyxDQUFDLEdBQUcsT0FBTyxDQUFBO1FBRXpFLE1BQU0sUUFBUSxHQUFHLElBQUksR0FBRyxDQUFDLGNBQWMsQ0FBQyxJQUFJLEVBQUUsVUFBVSxFQUFFO1lBQ3hELFFBQVEsRUFBRSxHQUFHLENBQUMsc0JBQXNCLENBQUMsVUFBVSxDQUFDLElBQUksTUFBTSxDQUFDLGlCQUFpQixDQUFDLElBQUksRUFBRSxXQUFXLEVBQUU7Z0JBQzlGLFlBQVksRUFBRSxLQUFLLENBQUMsWUFBWTtnQkFDaEMsSUFBSSxFQUFFLElBQUksQ0FBQyxLQUFLLENBQUMsWUFBWSxFQUFFLElBQUksQ0FBQyxHQUFHLENBQUM7Z0JBQ3hDLElBQUksRUFBRSxNQUFNLENBQUMsSUFBSSxDQUFDLFNBQVMsQ0FBQywwREFBMEQsQ0FBQztnQkFDdkYsT0FBTyxFQUFFLFlBQVk7Z0JBQ3JCLE9BQU8sRUFBRSxHQUFHLENBQUMsUUFBUSxDQUFDLE9BQU8sQ0FBQyxFQUFFLENBQUM7Z0JBQ2pDLE9BQU8sRUFBRSxNQUFNLENBQUMsT0FBTyxDQUFDLFVBQVU7Z0JBQ2xDLGFBQWEsRUFBRTtvQkFDYixJQUFJLEdBQUcsQ0FBQyxlQUFlLENBQUMsRUFBQyxPQUFPLEVBQUUsQ0FBQyxPQUFPLENBQUMsRUFBRSxTQUFTLEVBQUUsQ0FBQyxHQUFHLENBQUMsRUFBQyxDQUFDO2lCQUFDO2FBQ25FLENBQUMsQ0FBQztZQUNILFVBQVUsRUFBRSxLQUFLO1NBQ2xCLENBQUMsQ0FBQztRQUNILHNEQUFzRDtRQUN0RCxJQUFJLENBQUMsY0FBYyxHQUFHLFFBQVEsQ0FBQyxZQUFZLENBQUMsZ0JBQWdCLENBQUMsQ0FBQztRQUM5RCxJQUFJLENBQUMsYUFBYSxHQUFHLFFBQVEsQ0FBQyxZQUFZLENBQUMsZUFBZSxDQUFDLENBQUM7SUFDOUQsQ0FBQztDQUNGO0FBM0JELDRFQTJCQyIsInNvdXJjZXNDb250ZW50IjpbImltcG9ydCBjZm4gPSByZXF1aXJlKCdAYXdzLWNkay9hd3MtY2xvdWRmb3JtYXRpb24nKTtcbmltcG9ydCBsYW1iZGEgPSByZXF1aXJlKCdAYXdzLWNkay9hd3MtbGFtYmRhJyk7XG5pbXBvcnQgaWFtID0gcmVxdWlyZSgnQGF3cy1jZGsvYXdzLWlhbScpO1xuaW1wb3J0IGNkayA9IHJlcXVpcmUoJ0Bhd3MtY2RrL2NvcmUnKTtcblxuaW1wb3J0IHV1aWQgPSByZXF1aXJlKCd1dWlkL3Y1Jyk7XG5cbmV4cG9ydCBpbnRlcmZhY2UgQ3VzdG9tUmVzb3VyY2VJb1RUaGluZ0NlcnRQb2xpY3lQcm9wcyB7XG4gIC8qKlxuICAgKiBSZXNvdXJjZSBwcm9wZXJ0aWVzIHVzZWQgdG8gY29uc3RydWN0IHRoZSBjdXN0b20gcmVzb3VyY2UgYW5kIHBhc3NlZCBhcyBkaWN0aW9uYXJ5XG4gICAqIHRvIHRoZSByZXNvdXJjZSBhcyBwYXJ0IG9mIHRoZSBcIlJlc291cmNlUHJvcGVydGllc1wiLiBOb3RlIHRoYXQgdGhlIHByb3BlcnRpZXMgYmVsb3dcbiAgICogd2lsbCBoYXZlIGFuIHVwcGVyY2FzZSBmaXJzdCBjaGFyYWN0ZXIgYW5kIHRoZSByZXN0IG9mIHRoZSBwcm9wZXJ0eSBrZXB0IGludGFjdC5cbiAgICogRm9yIGV4YW1wbGUsIHBoeXNpY2FsSWQgd2lsbCBiZSBwYXNzZWQgYXMgUGh5c2ljYWxJZFxuICAgKi9cbiAgZnVuY3Rpb25OYW1lOiBzdHJpbmc7XG4gIHN0YWNrTmFtZTogc3RyaW5nO1xuICBwaHlzaWNhbElkPzogc3RyaW5nO1xuICBncmVlbmdyYXNzQ29yZU5hbWU/OiBzdHJpbmc7XG59XG5cbmV4cG9ydCBjbGFzcyBDdXN0b21SZXNvdXJjZUlvVFRoaW5nQ2VydFBvbGljeSBleHRlbmRzIGNkay5Db25zdHJ1Y3Qge1xuICBwdWJsaWMgcmVhZG9ubHkgY2VydGlmaWNhdGVQZW06IHN0cmluZztcbiAgcHVibGljIHJlYWRvbmx5IHByaXZhdGVLZXlQZW06IHN0cmluZztcblxuICBjb25zdHJ1Y3RvcihzY29wZTogY2RrLkNvbnN0cnVjdCwgaWQ6IHN0cmluZywgcHJvcHM6IEN1c3RvbVJlc291cmNlSW9UVGhpbmdDZXJ0UG9saWN5UHJvcHMpIHtcbiAgICBzdXBlcihzY29wZSwgaWQpO1xuICAgIHByb3BzLnBoeXNpY2FsSWQgPSBwcm9wcy5mdW5jdGlvbk5hbWU7XG4gICAgLy8gQ29yZSBuYW1lIGlzIGNoYW5nZSB0byBhbGwgbG93ZXItY2FzZSBhbmQgYWRkaW5nIF9Db3JlIGRlc2lnbmF0aW9uIHRvIGVuZFxuICAgIHByb3BzLmdyZWVuZ3Jhc3NDb3JlTmFtZSA9IHByb3BzLnN0YWNrTmFtZS5zcGxpdChcIi1cIikuam9pbihcIl9cIikgKyBcIl9Db3JlXCJcblxuICAgIGNvbnN0IHJlc291cmNlID0gbmV3IGNmbi5DdXN0b21SZXNvdXJjZSh0aGlzLCAnUmVzb3VyY2UnLCB7XG4gICAgICBwcm92aWRlcjogY2ZuLkN1c3RvbVJlc291cmNlUHJvdmlkZXIuZnJvbUxhbWJkYShuZXcgbGFtYmRhLlNpbmdsZXRvbkZ1bmN0aW9uKHRoaXMsICdTaW5nbGV0b24nLCB7XG4gICAgICAgIGZ1bmN0aW9uTmFtZTogcHJvcHMuZnVuY3Rpb25OYW1lLFxuICAgICAgICB1dWlkOiB1dWlkKHByb3BzLmZ1bmN0aW9uTmFtZSwgdXVpZC5ETlMpLFxuICAgICAgICBjb2RlOiBsYW1iZGEuQ29kZS5mcm9tQXNzZXQoJ2NyLWNyZWF0ZS1pb3QtdGhpbmctY2VydC1wb2xpY3kvY3JfaW90X3RoaW5nX2NlcnRfcG9saWN5JyksXG4gICAgICAgIGhhbmRsZXI6ICdpbmRleC5tYWluJyxcbiAgICAgICAgdGltZW91dDogY2RrLkR1cmF0aW9uLnNlY29uZHMoMzApLFxuICAgICAgICBydW50aW1lOiBsYW1iZGEuUnVudGltZS5QWVRIT05fM184LFxuICAgICAgICBpbml0aWFsUG9saWN5OiBbXG4gICAgICAgICAgbmV3IGlhbS5Qb2xpY3lTdGF0ZW1lbnQoe2FjdGlvbnM6IFsnaW90OionXSwgcmVzb3VyY2VzOiBbJyonXX0pXVxuICAgICAgfSkpLFxuICAgICAgcHJvcGVydGllczogcHJvcHNcbiAgICB9KTtcbiAgICAvLyBTZXQgcmVzb3VyY2UgcmV0dXJuIHZhbHVlcyBmb3IgdXNlIGJ5IGNkay5jZm5PdXRwdXRcbiAgICB0aGlzLmNlcnRpZmljYXRlUGVtID0gcmVzb3VyY2UuZ2V0QXR0U3RyaW5nKCdjZXJ0aWZpY2F0ZVBlbScpO1xuICAgIHRoaXMucHJpdmF0ZUtleVBlbSA9IHJlc291cmNlLmdldEF0dFN0cmluZygncHJpdmF0ZUtleVBlbScpO1xuICB9XG59XG5cbiJdfQ==

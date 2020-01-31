@@ -29,7 +29,8 @@ def create_iot_thing_certificate_policy(thing_name: str):
     while True:
         try:
             # Create thing
-            iot_client.create_thing(thingName=thing_name)
+            response = iot_client.create_thing(thingName=thing_name)
+            thing_arn = response["thingArn"]
             break
         except ClientError as e:
             logger.warning(
@@ -108,7 +109,15 @@ def create_iot_thing_certificate_policy(thing_name: str):
             time.sleep(2)
             continue
 
-    return certificate_pem, private_key
+    # Build return dictionary
+    ret = {
+        "thingArn": thing_arn,
+        "certificateArn": certificate_arn,
+        "certificatePem": certificate_pem,
+        "keyPem": private_key,
+    }
+
+    return ret
 
 
 def delete_iot_thing_certificate_policy(thing_name: str):
@@ -121,9 +130,7 @@ def delete_iot_thing_certificate_policy(thing_name: str):
     # Query thing for certificate
     while True:
         try:
-            response = iot_client.list_thing_principals(
-                thingName=thing_name
-            )
+            response = iot_client.list_thing_principals(thingName=thing_name)
             certificate_arn = response["principals"][0]
             break
         except ClientError as e:
@@ -135,9 +142,7 @@ def delete_iot_thing_certificate_policy(thing_name: str):
     # Query first certificate for attached thing(s) and policies, save each
     while True:
         try:
-            response = iot_client.list_attached_policies(
-                target=certificate_arn
-            )
+            response = iot_client.list_attached_policies(target=certificate_arn)
             policy = response["policies"][0]["policyName"]
             break
         except ClientError as e:
@@ -150,8 +155,7 @@ def delete_iot_thing_certificate_policy(thing_name: str):
     while True:
         try:
             response = iot_client.detach_policy(
-                policyName=policy,
-                target=certificate_arn
+                policyName=policy, target=certificate_arn
             )
             break
         except ClientError as e:
@@ -164,8 +168,7 @@ def delete_iot_thing_certificate_policy(thing_name: str):
     while True:
         try:
             response = iot_client.detach_thing_principal(
-                thingName=thing_name,
-                principal=certificate_arn
+                thingName=thing_name, principal=certificate_arn
             )
             break
         except ClientError as e:
@@ -178,12 +181,9 @@ def delete_iot_thing_certificate_policy(thing_name: str):
     while True:
         try:
             iot_client.update_certificate(
-                certificateId=certificate_arn.split("/")[-1],
-                newStatus="INACTIVE"
+                certificateId=certificate_arn.split("/")[-1], newStatus="INACTIVE"
             )
-            iot_client.delete_certificate(
-                certificateId=certificate_arn.split("/")[-1]
-            )
+            iot_client.delete_certificate(certificateId=certificate_arn.split("/")[-1])
             break
         except ClientError as e:
             logger.warning(
@@ -194,9 +194,7 @@ def delete_iot_thing_certificate_policy(thing_name: str):
     # Delete Policy
     while True:
         try:
-            response = iot_client.delete_policy(
-                policyName=policy
-            )
+            response = iot_client.delete_policy(policyName=policy)
             break
         except ClientError as e:
             logger.warning(
@@ -207,9 +205,7 @@ def delete_iot_thing_certificate_policy(thing_name: str):
     # Delete Thing
     while True:
         try:
-            response = iot_client.delete_thing(
-                thingName=thing_name
-            )
+            response = iot_client.delete_thing(thingName=thing_name)
             break
         except ClientError as e:
             logger.warning(
@@ -219,6 +215,7 @@ def delete_iot_thing_certificate_policy(thing_name: str):
 
     # If all steps have been processed, return True
     return True
+
 
 def main(event, context):
     import logging as log
@@ -242,22 +239,27 @@ def main(event, context):
             raise RuntimeError("Create failure requested, logging")
         elif event["RequestType"] == "Create":
             # Operations to perform during Create, then return response_data
-            certificate, key = create_iot_thing_certificate_policy(
-                thing_name = event["ResourceProperties"]["GreengrassCoreName"],
+            response = create_iot_thing_certificate_policy(
+                thing_name=event["ResourceProperties"]["GreengrassCoreName"]
             )
-            response_data = {"certificatePem": certificate, "privateKeyPem": key}
+            response_data = {
+                "thingArn": response["thingArn"],
+                "certificateArn": response["certificateArn"],
+                "certificatePem": response["certificatePem"],
+                "privateKeyPem": response["keyPem"],
+            }
         elif event["RequestType"] == "Update":
             # Operations to perform during Update, then return NULL for response data
             response_data = {}
         else:
             # Operations to perform during Delete, then return response_data
-            if not delete_iot_thing_certificate_policy(thing_name=event["ResourceProperties"]["GreengrassCoreName"]):
+            if not delete_iot_thing_certificate_policy(
+                thing_name=event["ResourceProperties"]["GreengrassCoreName"]
+            ):
                 # there was an error, alert
                 cfn_response = cfnresponse.FAILED
             response_data = {}
-        cfnresponse.send(
-            event, context, cfn_response, response_data, physical_id
-        )
+        cfnresponse.send(event, context, cfn_response, response_data, physical_id)
 
     except Exception as e:
         log.exception(e)

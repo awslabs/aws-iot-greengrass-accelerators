@@ -1,0 +1,1 @@
+# Greengrass lambda source - stream producer

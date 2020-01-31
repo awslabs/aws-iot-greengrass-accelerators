@@ -21,6 +21,8 @@ export interface CustomResourceIoTThingCertPolicyProps {
 export class CustomResourceIoTThingCertPolicy extends cdk.Construct {
   public readonly certificatePem: string;
   public readonly privateKeyPem: string;
+  public readonly certificateArn: string;
+  public readonly thingArn: string;
 
   constructor(scope: cdk.Construct, id: string, props: CustomResourceIoTThingCertPolicyProps) {
     super(scope, id);
@@ -44,6 +46,8 @@ export class CustomResourceIoTThingCertPolicy extends cdk.Construct {
     // Set resource return values for use by cdk.cfnOutput
     this.certificatePem = resource.getAttString('certificatePem');
     this.privateKeyPem = resource.getAttString('privateKeyPem');
+    this.thingArn = resource.getAttString('thingArn');
+    this.certificateArn = resource.getAttString('certificateArn');
   }
 }
 

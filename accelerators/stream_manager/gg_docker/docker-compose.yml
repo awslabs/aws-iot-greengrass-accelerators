@@ -1,0 +1,22 @@
+version: '3.7'
+
+services:
+  greengrass:
+    init: true
+    build:
+      context: .
+      dockerfile: Dockerfile-greengrass
+    container_name: etl-greengrass
+    image: x86_64/greengrass-accelerator-stream-manager:latest
+    volumes:
+      - ./certs:/greengrass/certs
+      - ./config:/greengrass/config
+      - ./deployment:/greengrass/ggc/deployment
+      - ./log:/greengrass/ggc/var/log
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      # MQTT TLS port
+      - "8883:8883"
+      # Stream Manager port
+      - "8088:8088"
+    entrypoint: "/greengrass-entrypoint.sh"

@@ -1,0 +1,3 @@
+# Common AWS SDKs for use by Lambda functions
+greengrasssdk
+boto3

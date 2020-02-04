@@ -68,29 +68,18 @@ The `gg_docker/` directory container the assets to create a Docker image and run
 
 To launch this accelerator as a Docker container, there are a few prerequisites and steps to complete. It is assumed you have basic experience with AWS IoT via the console and CLI.
 
-The main steps for deployment are:
-
-1. *Complete prerequisites*.
-1. *Generate and launch the CloudFormation stack*. This will create the Lambda functions, the Greengrass resources, and an AWS IoT thing to be used as the Greengrass Core. The certificate will be associated with the newly created Thing. At the end, a Greengrass deployment will be created and ready to be pushed to the Docker container.
-1. *From CloudFormation output, create the `config.json` file*. Then place all files into the `gg_docker/certs` and `gg_docker/config` directories.
-1. *Run the container*. From the `gg_docker/` directory, launch (`docker-compose --build up`) to build the container, which will start Greengrass in a pre-deployed state.
-1. *Deploy to Greengrass*. From the AWS Console, perform a Greengrass deployment that will push all resources to the Greengrass container and start the ETL operations.
-
-When finished, stopping the accelerator (`CTRL-C` followed by `docker-compose down`) will gracefully stop all containers and then remove then. The deployment state and any persisted data will be preserved in the `docker/` subdirectories, and used when restarted.
-
-### Verify Prerequisites
+### Prerequisites
 
 The following is a list of prerequisites to deploy the accelerator:
 
-* AWS Cloud
-  * Ensure you have an AWS user account with permissions to manage `iot`, `greengrass`, `lambda`, `cloudwatch`, and other services during the deployment of the CloudFormation stack.
+  * Ensure you have an AWS user account with permissions to create and manage `iot`, `greengrass`, `lambda`, `cloudwatch`, and other services used by CloudFormation (CDK).
+  * Install the AWS CLI locally and create a [named profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html) with credentials for the AWS user account. For Cloud9, there is a profile already created named *default*.
   * Install the [AWS Cloud Development Kit](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html) and perform a [bootstrap](https://docs.aws.amazon.com/cdk/latest/guide/troubleshooting.html#troubleshooting_nobucket) in the region you will be working.
   * Verify Docker Desktop or Docker Machine installed, and you have the ability to create or download images locally and run containers.
-  * Ensure a recent version of the AWS CLI is installed and a user profile with permissions mentioned above is available for use.
 
 ### Create and Launch the CloudFormation Stack
 
-:bulb: All steps below use a Cloud9 IDE in the same account and region where the accelerator will be run. If running locally, ensure you have the AWS CLI installed, and change the AWS profile name, *default*, to one with proper permissions.
+:bulb: All steps below use a Cloud9 IDE in the same account and region where the accelerator will be run. If running locally, ensure you have the AWS CLI installed, and change the AWS named profile from *default* to one you have created with proper permissions.
 
 Prior to launching the accelerator container locally, the AWS CDK is used to generate a CloudFormation template and deploy it. From Cloud9, follow the steps to create and launch the stack via the CDK.
 
@@ -100,78 +89,12 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
    npm install -g aws-cdk
    git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
    cd ~/environment/aws-iot-greengrass-accelerators/accelerators/stream_manager/cdk
+   cdk --profile default deploy
    ```
 
-1. Modify the 
+1. Once deployed, a series of CloudFormation stack outputs will be created and used by the `deploy.py` script to create the files needed by Greengrass.
 
-1. Create the CloudFormation output file using the AWS CLI.  Using the commands below, replace or set these environment variables:
 
-    * **\$AWS_PROFILE** - Reference an AWS CLI profile in `~/.aws` with the account credentials needed to build and deploy the CloudFormation template.
-    * **\$REGION** - The AWS region for deploying the stack.
-    * **\$S3_BUCKET** - A pre-created S3 bucket to hold the CloudFormation artifacts (e.g., Lambda function zip files).
-
-   Below is a list of the commands to create the CloudFormation template file, upload assets, and create a stack (note the changes for the `--parameter-overrides` section where you need to provide the `ThingName` and `CertificateArn` values).
-   
-   ```bash
-   # BASH commands (replace exports with your AWSCLI profile, region, and S3 bucket settings)
-   # AWS_PROFILE contains permissions to fully create and launch the CloudFormation package and template
-   export AWS_PROFILE=your-profile-here
-   export REGION=us-west-2
-   export S3_BUCKET=your_s3_bucket_here         # Needs to be located in same region as where
-                                                # the CloudFormation stack is created.
-   # Clean up any previously created files
-   rm *-OUTPUT.yaml
-   aws cloudformation package --template-file etl_accelerator-INPUT.cfn.yaml --output-template-file etl-accelerator-OUTPUT.yaml --s3-bucket $S3_BUCKET --profile $AWS_PROFILE --region $REGION
-     
-   # If using the AWS Console, upload the etl-accelerator-OUTPUT.yaml and continue with the parameters.
-   # Below are the steps to deploy via the command line.
-     
-   # To deploy back-end stack from CLI (change --stack-name and --parameter-overrides to expected values)
-   aws cloudformation deploy \
-     --region $REGION \
-     --stack-name greengrass-etl-accelerator \
-     --template etl-accelerator-OUTPUT.yaml \
-     --capabilities CAPABILITY_NAMED_IAM \
-     --parameter-overrides \
-       ThingName="gg_etl_accel" \
-       CertificateArn="certificate ARN from prerequisites"
-   
-   # Output of stack deploy command:
-   Waiting for changeset to be created..
-   Waiting for stack create/update to complete
-   Successfully created/updated stack - greengrass-etl-accelerator
-   ```
-
-At this point, all resources have been created and an initial Greengrass deployment has also been created and ready to be sent to the device.
-
-### Configure and Launch the Docker Container
-
-With the stack deployed, we use one output from the CloudFormation stack, the *GreengrassConfig* value, along with the certificate and private key to complete the `config.json` so that Greengrass in the Docker container can connect and authenticate.
-
-1. Change to the the `docker/` directory.
-
-1. Copy over the certificate and private key files to the `certs` directory. Copy the full file names to a temporary text file for modifying the `config.json` file.
-
-1. Download to `certs` directory the [Amazon Root CA1](https://www.amazontrust.com/repository/AmazonRootCA1.pem) root certificate authority file used to verify the AWS IoT and AWS Greengrass endpoints. If the link opens with the contents in your browser, use alt-click and *Save As…* instead and save as `certs/AmazonRootCA1.pem`.
-
-1. Change to the to `docker/config` directory and create a new file named `config.json`. From the CloudFormation console, select the stack and output tab. Copy the entire contents of the *GreengrassConfig* value, including the opening and close braces. Use your favorite JSON formatting tool to "prettify" the content. If you are using Linux or macOS with `jq` installed, the following will query and format the `config.json` content for you:
-
-    ```bash
-    $ aws --region $REGION cloudformation describe-stacks --stack greengrass-etl-accelerator | jq '.Stacks | to_entries | .[].value.Outputs | .[].OutputValue | fromjson'
-    
-    # Output
-    {
-      "coreThing": {
-        ...
-      }
-    }
-   ```
-   
-1. Paste into the newly created `config.json` file and replace *CERTIFICATE_NAME_HERE* with the file name and extension of your certificate (e.g., `123beef-certificate.pem.crt`).
-
-1. Do the same replacing *PRIVATE_KEY_FILENAME_HERE* with the name of your private key (e.g., `123beef-private.pem.key`).
-
-1. Save the file.
 
 1. Change back to the `docker/` directory.
 

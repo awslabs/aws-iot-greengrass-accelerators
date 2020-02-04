@@ -109,12 +109,28 @@ def create_iot_thing_certificate_policy(thing_name: str):
             time.sleep(2)
             continue
 
+    # Describe the general ATS endpoint
+    while True:
+        try:
+            response = iot_client.describe_endpoint(
+                endpointType="iot:Data-ATS"
+            )
+            endpoint_ats = response["endpointAddress"]
+            break
+        except ClientError as e:
+            logger.warning(
+                f"Error calling iot.describe_endpoint() to obtain iot:Data-ATS endpoint for thing {thing_name}, error: {e}"
+            )
+            time.sleep(2)
+            continue
+
     # Build return dictionary
     ret = {
         "thingArn": thing_arn,
         "certificateArn": certificate_arn,
         "certificatePem": certificate_pem,
         "keyPem": private_key,
+        "endpointDataAts": endpoint_ats
     }
 
     return ret
@@ -247,6 +263,7 @@ def main(event, context):
                 "certificateArn": response["certificateArn"],
                 "certificatePem": response["certificatePem"],
                 "privateKeyPem": response["keyPem"],
+                "endpointDataAts": response["endpointDataAts"]
             }
         elif event["RequestType"] == "Update":
             # Operations to perform during Update, then return NULL for response data

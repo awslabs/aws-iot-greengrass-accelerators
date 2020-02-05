@@ -11,11 +11,11 @@ fi
 
 # For docker container support, set group to docker on the /var/run/docker.sock
 usermod -a -G docker ggc_user
-ls -l /var/run/docker.sock | cut -d' ' -f4 | xargs -I 'GID' sed -E 's/docker:x:(.*):/docker:x:GID:/' /etc/group
+ls -l /var/run/docker.sock | cut -d' ' -f4 | xargs -I 'GID' sed -i -E 's/docker:x:(.*):/docker:x:GID:/' /etc/group
 # chown root:docker /var/run/docker.sock
 
 # need to invoke the child process with "&"" in order for the parent shell script to catch SIGXXX
-/greengrass/ggc/core/greengrassd -i start &
+/greengrass/ggc/core/greengrassd start &
 
 # from https://unix.stackexchange.com/questions/146756/forward-sigterm-to-child-in-bash
 _term() {

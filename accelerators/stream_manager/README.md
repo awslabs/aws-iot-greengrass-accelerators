@@ -111,7 +111,8 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     cdk --profile default deploy
 
     cd ../gg_docker
-    docker-compose up -d --build
+    docker-compose build
+    docker-compose up -d
     ```
 
 1. Once deployed, a series of CloudFormation stack outputs will be created and used by the `deploy.py` script to create the files needed by Greengrass.

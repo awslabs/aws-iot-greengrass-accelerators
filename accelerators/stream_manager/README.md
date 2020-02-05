@@ -83,14 +83,36 @@ The following is a list of prerequisites to deploy the accelerator:
 
 Prior to launching the accelerator container locally, the AWS CDK is used to generate a CloudFormation template and deploy it. From Cloud9, follow the steps to create and launch the stack via the CDK.
 
-1. *Pre-requisite* (only needs be run once) - Create a Cloud9 environment (t3.small), open a new Terminal window and run these commands:
+1. *Pre-requisites* (only needs be run once) - Create a Cloud9 environment (t3.small), open a new Terminal window and run these commands:
 
-   ```bash
-   npm install -g aws-cdk
-   git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
-   cd ~/environment/aws-iot-greengrass-accelerators/accelerators/stream_manager/cdk
-   cdk --profile default deploy
-   ```
+    ```bash
+    # 
+    npm install -g aws-cdk
+    sudo curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+    sudo chmod +x /usr/local/bin/docker-compose
+
+    # Enable soft/hard links
+    sudo cat <<EOF | sudo tee /etc/sysctl.d/98-cloud9-greengrass.conf
+    fs.protected_hardlinks = 1
+    fs.protected_symlinks = 1
+    EOF
+
+    sudo reboot
+    # Reboot the Cloud9 instance to incorporate the changes
+    cd ~/environment
+    git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
+    
+
+
+
+    cd ~/environment/aws-iot-greengrass-accelerators/accelerators/stream_manager/cdk
+    npm install
+    npm run build
+    cdk --profile default deploy
+
+    cd ../gg_docker
+    docker-compose up -d --build
+    ```
 
 1. Once deployed, a series of CloudFormation stack outputs will be created and used by the `deploy.py` script to create the files needed by Greengrass.
 

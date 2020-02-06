@@ -1,4 +1,4 @@
-FROM amazon/aws-iot-greengrass:latest
+FROM amazon/aws-iot-greengrass:1.10.0-amazonlinux
 
 # Install system dependencies and supporting services for accelerator
 # (none so far)

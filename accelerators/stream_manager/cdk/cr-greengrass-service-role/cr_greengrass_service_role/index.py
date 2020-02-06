@@ -40,9 +40,10 @@ def create_greengrass_group_role(role_name: str, policy: str):
     # Create IAM role and attach policies (managed and provided)
     try:
         # Create role and allow Greengrass to assume
-        iam_client.create_role(
+        response = iam_client.create_role(
             RoleName=role_name, AssumeRolePolicyDocument=assume_role_policy_document
         )
+        role_arn = response["Role"]["Arn"]
     except ClientError as e:
         logger.warning(
             f"Error calling iam.create_role() for role {role_name}, error: {e}"
@@ -73,7 +74,7 @@ def create_greengrass_group_role(role_name: str, policy: str):
             f"Error calling iam_client.put_role_policy() for role {role_name}, error: {e}"
         )
         return False
-    return True
+    return role_arn
 
 
 def delete_greengrass_group_role(role_name: str):
@@ -122,8 +123,6 @@ def main(event, context):
     import logging as log
     import cfnresponse
 
-    log.getLogger().setLevel(log.INFO)
-
     # NOTE: All ResourceProperties passed will uppercase the first letter
     #       of the property and leave the rest of the case intact.
 
@@ -131,7 +130,7 @@ def main(event, context):
     cfn_response = cfnresponse.SUCCESS
 
     try:
-        log.info("Input event: %s", event)
+        logger.info("Input event: %s", event)
 
         # Check if this is a Create and we're failing Creates
         if event["RequestType"] == "Create" and event["ResourceProperties"].get(
@@ -140,25 +139,29 @@ def main(event, context):
             raise RuntimeError("Create failure requested, logging")
         elif event["RequestType"] == "Create":
             # Operations to perform during Create, then return response_data
-            if not create_greengrass_group_role(
+            role_arn = create_greengrass_group_role(
                 role_name=event["ResourceProperties"]["RoleName"],
                 policy=event["ResourceProperties"]["RolePolicy"],
-            ):
+            )
+            if role_arn:
+                response_data = {"roleArn": role_arn}
+                logger.info(f"Created and returning roleArn: {role_arn}")
+            else:
+                logger.error("should not get here")
                 cfn_response = cfnresponse.FAILED
-            response_data = {}
+                response_data = {}
         elif event["RequestType"] == "Update":
             # Operations to perform during Update, then return NULL for response data
             response_data = {}
         else:
+            # Delete request
             # Operations to perform during Delete, then return response_data
             if not delete_greengrass_group_role(
                 role_name=event["ResourceProperties"]["RoleName"]
             ):
                 cfn_response = cfnresponse.FAILED
             response_data = {}
-        cfnresponse.send(
-            event, context, cfn_response, response_data, physical_id
-        )
+        cfnresponse.send(event, context, cfn_response, response_data, physical_id)
 
     except Exception as e:
         log.exception(e)

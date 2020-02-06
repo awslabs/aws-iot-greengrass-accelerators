@@ -20,13 +20,15 @@ export interface CustomResourceGreengrassServiceRoleProps {
 }
 
 export class CustomResourceGreengrassServiceRole extends cdk.Construct {
+  public readonly roleArn: string;
+
   constructor(scope: cdk.Construct, id: string, props: CustomResourceGreengrassServiceRoleProps) {
     super(scope, id);
     props.physicalId = props.functionName;
     // IAM role name
     props.roleName = props.stackName + "-GreengrassGroupRole"
 
-    new cfn.CustomResource(this, 'Resource', {
+    const resource = new cfn.CustomResource(this, 'Resource', {
       provider: cfn.CustomResourceProvider.fromLambda(new lambda.SingletonFunction(this, 'Singleton', {
         functionName: props.functionName,
         uuid: uuid(props.functionName, uuid.DNS),
@@ -45,6 +47,7 @@ export class CustomResourceGreengrassServiceRole extends cdk.Construct {
       })),
       properties: props
     });
+    this.roleArn = resource.getAttString('roleArn');
   }
 }
 

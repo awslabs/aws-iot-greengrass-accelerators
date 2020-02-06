@@ -6,7 +6,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile-greengrass
-    container_name: etl-greengrass
+    container_name: stream-manager-greengrass
     image: x86_64/greengrass-accelerator-stream-manager:latest
     volumes:
       - ./certs:/greengrass/certs

@@ -100,16 +100,16 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     sudo reboot
     # Reboot the Cloud9 instance to incorporate the changes
     cd ~/environment
+    # Clone the repository
     git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
-    
-
-
-
     cd ~/environment/aws-iot-greengrass-accelerators/accelerators/stream_manager/cdk
+
+    # Build and deploy the CDK (CloudFormation stack)
     npm install
     npm run build
     cdk --profile default deploy
 
+    # Build and start the Greengrass docker container
     cd ../gg_docker
     docker-compose build
     docker-compose up -d

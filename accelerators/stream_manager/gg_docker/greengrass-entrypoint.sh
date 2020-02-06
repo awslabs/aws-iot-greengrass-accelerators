@@ -11,8 +11,8 @@ fi
 
 # For docker container support, set group to docker on the /var/run/docker.sock
 usermod -a -G docker ggc_user
+# Change the container's "docker" group ID to the hosts group id
 ls -l /var/run/docker.sock | cut -d' ' -f4 | xargs -I 'GID' sed -i -E 's/docker:x:(.*):/docker:x:GID:/' /etc/group
-# chown root:docker /var/run/docker.sock
 
 # need to invoke the child process with "&"" in order for the parent shell script to catch SIGXXX
 /greengrass/ggc/core/greengrassd start &

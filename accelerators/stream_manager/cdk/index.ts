@@ -5,6 +5,7 @@ import { CustomResourceGreengrassServiceRole } from './cr-greengrass-service-rol
 import { GreengrassLambdaSensorSource } from './lambda-gg-sensor-source/lambda-gg-sensor-source';
 import { GreengrassLambdaStreamProducer } from './lambda-gg-stream-producer/lambda-gg-stream-producer';
 import { GreengrassLambdaStreamAggregator } from './lambda-gg-stream-aggregator/lambda-gg-stream-aggregator';
+import { CustomResourceGreengrassResetDeployment } from './cr-greengrass-reset-deployment/cr-greengrass-reset-deployment';
 
 /**
  * A stack that sets up MyCustomResource and shows how to get an attribute from it
@@ -37,7 +38,7 @@ class GreengrassStreamManagerStack extends cdk.Stack {
     });
 
     // Create Greengrass Service role with permissions the Core's resources should have
-    new CustomResourceGreengrassServiceRole(this, "GreengrassRoleCustomResource", {
+    const ggServiceRole = new CustomResourceGreengrassServiceRole(this, "GreengrassRoleCustomResource", {
       functionName: id + '-GreengrassRoleFunction',
       stackName: id,
       rolePolicy: {
@@ -51,7 +52,6 @@ class GreengrassStreamManagerStack extends cdk.Stack {
     });
 
     // Functions to be used in the Greengrass Group Deployment
-
     const ggLambdaSensorSource = new GreengrassLambdaSensorSource(this, "GreengrassLambdaSensorSource", {
       functionName: id + '-GreengrassLambda-SensorSource',
       stackName: id,
@@ -95,10 +95,11 @@ class GreengrassStreamManagerStack extends cdk.Stack {
       defaultConfig: {
         execution: {
           isolationMode: "NoContainer",
-          runAs: {
-            gid: 0,
-            uid: 0
-          }
+          // TEST - comment out to use ggc_user/ggc_group as default runAs
+          // runAs: {
+          //   gid: 0,
+          //   uid: 0
+          // }
         }
       },
       functions: [
@@ -122,13 +123,14 @@ class GreengrassStreamManagerStack extends cdk.Stack {
             timeout: 3,
             environment: {
               // Run as process (NoContainer)
-              execution: {
-                isolationMode: 'NoContainer',
-                runAs: {
-                  gid: 0,
-                  uid: 0
-                }
-              },
+              // testing various run config
+              // execution: {
+              //   isolationMode: 'NoContainer',
+              //   runAs: {
+              //     gid: 0,
+              //     uid: 0
+              //   }
+              // },
             }
           }
         },
@@ -201,10 +203,11 @@ class GreengrassStreamManagerStack extends cdk.Stack {
 
     })
 
-    // Finally combine all definitions and create the Group
+    // Combine all definitions and create the Group
     //@ts-ignore
     const greengrassGroup = new greengrass.CfnGroup(this, 'GreengrassGroup', {
       name: id.split('-').join('_'),
+      roleArn: ggServiceRole.roleArn,
       initialVersion: {
         coreDefinitionVersionArn: coreDefinition.attrLatestVersionArn,
         subscriptionDefinitionVersionArn: subscriptionDefinition.attrLatestVersionArn,
@@ -212,6 +215,15 @@ class GreengrassStreamManagerStack extends cdk.Stack {
         functionDefinitionVersionArn: functionDefinition.attrLatestVersionArn
       }
     });
+
+    // Attach a custom resource to the Greengrass group to do a deployment reset before attempting to delete the group
+    // Create Greengrass Service role with permissions the Core's resources should have
+    const ggResetDeployment = new CustomResourceGreengrassResetDeployment(this, "GreengrassResetDeploymentResource", {
+      functionName: id + '-GreengrassResetDeploymentFunction',
+      stackName: id,
+      greengrassGroup: id.split('-').join('_')
+    });
+    ggResetDeployment.node.addDependency(greengrassGroup);
   }
 }
 

@@ -112,9 +112,7 @@ def create_iot_thing_certificate_policy(thing_name: str):
     # Describe the general ATS endpoint
     while True:
         try:
-            response = iot_client.describe_endpoint(
-                endpointType="iot:Data-ATS"
-            )
+            response = iot_client.describe_endpoint(endpointType="iot:Data-ATS")
             endpoint_ats = response["endpointAddress"]
             break
         except ClientError as e:
@@ -130,7 +128,7 @@ def create_iot_thing_certificate_policy(thing_name: str):
         "certificateArn": certificate_arn,
         "certificatePem": certificate_pem,
         "keyPem": private_key,
-        "endpointDataAts": endpoint_ats
+        "endpointDataAts": endpoint_ats,
     }
 
     return ret
@@ -263,13 +261,12 @@ def main(event, context):
                 "certificateArn": response["certificateArn"],
                 "certificatePem": response["certificatePem"],
                 "privateKeyPem": response["keyPem"],
-                "endpointDataAts": response["endpointDataAts"]
+                "endpointDataAts": response["endpointDataAts"],
             }
         elif event["RequestType"] == "Update":
             # Operations to perform during Update, then return NULL for response data
             response_data = {}
         else:
-            # Operations to perform during Delete, then return response_data
             if not delete_iot_thing_certificate_policy(
                 thing_name=event["ResourceProperties"]["GreengrassCoreName"]
             ):

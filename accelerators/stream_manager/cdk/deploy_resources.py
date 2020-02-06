@@ -27,7 +27,11 @@ config_json_template = {
         "ggHost": "greengrass-ats.iot.region.amazonaws.com",
         "keepAlive": 600,
     },
-    "runtime": {"maxWorkItemCount": 1024, "cgroup": {"useSystemd": "yes"}},
+    "runtime": {
+        "maxWorkItemCount": 1024,
+        "cgroup": {"useSystemd": "yes"},
+        "allowFunctionsToRunAsRoot": "yes",
+    },
     "managedRespawn": False,
     "crypto": {
         "principals": {

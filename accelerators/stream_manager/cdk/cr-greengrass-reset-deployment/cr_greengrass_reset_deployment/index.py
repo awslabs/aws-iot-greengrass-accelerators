@@ -19,14 +19,14 @@ logger = logging.getLogger()
 logger.setLevel(logging.INFO)
 
 
-def find_group_id(groupName):
+def find_group_id(group_name):
     """Return Greengrass group id"""
     result = ""
     greengrass_client = boto3.client("greengrass")
 
     response = greengrass_client.list_groups()
     for group in response["Groups"]:
-        if groupName == group["Name"]:
+        if group_name == group["Name"]:
             result = group["Id"]
             break
     return result
@@ -51,8 +51,28 @@ def main(event, context):
         ):
             raise RuntimeError("Create failure requested, logging")
         elif event["RequestType"] == "Create":
-            logger.info("Create called, no actions being taken")
-            # Nothing is done during Create
+            # Create an initial deployment so when Docker starts, Greengrass will pull down
+            logger.info("Creating the initial deployment for Greengrass"
+            )
+            group_id = find_group_id(event["ResourceProperties"]["GreengrassGroup"])
+            logger.info("Group id to deploy: %s" % group_id)
+            if group_id:
+                group_version = greengrass_client.list_group_versions(
+                    GroupId=group_id
+                )["Versions"][0]["Version"]
+                greengrass_client.create_deployment(
+                    DeploymentType='NewDeployment',
+                    GroupId=group_id,
+                    GroupVersionId=group_version
+                )
+                result = cfnresponse.SUCCESS
+                logger.info("Initiated the first deployment to the group")
+            else:
+                logger.error(
+                    "No group Id %s found, reset not required"
+                    % event["ResourceProperties"]["GreengrassGroup"]
+                )
+           
             response_data = {}
         elif event["RequestType"] == "Update":
             # Nothing is done during Update

@@ -17,6 +17,7 @@ class GreengrassStreamManagerStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+    region: process.env.CDK_DEFAULT_REGION;
 
     // S3 bucket to hold the docker-compose.yml file
     const s3Bucket = new s3.Bucket(this, 'S3SourceBucket', {
@@ -25,6 +26,10 @@ class GreengrassStreamManagerStack extends cdk.Stack {
       publicReadAccess: false,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       removalPolicy: RemovalPolicy.DESTROY
+    });
+    new cdk.CfnOutput(this, 'GreenGrassSourceBucket', {
+      description: 'S3 bucket used by Greengrass for Docker compose files ',
+      value: s3Bucket.bucketName
     });
     // Associate custom resource to clean out bucket during delete
     const crS3DeleteObjects = new CustomResourceS3DeleteObjects(this, 'DeleteS3Objects', {
@@ -196,6 +201,24 @@ class GreengrassStreamManagerStack extends cdk.Stack {
       ]
     })
 
+    // Connectors to be deployed
+    const connectorDefinition = new greengrass.CfnConnectorDefinition(this, 'ConnectorDefinition', {
+      name: 'ConnectorDefinition',
+      initialVersion: {
+        connectors: [
+          {
+            connectorArn: 'arn:aws:greengrass:' +  this.region + '::/connectors/DockerApplicationDeployment/versions/2',
+            id: '1',
+            parameters: {
+              "DockerComposeFileS3Bucket": s3Bucket.bucketName,
+              "DockerComposeFileS3Key": "docker-compose.yml",
+              "DockerComposeFileDestinationPath": "/opt",
+            }
+          }
+        ]
+
+      }
+    })
 
     //@ts-ignore
     const subscriptionDefinition = new greengrass.CfnSubscriptionDefinition(this, 'SubscriptionDefinition', {
@@ -230,6 +253,7 @@ class GreengrassStreamManagerStack extends cdk.Stack {
       initialVersion: {
         coreDefinitionVersionArn: coreDefinition.attrLatestVersionArn,
         subscriptionDefinitionVersionArn: subscriptionDefinition.attrLatestVersionArn,
+        connectorDefinitionVersionArn: connectorDefinition.attrLatestVersionArn,
         // resourceDefinitionVersionArn: resourceDefinition.attrLatestVersionArn,
         functionDefinitionVersionArn: functionDefinition.attrLatestVersionArn
       }

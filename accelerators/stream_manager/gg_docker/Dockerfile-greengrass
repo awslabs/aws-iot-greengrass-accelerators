@@ -12,7 +12,6 @@ RUN amazon-linux-extras install docker && \
 
 # Setup Greengrass to inside Docker Image and access dockerd
 RUN export GREENGRASS_RELEASE=$(basename $GREENGRASS_RELEASE_URL) && \
-    # usermod -a -G docker ggc_user && \
     chgrp ggc_group /opt && \
     chmod 777 /opt
 

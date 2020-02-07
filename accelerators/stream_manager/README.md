@@ -86,19 +86,20 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 1. *Pre-requisites* (only needs be run once) - Create a Cloud9 environment (t3.small), open a new Terminal window and run these commands:
 
     ```bash
-    # 
+    # Cloud9 Commands - change as needed for local development environment
+    # Install pre-requisites and reboot
     npm install -g aws-cdk
     sudo curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     sudo chmod +x /usr/local/bin/docker-compose
-
     # Enable soft/hard links
     sudo cat <<EOF | sudo tee /etc/sysctl.d/98-cloud9-greengrass.conf
     fs.protected_hardlinks = 1
     fs.protected_symlinks = 1
     EOF
-
     sudo reboot
-    # Reboot the Cloud9 instance to incorporate the changes
+
+
+    # After reboot open a new terminal window and issue these commands
     cd ~/environment
     # Clone the repository
     git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
@@ -108,6 +109,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     npm install
     npm run build
     cdk --profile default deploy
+    python3 deploy_resources.py -p default
 
     # Build and start the Greengrass docker container
     cd ../gg_docker
@@ -115,35 +117,18 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     docker-compose up -d
     ```
 
-1. Once deployed, a series of CloudFormation stack outputs will be created and used by the `deploy.py` script to create the files needed by Greengrass.
+1. At this point, the CloudFormation stack has been deployed and the Greengrass container is running. The CloudFormation stack will also trigger an initial deployment of all resources, so the Lambda functions, Stream Manager, and docker containers are also running.
 
+1.  :exclamation: The Docker containers run as the root process in Cloud9 (and other Linux environments). If you wish to look at log or deployment files locally, it is easiest to launch another terminal tab and set that user to root:
 
+    ```bash
+    sudo su -
+    cd ~ec2-user/environment/aws-iot-greengrass-accelerators/accelerators/stream_manager/gg_docker/
+    # You can now cat|more|less|tail files from here
+    tail -F log/system/runtime.log
+    ...
+    ```
 
-1. Change back to the `docker/` directory.
-
-At this point, the Docker configuration has the details needed to start the containers and connect to AWS IoT Core and AWS Greengrass. Using `docker-compose` in the foreground, verify that the containers start and you are receiving startup log entries:
-
-:exclamation: The first build may take a long time to complete as it installs dependencies. Further runs will use the locally created image so startup time will be shortened.
-
-```bash
-$ docker-compose up --build
-Building greengrass
-Step 1/9 : FROM amazon/aws-iot-greengrass:latest
-...
-Successfully tagged x86_64/greengrass-accelerator-etl:latest
-Creating etl-greengrass ... done
-Attaching to etl-greengrass
-etl-greengrass | Starting Redis locally
-etl-greengrass | Setting up greengrass daemon
-etl-greengrass | Validating hardlink/softlink protection
-etl-greengrass | Waiting for up to 1m10s for Daemon to start
-etl-greengrass |
-etl-greengrass | Greengrass successfully started with PID: 17
-```
-
-8. From the Greengrass Console, navigate to your created Greengrass Group and perform *Actions->Deploy* to deploy to the running Docker container.
-
-To verify operation, you can look at the log files `docker/log/user/…/` for the Lambda functions for messages. Also, the S3 bucket used by Firehose should start to receive events. And, every 30 seconds, statistical messages will start to be published on the MQTT topic `core_name/telemetry` (default being `gg_etl_accel/telemetry`).
 
 ### Visualizing the Data
 

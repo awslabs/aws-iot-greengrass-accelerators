@@ -22,7 +22,7 @@ export class GreengrassLambdaStreamProducer extends cdk.Construct {
       runtime: lambda.Runtime.PYTHON_3_7,
       functionName: props.functionName,
       code: lambda.Code.fromAsset('lambda-gg-stream-producer/lambda_code'),
-      handler: 'index.main',
+      handler: 'stream-producer.main',
     });
     const version = greengrassLambda.addVersion('FunctionVersionPlaceholder');
 

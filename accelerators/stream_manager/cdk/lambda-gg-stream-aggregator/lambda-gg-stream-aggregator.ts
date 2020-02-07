@@ -22,7 +22,7 @@ export class GreengrassLambdaStreamAggregator extends cdk.Construct {
       runtime: lambda.Runtime.PYTHON_3_7,
       functionName: props.functionName,
       code: lambda.Code.fromAsset('lambda-gg-stream-aggregator/lambda_code'),
-      handler: 'index.main',
+      handler: 'stream-aggregator.main',
     });
     const version = greengrassLambda.addVersion('FunctionVersionPlaceholder');
 

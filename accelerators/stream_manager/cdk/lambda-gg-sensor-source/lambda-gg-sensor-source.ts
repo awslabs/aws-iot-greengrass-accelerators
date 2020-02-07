@@ -22,7 +22,7 @@ export class GreengrassLambdaSensorSource extends cdk.Construct {
       runtime: lambda.Runtime.PYTHON_3_7,
       functionName: props.functionName,
       code: lambda.Code.fromAsset('lambda-gg-sensor-source/lambda_code'),
-      handler: 'index.main',
+      handler: 'sensor-source.main',
     });
     const version = greengrassLambda.addVersion('FunctionVersionPlaceholder');
 

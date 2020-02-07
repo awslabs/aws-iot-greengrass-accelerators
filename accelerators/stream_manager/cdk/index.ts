@@ -1,11 +1,14 @@
 import cdk = require('@aws-cdk/core');
 import greengrass = require('@aws-cdk/aws-greengrass');
+import s3 = require('@aws-cdk/aws-s3');
 import { CustomResourceIoTThingCertPolicy } from './cr-create-iot-thing-cert-policy/cr-iot-thing-cert-policy';
 import { CustomResourceGreengrassServiceRole } from './cr-greengrass-service-role/cr-greengrass-service-role';
+import { CustomResourceGreengrassResetDeployment } from './cr-greengrass-reset-deployment/cr-greengrass-reset-deployment';
+import { CustomResourceS3DeleteObjects } from './cr-s3-delete-objects/cr-s3-delete-objects';
 import { GreengrassLambdaSensorSource } from './lambda-gg-sensor-source/lambda-gg-sensor-source';
 import { GreengrassLambdaStreamProducer } from './lambda-gg-stream-producer/lambda-gg-stream-producer';
 import { GreengrassLambdaStreamAggregator } from './lambda-gg-stream-aggregator/lambda-gg-stream-aggregator';
-import { CustomResourceGreengrassResetDeployment } from './cr-greengrass-reset-deployment/cr-greengrass-reset-deployment';
+import { RemovalPolicy } from '@aws-cdk/core';
 
 /**
  * A stack that sets up MyCustomResource and shows how to get an attribute from it
@@ -14,6 +17,22 @@ class GreengrassStreamManagerStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
+
+    // S3 bucket to hold the docker-compose.yml file
+    const s3Bucket = new s3.Bucket(this, 'S3SourceBucket', {
+      bucketName: id.toLowerCase() + "-greengrass-source-" + Math.random().toString(36).substring(2, 15).substr(0,6),
+      versioned: false,
+      publicReadAccess: false,
+      blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
+      removalPolicy: RemovalPolicy.DESTROY
+    });
+    // Associate custom resource to clean out bucket during delete
+    const crS3DeleteObjects = new CustomResourceS3DeleteObjects(this, 'DeleteS3Objects', {
+      functionName: id + '-S3DeleteObjects',
+      stackName: id,
+      bucketName: s3Bucket.bucketName
+    });
+    crS3DeleteObjects.node.addDependency(s3Bucket);
 
     // Create AWS IoT Thing/Certificate/Policy as basis for Greengrass Core
     const crIoTResource = new CustomResourceIoTThingCertPolicy(this, 'CreateThingCertPolicyCustomResource', {
@@ -43,11 +62,11 @@ class GreengrassStreamManagerStack extends cdk.Stack {
       stackName: id,
       rolePolicy: {
         "Version": "2012-10-17",
-        "Statement": {
+        "Statement": [{
           "Effect": "Allow",
           "Action": "iot:*",
           "Resource": "*",
-        }
+        }]
       },
     });
 

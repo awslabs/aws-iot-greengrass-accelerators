@@ -17,7 +17,7 @@ class GreengrassStreamManagerStack extends cdk.Stack {
   constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
     super(scope, id, props);
 
-    region: process.env.CDK_DEFAULT_REGION;
+    // region: process.env.CDK_DEFAULT_REGION;
 
     // S3 bucket to hold the docker-compose.yml file
     const s3Bucket = new s3.Bucket(this, 'S3SourceBucket', {
@@ -27,7 +27,7 @@ class GreengrassStreamManagerStack extends cdk.Stack {
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
       removalPolicy: RemovalPolicy.DESTROY
     });
-    new cdk.CfnOutput(this, 'GreenGrassSourceBucket', {
+    new cdk.CfnOutput(this, 'GreengrassSourceBucket', {
       description: 'S3 bucket used by Greengrass for Docker compose files ',
       value: s3Bucket.bucketName
     });

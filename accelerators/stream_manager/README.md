@@ -109,6 +109,8 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     npm install
     npm run build
     cdk --profile default deploy
+
+    # Acknowledge the creation above, then run
     python3 deploy_resources.py -p default
 
     # Build and start the Greengrass docker container

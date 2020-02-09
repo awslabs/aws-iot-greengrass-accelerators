@@ -98,6 +98,8 @@ if __name__ == "__main__":
             thing_arn = output["OutputValue"]
         elif output["OutputKey"] == "EndpointDataAts":
             endpoint = output["OutputValue"]
+        elif output["OutputKey"] == "GreengrassSourceBucket":
+            source_bucket = output["OutputValue"]
 
     # Create the credentials files, config.json, and download the Amazon root CA1 file
     with open(Path("../gg_docker/certs/certificate.pem"), "w") as f:
@@ -122,3 +124,12 @@ if __name__ == "__main__":
     with open(Path("../gg_docker/config/config.json"), "w") as f:
         # Specific unique configuration file
         f.write(json.dumps(config_file, indent=2))
+
+    # Upload the Flak application's docker-compose.yml to the S3 source bucket
+    s3 = boto3.resource("s3")
+    s3.meta.client.upload_file(
+        Filename=str(Path("../docker_compose_stack/docker-compose.yml")),
+        Bucket=source_bucket,
+        Key="docker-compose.yml",
+    )
+

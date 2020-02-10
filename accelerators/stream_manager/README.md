@@ -96,6 +96,9 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     fs.protected_hardlinks = 1
     fs.protected_symlinks = 1
     EOF
+    # Allow access to Cloud9 instance for local Flask app
+    # Add inbound for port 8082 to the default security group on Cloud9
+    aws ec2 authorize-security-group-ingress --group-name $(curl -s http://169.254.169.254/latest/meta-data/security-groups) --protocol tcp --port 8082 --cidr 0.0.0.0/0
     sudo reboot
 
 

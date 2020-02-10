@@ -7,9 +7,9 @@ FROM amazon/aws-iot-greengrass:1.10.0-amazonlinux
 ARG GREENGRASS_RELEASE_URL=https://d1onfpft10uf5o.cloudfront.net/greengrass-core/downloads/1.10.0/greengrass-linux-x86-64-1.10.0.tar.gz
 # Install pre-req for docker including system path to docker-compose
 RUN amazon-linux-extras install docker && \
-    curl -L https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose && \
-    chmod +rx /usr/local/bin/docker-compose  && \
-    echo "PATH=\$PATH:/usr/local/bin" > /etc/environment && \
+#    curl -L https://github.com/docker/compose/releases/download/1.25.4/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose && \
+#    chmod +rx /usr/local/bin/docker-compose  && \
+#    echo "PATH=\$PATH:/usr/local/bin" > /etc/environment && \
     rm -rf /var/cache/amzn2extras
 
 # Setup Greengrass to inside Docker Image and access dockerd

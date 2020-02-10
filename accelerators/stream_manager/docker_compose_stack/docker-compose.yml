@@ -3,4 +3,5 @@ services:
   web:
     image: "gadams999/gg_accel_stream_manager_flask:dev"
     ports:
-      - "5000:5000"
+      # Host:container
+      - "8082:5000"

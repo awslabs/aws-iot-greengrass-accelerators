@@ -1,6 +1,7 @@
 import cdk = require('@aws-cdk/core');
 import greengrass = require('@aws-cdk/aws-greengrass');
 import s3 = require('@aws-cdk/aws-s3');
+import { IoTAnalytics } from './iot-analytics/iot-analytics';
 import { CustomResourceIoTThingCertPolicy } from './cr-create-iot-thing-cert-policy/cr-iot-thing-cert-policy';
 import { CustomResourceGreengrassServiceRole } from './cr-greengrass-service-role/cr-greengrass-service-role';
 import { CustomResourceGreengrassResetDeployment } from './cr-greengrass-reset-deployment/cr-greengrass-reset-deployment';
@@ -38,6 +39,16 @@ class GreengrassStreamManagerStack extends cdk.Stack {
       bucketName: s3Bucket.bucketName
     });
     crS3DeleteObjects.node.addDependency(s3Bucket);
+
+    // Create IoT Analytics resources for low priority / non-aggregated data
+    const iotAnalyticsData = new IoTAnalytics(this, 'IotAnalyticsStack', {
+      channelName: "my_channel",
+      datastoreName: "my_datastore",
+      pipelineName: "my_pipeline",
+      datasetName: "my_dataset",
+      sqlQuery: "select * from my_datastore where __dt >= current_date - interval '1' hour",
+      scheduledExpression: "cron(0 10 * * ? *)"
+    });
 
     // Create AWS IoT Thing/Certificate/Policy as basis for Greengrass Core
     const crIoTResource = new CustomResourceIoTThingCertPolicy(this, 'CreateThingCertPolicyCustomResource', {
@@ -220,7 +231,6 @@ class GreengrassStreamManagerStack extends cdk.Stack {
       }
     })
 
-    //@ts-ignore
     const subscriptionDefinition = new greengrass.CfnSubscriptionDefinition(this, 'SubscriptionDefinition', {
       name: 'SubscriptionsDefinition',
       initialVersion: {
@@ -246,7 +256,6 @@ class GreengrassStreamManagerStack extends cdk.Stack {
     })
 
     // Combine all definitions and create the Group
-    //@ts-ignore
     const greengrassGroup = new greengrass.CfnGroup(this, 'GreengrassGroup', {
       name: id.split('-').join('_'),
       roleArn: ggServiceRole.roleArn,
@@ -258,6 +267,7 @@ class GreengrassStreamManagerStack extends cdk.Stack {
         functionDefinitionVersionArn: functionDefinition.attrLatestVersionArn
       }
     });
+    greengrassGroup.addDependsOn(iotAnalyticsData.sqlDataset);
 
     // Attach a custom resource to the Greengrass group to do a deployment reset before attempting to delete the group
     // Create Greengrass Service role with permissions the Core's resources should have
@@ -269,11 +279,6 @@ class GreengrassStreamManagerStack extends cdk.Stack {
     ggResetDeployment.node.addDependency(greengrassGroup);
   }
 }
-
-
-
-
-// Pre-stack creation steps
 
 // Create stack
 const app = new cdk.App();

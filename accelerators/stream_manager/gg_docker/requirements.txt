@@ -3,3 +3,5 @@ greengrasssdk
 boto3
 # Appears to be needed to support calling docker-compose command
 docker-compose
+# Other packages used by Lambda
+flask

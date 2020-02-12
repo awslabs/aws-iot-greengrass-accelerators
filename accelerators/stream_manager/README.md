@@ -179,3 +179,20 @@ The most common modifications would be to replace the code for three Lambda func
 
    1. Check that the certificate and private key files are in the correct location, and they are referenced by the correct names in the `config.json` file.
    1. Ensure there is at least one Lambda function defined within the Greengrass group and that all container-based settings such as Isolation mode are set properly.
+
+## Implementation Notes
+
+Technical details on how the different accelerator components run.
+
+### MQTT Topics, Messages, and Lambda Actions
+
+Different components use either MQTT topics or direct IPC calls to query and command each other.
+
+### Lambda Functions
+
+Details on Lambda implementations
+
+#### sensor-source
+
+This is a long running Lambda that generates and publishes simulated sensor data to a local stream. It also exposes a simplistic API for turning on and off the sensor data. the API listens on port 0.0.0.0:8180.
+

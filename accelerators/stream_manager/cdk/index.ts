@@ -22,7 +22,7 @@ class GreengrassStreamManagerStack extends cdk.Stack {
 
     // S3 bucket to hold the docker-compose.yml file
     const s3Bucket = new s3.Bucket(this, 'S3SourceBucket', {
-      bucketName: id.toLowerCase() + "-greengrass-source-" + Math.random().toString(36).substring(2, 15).substr(0,6),
+      bucketName: id.toLowerCase() + "-greengrass-source-" + Math.random().toString(36).substring(2, 15).substr(0, 6),
       versioned: false,
       publicReadAccess: false,
       blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,
@@ -41,12 +41,17 @@ class GreengrassStreamManagerStack extends cdk.Stack {
     crS3DeleteObjects.node.addDependency(s3Bucket);
 
     // Create IoT Analytics resources for low priority / non-aggregated data
+    var channelName = `${id.split('-').join('_')}_sensordata`;
     const iotAnalyticsData = new IoTAnalytics(this, 'IotAnalyticsStack', {
-      channelName: "my_channel",
-      datastoreName: "my_datastore",
-      pipelineName: "my_pipeline",
-      datasetName: "my_dataset",
-      sqlQuery: "select * from my_datastore where __dt >= current_date - interval '1' hour",
+      channelName: channelName,
+      datastoreName: `${id.split('-').join('_')}_sensordata_datastore`,
+      pipelineName: `${id.split('-').join('_')}_sensordata_pipeline`,
+      datasetName: `${id.split('-').join('_')}_sensordata_dataset`,
+      sqlQuery: [
+        // reference channel name
+        `select * from ${channelName}_sensordata} where __dt >= current_date - interval '1' day `,
+        `and from_unixtime(timestamp) > now() - interval '15' minute`
+      ].join(),
       scheduledExpression: "cron(0 10 * * ? *)"
     });
 
@@ -78,11 +83,19 @@ class GreengrassStreamManagerStack extends cdk.Stack {
       stackName: id,
       rolePolicy: {
         "Version": "2012-10-17",
-        "Statement": [{
-          "Effect": "Allow",
-          "Action": "iot:*",
-          "Resource": "*",
-        }]
+        "Statement": [
+          {
+            "Effect": "Allow",
+            "Action": "iot:*",
+            "Resource": "*",
+          },
+          // Allow access to the AWS IoT Analytics channel for ingest
+          {
+            "Effect": "Allow",
+            "Action": "iotanalytics:*",
+            "Resource": iotAnalyticsData.channelArn
+          }
+        ]
       },
     });
 
@@ -90,6 +103,7 @@ class GreengrassStreamManagerStack extends cdk.Stack {
     const ggLambdaSensorSource = new GreengrassLambdaSensorSource(this, "GreengrassLambdaSensorSource", {
       functionName: id + '-GreengrassLambda-SensorSource',
       stackName: id,
+      streamManagerChannel: channelName
     });
     const ggLambdaStreamProducer = new GreengrassLambdaStreamProducer(this, "GreengrassLambdaStreamProducer", {
       functionName: id + '-GreengrassLambda-StreamProducer',
@@ -218,7 +232,7 @@ class GreengrassStreamManagerStack extends cdk.Stack {
       initialVersion: {
         connectors: [
           {
-            connectorArn: 'arn:aws:greengrass:' +  this.region + '::/connectors/DockerApplicationDeployment/versions/2',
+            connectorArn: 'arn:aws:greengrass:' + this.region + '::/connectors/DockerApplicationDeployment/versions/2',
             id: '1',
             parameters: {
               "DockerComposeFileS3Bucket": s3Bucket.bucketName,
@@ -251,7 +265,7 @@ class GreengrassStreamManagerStack extends cdk.Stack {
           // },
 
         ]
-      } 
+      }
 
     })
 

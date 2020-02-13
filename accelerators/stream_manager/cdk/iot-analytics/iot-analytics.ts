@@ -17,12 +17,16 @@ export class IoTAnalytics extends cdk.Construct {
     // Used to tie addDependsOn for other usage
     public readonly sqlDataset: iotanalytics.CfnDataset;
 
+    public readonly channelArn: string;
+
     constructor(scope: cdk.Construct, id: string, props: IoTAnalyticsProps) {
         super(scope, id);
 
         const channel = new iotanalytics.CfnChannel(this, "Channel", {
             channelName: props.channelName
         });
+        // Define Arn for the channel, CloudFormation does not return this (why!!!??), so create
+        this.channelArn = `arn:aws:iotanalytics:${process.env.CDK_DEFAULT_REGION}:${process.env.CDK_DEFAULT_ACCOUNT}:channel/${props.channelName}`
         const datastore = new iotanalytics.CfnDatastore(this, "Datastore", {
             datastoreName: props.datastoreName
         });

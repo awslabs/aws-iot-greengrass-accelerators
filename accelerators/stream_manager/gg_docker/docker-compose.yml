@@ -19,4 +19,6 @@ services:
       - "8883:8883"
       # Stream Manager port
       - "8088:8088"
+      # Sensor Data API port
+      - "8180:8180"
     entrypoint: "/greengrass-entrypoint.sh"

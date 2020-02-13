@@ -47,11 +47,7 @@ class GreengrassStreamManagerStack extends cdk.Stack {
       datastoreName: `${id.split('-').join('_')}_sensordata_datastore`,
       pipelineName: `${id.split('-').join('_')}_sensordata_pipeline`,
       datasetName: `${id.split('-').join('_')}_sensordata_dataset`,
-      sqlQuery: [
-        // reference channel name
-        `select * from ${channelName}_sensordata} where __dt >= current_date - interval '1' day `,
-        `and from_unixtime(timestamp) > now() - interval '15' minute`
-      ].join(),
+      sqlQuery: `select * from ${channelName}_datastore where __dt >= current_date - interval '1' day and from_unixtime(timestamp) > now() - interval '15' minute`,
       scheduledExpression: "cron(0 10 * * ? *)"
     });
 
@@ -103,7 +99,6 @@ class GreengrassStreamManagerStack extends cdk.Stack {
     const ggLambdaSensorSource = new GreengrassLambdaSensorSource(this, "GreengrassLambdaSensorSource", {
       functionName: id + '-GreengrassLambda-SensorSource',
       stackName: id,
-      streamManagerChannel: channelName
     });
     const ggLambdaStreamProducer = new GreengrassLambdaStreamProducer(this, "GreengrassLambdaStreamProducer", {
       functionName: id + '-GreengrassLambda-StreamProducer',
@@ -143,12 +138,8 @@ class GreengrassStreamManagerStack extends cdk.Stack {
       functionDefinitionId: functionDefinition.attrId,
       defaultConfig: {
         execution: {
+          // All functions run as processes since the deployment is targeted for container
           isolationMode: "NoContainer",
-          // TEST - comment out to use ggc_user/ggc_group as default runAs
-          // runAs: {
-          //   gid: 0,
-          //   uid: 0
-          // }
         }
       },
       functions: [
@@ -157,7 +148,6 @@ class GreengrassStreamManagerStack extends cdk.Stack {
           functionArn: "arn:aws:lambda:::function:GGStreamManager:1",
           functionConfiguration: {
             encodingType: 'binary',
-            // memorySize: 65536,
             pinned: true,
             timeout: 3,
           }
@@ -167,19 +157,9 @@ class GreengrassStreamManagerStack extends cdk.Stack {
           functionArn: ggLambdaSensorSource.greengrassLambdaAlias.functionArn,
           functionConfiguration: {
             encodingType: 'binary',
-            // memorySize: 65536,
             pinned: true,
             timeout: 3,
             environment: {
-              // Run as process (NoContainer)
-              // testing various run config
-              // execution: {
-              //   isolationMode: 'NoContainer',
-              //   runAs: {
-              //     gid: 0,
-              //     uid: 0
-              //   }
-              // },
             }
           }
         },
@@ -188,19 +168,12 @@ class GreengrassStreamManagerStack extends cdk.Stack {
           functionArn: ggLambdaStreamProducer.greengrassLambdaAlias.functionArn,
           functionConfiguration: {
             encodingType: 'binary',
-            // memorySize: 65536,
-            pinned: true,
             timeout: 3,
             environment: {
-              // Run as process (NoContainer)
-              execution: {
-                isolationMode: 'NoContainer',
-                runAs: {
-                  gid: 0,
-                  uid: 0
-                }
-              },
-            }
+              variables: {
+                "STREAM_MANAGER_CHANNEL": channelName
+              }
+            },
           }
         },
         {
@@ -208,18 +181,8 @@ class GreengrassStreamManagerStack extends cdk.Stack {
           functionArn: ggLambdaStreamAggregator.greengrassLambdaAlias.functionArn,
           functionConfiguration: {
             encodingType: 'binary',
-            // memorySize: 65536,
-            pinned: true,
             timeout: 3,
             environment: {
-              // Run as process (NoContainer)
-              execution: {
-                isolationMode: 'NoContainer',
-                runAs: {
-                  gid: 0,
-                  uid: 0
-                }
-              },
             }
           }
         }

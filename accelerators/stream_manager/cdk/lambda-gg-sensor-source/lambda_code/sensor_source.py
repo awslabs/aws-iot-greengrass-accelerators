@@ -1,66 +1,21 @@
 # Greengrass lambda source -sensor source
-import os
 import json
-import asyncio
+import logging
 from threading import Thread, Lock
 from time import sleep, time
 from random import gauss
 import greengrasssdk
 import flask
 from flask import request, jsonify
-from greengrasssdk.stream_manager import (
-    StreamManagerClient,
-    ReadMessagesOptions,
-    NotEnoughMessagesException,
-    MessageStreamDefinition,
-    StrategyOnFull,
-    ExportDefinition,
-    IoTAnalyticsConfig,
-    InvalidRequestException,
-    StreamManagerException,
-    Persistence,
-)
 
+# Configure logger
+logger = logging.getLogger()
+logger.setLevel(logging.WARN)
+
+client = greengrasssdk.client("iot-data")
 lock = Lock()
 generate_sensor_data = True
-channel_name = os.environ["STREAM_MANAGER_CHANNEL"]
-
 app = flask.Flask(__name__)
-client = StreamManagerClient()
-try:
-    client.create_message_stream(
-        MessageStreamDefinition(
-            name="LocalDataStream",  # Required.
-            max_size=268435456,  # Default is 256 MB.
-            stream_segment_size=16777216,  # Default is 16 MB.
-            time_to_live_millis=None,  # By default, no TTL is enabled.
-            strategy_on_full=StrategyOnFull.OverwriteOldestData,  # Required.
-            persistence=Persistence.File,  # Default is File.
-            flush_on_write=False,  # Default is false.
-            export_definition=ExportDefinition(
-                iot_analytics=[
-                    IoTAnalyticsConfig(
-                        identifier="RawData",
-                        iot_channel=channel_name,
-                        # iot_msg_id_prefix="test",
-                        # batch_size=1,
-                        # batch_interval_millis=1000,
-                        # priority=1
-                    )
-                ]
-            ),
-        )
-    )
-except StreamManagerException as e:
-    print(f"Error creating message stream: {e}")
-    while True:
-        print(f"StreamManagerException loop for: {e}")
-        sleep(5)
-except Exception as e:
-    print(f"General exception error: {e}")
-    while True:
-        print(f"General exception loop for: {e}")
-        sleep(5)
 
 
 @app.route("/api/v1/sensor/data/enable", methods=["GET"])
@@ -116,11 +71,13 @@ def sensor_data_server():
         if generate_sensor_data:
             lock.release()
             data = simulated_data()
-            print(json.dumps(data))
+            # Publish data to Lambda Producer directly
             try:
-                client.append_message(stream_name="LocalDataStream", data=json.dumps(data).encode())
+                client.publish(
+                    topic="sensor_data", qos=0, payload=json.dumps(data).encode()
+                )
             except Exception as e:
-                print(f"Error appending: {e}")
+                logger.error(f"Error appending: {e}")
             sleep(0.1)
             continue
         lock.release()
@@ -130,16 +87,15 @@ def sensor_data_server():
 
 def app_startup():
     """Startup all separate threads"""
-    print("Starting API")
+    logger.info("Starting API")
     api_thread = Thread(target=api_server, args=[])
     api_thread.start()
-    print("Starting simulated sensor data")
+    logger.info("Starting simulated sensor data")
     sensor_data_thread = Thread(target=sensor_data_server)
     sensor_data_thread.start()
 
 
 app_startup()
-print("boo yah!")
 
 
 def main(event, context):

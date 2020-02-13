@@ -10,7 +10,6 @@ export interface GreengrassLambdaSensorSourceProps {
    */
   functionName: string;
   stackName: string;
-  streamManagerChannel: string;
 }
 
 export class GreengrassLambdaSensorSource extends cdk.Construct {
@@ -24,9 +23,6 @@ export class GreengrassLambdaSensorSource extends cdk.Construct {
       functionName: props.functionName,
       code: lambda.Code.fromAsset('lambda-gg-sensor-source/lambda_code'),
       handler: 'sensor_source.main',
-      environment: {
-        "STREAM_MANAGER_CHANNEL": props.streamManagerChannel
-      }
     });
     const version = greengrassLambda.addVersion('FunctionVersionPlaceholder');
 

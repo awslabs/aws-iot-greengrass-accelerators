@@ -48,7 +48,7 @@ class GreengrassStreamManagerStack extends cdk.Stack {
       pipelineName: `${id.split('-').join('_')}_sensordata_pipeline`,
       datasetName: `${id.split('-').join('_')}_sensordata_dataset`,
       sqlQuery: `select * from ${channelName}_datastore where __dt >= current_date - interval '1' day and from_unixtime(timestamp) > now() - interval '15' minute`,
-      scheduledExpression: "cron(0 10 * * ? *)"
+      scheduledExpression: "cron(0/5 * * * ? *)"
     });
 
     // Create AWS IoT Thing/Certificate/Policy as basis for Greengrass Core

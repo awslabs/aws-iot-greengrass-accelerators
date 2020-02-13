@@ -2,6 +2,7 @@
 
 import os
 import json
+import logging
 import greengrasssdk
 from greengrasssdk.stream_manager import (
     StreamManagerClient,
@@ -15,6 +16,10 @@ from greengrasssdk.stream_manager import (
     StreamManagerException,
     Persistence,
 )
+
+# Configure logger
+logger = logging.getLogger()
+logger.setLevel(logging.WARN)
 
 channel_name = os.environ["STREAM_MANAGER_CHANNEL"]
 client = StreamManagerClient()
@@ -47,18 +52,18 @@ try:
         )
     )
 except StreamManagerException as e:
-    print(f"Error creating message stream: {e}")
+    logger.error(f"Error creating message stream: {e}")
     pass
 except Exception as e:
-    print(f"General exception error: {e}")
+    logger.error(f"General exception error: {e}")
     pass
 
 def main(event, context):
     """Invoked per incoming message"""
-    print(f"Event data is: {event}")
+    logger.info(f"Event data is: {event}")
     try:
         # Incoming event is already byte encoded
         client.append_message(stream_name="LocalDataStream", data=event)
     except Exception as e:
-        print(f"Error appending: {e}")
+        logger.error(f"Error appending: {e}")
     return

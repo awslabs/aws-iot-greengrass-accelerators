@@ -1,6 +1,7 @@
 import cdk = require('@aws-cdk/core');
 import greengrass = require('@aws-cdk/aws-greengrass');
 import s3 = require('@aws-cdk/aws-s3');
+import kinesis = require('@aws-cdk/aws-kinesis');
 import { IoTAnalytics } from './iot-analytics/iot-analytics';
 import { CustomResourceIoTThingCertPolicy } from './cr-create-iot-thing-cert-policy/cr-iot-thing-cert-policy';
 import { CustomResourceGreengrassServiceRole } from './cr-greengrass-service-role/cr-greengrass-service-role';
@@ -40,6 +41,10 @@ class GreengrassStreamManagerStack extends cdk.Stack {
     });
     crS3DeleteObjects.node.addDependency(s3Bucket);
 
+    /*
+     * Target resources for the Greengrass Stream Manager
+    */
+
     // Create IoT Analytics resources for low priority / non-aggregated data
     var channelName = `${id.split('-').join('_')}_sensordata`;
     const iotAnalyticsData = new IoTAnalytics(this, 'IotAnalyticsStack', {
@@ -49,6 +54,11 @@ class GreengrassStreamManagerStack extends cdk.Stack {
       datasetName: `${id.split('-').join('_')}_sensordata_dataset`,
       sqlQuery: `select * from ${channelName}_datastore where __dt >= current_date - interval '1' day and from_unixtime(timestamp) > now() - interval '15' minute`,
       scheduledExpression: "cron(0/5 * * * ? *)"
+    });
+
+    // Kinesis Data Stream for 5 second average data
+    const kinesisStream = new kinesis.Stream(this, 'KinesisStream', {
+      streamName: "AggregateData",
     });
 
     // Create AWS IoT Thing/Certificate/Policy as basis for Greengrass Core
@@ -89,8 +99,19 @@ class GreengrassStreamManagerStack extends cdk.Stack {
           {
             "Effect": "Allow",
             "Action": "iotanalytics:*",
-            "Resource": iotAnalyticsData.channelArn
-          }
+            "Resource": iotAnalyticsData.channelArn,
+          },
+          // Allow access to Kinesis data stream for ingest
+          {
+            "Effect": "Allow",
+            "Action": "kinesis:ListStreams",
+            "Resource": "*",
+          },
+          {
+            "Effect": "Allow",
+            "Action": "kinesis:*",
+            "Resource": kinesisStream.streamArn,
+          },
         ]
       },
     });
@@ -182,7 +203,12 @@ class GreengrassStreamManagerStack extends cdk.Stack {
           functionConfiguration: {
             encodingType: 'binary',
             timeout: 3,
+            pinned: true,
             environment: {
+              variables: {
+                "LOCAL_DATA_STREAM": "LocalDataStream",
+                "KINESIS_DATA_STREAM": kinesisStream.streamName
+              }
             }
           }
         }

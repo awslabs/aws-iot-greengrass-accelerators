@@ -242,12 +242,24 @@ The predictions will be published from the Greengrass Core to the cloud, via top
 
 #### Feedback
 
-For the Greengrass Feedback Connector, we created 2 configurations, one for the confidence of prediction lower than 0.5, and one for the entropy:
+For the Greengrass Feedback Connector, we created 3 configurations:
+1. A random sampling at rate of 0.5
+2. A strategy when the confidence of prediction lower than 0.5, 
+3. One based on entropy with threshold 1.0
 
 ```
 {
+  "RandomSamplingConfiguration\":{
+    "s3-bucket-name": "${FeedbackS3BucketName}",
+    "file-ext": "png,jpg",
+    "content-type": "image/jpeg,image/png",
+    "sampling-strategy":{
+        "strategy-name": "RANDOM_SAMPLING",
+        "rate": 0.5
+    }
+  },
   "LC50": {
-    "s3-bucket-name": "kangrich-greengrass-us-west-2",
+    "s3-bucket-name": "${FeedbackS3BucketName}",
     "s3-prefix": "confidence-lower-than-50",
     "content-type": "image/jpeg,image/png",
     "sampling-strategy": {
@@ -256,12 +268,12 @@ For the Greengrass Feedback Connector, we created 2 configurations, one for the 
     }
   },
   "Entropy": {
-    "s3-bucket-name": "kangrich-greengrass-us-west-2",
+    "s3-bucket-name": "${FeedbackS3BucketName}",
     "s3-prefix": "entropy",
     "content-type": "image/jpeg,image/png",
     "sampling-strategy": {
       "strategy-name": "ENTROPY",
-      "threshold": 0
+      "threshold": 1.0
     }
   }
 }
@@ -290,6 +302,8 @@ Good reference of common issues can be found in https://github.com/awsdocs/aws-g
 
 ### Out-of-memory
 
+#### Log message
+
 If you noticed that `memUsed` is higher than the allocated memory `memSize` for either the connector or Lambda function, the function will not be started
 
 ```
@@ -297,6 +311,11 @@ If you noticed that `memUsed` is higher than the allocated memory `memSize` for 
 [2019-08-28T21:29:03.757Z][ERROR]-Worker is ungracefully killed.	{"workerId": "e544111a-03f5-40da-5e5c-23df2f6ced65", "funcArn": "arn:aws:lambda:<AWS Region>:<AWS Account ID>:function:pinned-ggc-mli-stack:6", "state": "signal: killed"}
 ```
 
-### Resolution
+#### Resolution
 
 Try increase the memory allocated for that function.
+
+### Connector failed to start
+
+### Log message
+

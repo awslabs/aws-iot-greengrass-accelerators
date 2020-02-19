@@ -66,7 +66,7 @@ def greengrass_long_run():
         # Perform business logic that relies on the predictions_arr, which is an array
         # of probabilities.
 
-        # Uses ML Connector to call the Feedback connector directly
+        # We can also invoke the ML Feedback Connector manually
         # invoke_feedback_connector(content,result)
 
     except ml.GreengrassInferenceException as e:

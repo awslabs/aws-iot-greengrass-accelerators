@@ -302,20 +302,25 @@ Good reference of common issues can be found in https://github.com/awsdocs/aws-g
 
 ### Out-of-memory
 
-#### Log message
-
-If you noticed that `memUsed` is higher than the allocated memory `memSize` for either the connector or Lambda function, the function will not be started
+If you noticed that `memUsed` is higher than the allocated memory `memSize` for either the connector or Lambda function, the function will not be started. Try increase the memory allocated for that function.
 
 ```
 [2019-08-28T21:29:03.757Z][WARN]-Worker consumed all allocated memory! Memory Usage (KB).	{"workerId": "e544111a-03f5-40da-5e5c-23df2f6ced65", "funcArn": "arn:aws:lambda:<AWS Region>:<AWS Account ID>:function:pinned-ggc-mli-stack:6", "memSize": 120000, "memUsed": 165172}
 [2019-08-28T21:29:03.757Z][ERROR]-Worker is ungracefully killed.	{"workerId": "e544111a-03f5-40da-5e5c-23df2f6ced65", "funcArn": "arn:aws:lambda:<AWS Region>:<AWS Account ID>:function:pinned-ggc-mli-stack:6", "state": "signal: killed"}
 ```
 
-#### Resolution
-
-Try increase the memory allocated for that function.
-
 ### Connector failed to start
 
-### Log message
+If your deployment failed and the message is that certain worker failed to initialize, such as message below, check the logs for each functions. For custom Lambda function, the logs are in `/greengrass/ggc/var/log/user/<region>/<account ID>/<function name>.log`, and for connectors the logs are in `/greengrass/ggc/var/log/user/<region>/aws/<connector name>.log`.
 
+```
+Deployment 1a440a27-79b1-4346-80fb-934bf8a9bdfe of type NewDeployment for group 82a09694-0be7-4316-9c0a-a64fec972941 failed error: worker with e95c3577-1155-4127-55ec-2b0fedf3b121 failed to initialize
+```
+
+One of the cause could be the missing dependencies. For example, the log of the Image Classification might have the following message. 
+
+```
+[2020-02-20T01:05:20.372Z][FATAL]-lambda_runtime.py:140,Failed to import handler function "handlers.handler" due to exception: libgfortran.so.3: cannot open shared object file: No such file or directory
+```
+
+To resolve the issue, install the dependency as required with command `$ sudo apt-get install -y libgfortran3`

@@ -32,12 +32,15 @@ client = StreamManagerClient()
 last_read_seq_num = -1
 
 
-def read_from_stream(client):
+def read_from_stream(client, msg_count=10, read_timeout_millis=5000):
+    """Read a batch of messages from a stream"""
     global last_read_seq_num
     messages = client.read_messages(
         LOCAL_STREAM,
         ReadMessagesOptions(
-            desired_start_sequence_number=last_read_seq_num + 1, min_message_count=10, read_timeout_millis=5000
+            desired_start_sequence_number=last_read_seq_num + 1,
+            min_message_count=msg_count,
+            read_timeout_millis=read_timeout_millis,
         ),
     )
     logger.warning("Successfully read raw data")
@@ -51,34 +54,48 @@ def read_from_stream(client):
     return list(map(extend_data, messages))
 
 
-
 def _get_current_epoch_millis():
     return round(time() * 1000)
 
 
 def read_from_stream_aggregate_and_publish(client: StreamManagerClient):
-    raw_stream_data = read_from_stream(client)
+    """Read the higher precision local data stream, aggregate, and publish to the aggregate stream"""
+
+    raw_stream_data = read_from_stream(
+        client=client, msg_count=10, read_timeout_millis=5000
+    )
     aggregated_data = {
         "avg_temperature": mean(map(lambda m: m["temperature"], raw_stream_data)),
         "avg_hertz": mean(map(lambda m: m["hertz"], raw_stream_data)),
         "timestamp": max(map(lambda m: m["timestamp"], raw_stream_data)),
-        "last_sequence_number": max(map(lambda m: m["sequence_number"], raw_stream_data)),
+        "last_sequence_number": max(
+            map(lambda m: m["sequence_number"], raw_stream_data)
+        ),
     }
-
+    print(f"Agg data to be published is: {aggregated_data}")
     retries = 3
     backoff = 0.2
 
     # Try appending data up to 3 times. If that fails, then just move on.
     for tryNum in range(retries):
         try:
-            sequence_number = client.append_message(AGGREGATE_STREAM, json.dumps(aggregated_data).encode("utf-8"))
-            logger.warning("Successfully appended aggregated data as sequence number %d", sequence_number)
+            sequence_number = client.append_message(
+                AGGREGATE_STREAM, json.dumps(aggregated_data).encode("utf-8")
+            )
+            logger.warning(
+                "Successfully appended aggregated data as sequence number %d",
+                sequence_number,
+            )
             break
         except Exception:
             logger.warning(
-                "Exception while trying to append aggregated data. Try %d of %d.", tryNum, retries, exc_info=True
+                "Exception while trying to append aggregated data. Try %d of %d.",
+                tryNum,
+                retries,
+                exc_info=True,
             )
             sleep(backoff)
+
 
 # First wait until LocalDataStream is available
 try:
@@ -86,7 +103,9 @@ try:
         stream_names = client.list_streams()
         if LOCAL_STREAM in stream_names:
             break
-        logger.warning(f"Target consumer stream {LOCAL_STREAM} not found, pausing 1 second...")
+        logger.warning(
+            f"Target consumer stream {LOCAL_STREAM} not found, pausing 1 second..."
+        )
         sleep(1)
     logger.info(f"Found target consumer stream {LOCAL_STREAM}")
     pass
@@ -96,29 +115,32 @@ except Exception as e:
 # Create AggregateDataStream to Kinesis
 try:
     # The LocalDataStream is low priority source for incoming sensor data and
-    # aggregator function. 
+    # aggregator function.
     client.create_message_stream(
         MessageStreamDefinition(
             name=AGGREGATE_STREAM,  # Required.
-            max_size=268435456,  # Default is 256 MB.
-            stream_segment_size=16777216,  # Default is 16 MB.
-            time_to_live_millis=None,  # By default, no TTL is enabled.
+            # max_size=268435456,  # Default is 256 MB.
+            # stream_segment_size=16777216,  # Default is 16 MB.
+            # time_to_live_millis=None,  # By default, no TTL is enabled.
             strategy_on_full=StrategyOnFull.OverwriteOldestData,  # Required.
-            persistence=Persistence.File,  # Default is File.
-            flush_on_write=False,  # Default is false.
+            # persistence=Persistence.File,  # Default is File.
+            # flush_on_write=False,  # Default is false.
             export_definition=ExportDefinition(
                 kinesis=[
                     KinesisConfig(
                         identifier="AggregateData",
                         kinesis_stream_name=kinesis_data_stream,
                         # Highest priority
-                        priority=1
+                        priority=1,
+                        batch_size=5,
                     )
                 ]
             ),
         )
     )
-    logger.info(f"Created aggregate producer stream: AggregateDataStream, with target producer Kinesis Data Stream: {kinesis_data_stream}")
+    logger.info(
+        f"Created aggregate producer stream: AggregateDataStream, with target producer Kinesis Data Stream: {kinesis_data_stream}"
+    )
 except StreamManagerException as e:
     logger.error(f"Error creating message stream: {e}")
     pass
@@ -136,8 +158,6 @@ while True:
     except NotEnoughMessagesException:
         pass
     sleep(0.5)
-
-
 
 
 def main(event, context):

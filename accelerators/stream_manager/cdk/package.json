@@ -15,17 +15,17 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/node": "^13.7.1",
+    "@types/node": "^13.7.4",
     "@types/uuid": "^3.4.7",
     "typescript": "~3.7.2"
   },
   "dependencies": {
-    "@aws-cdk/aws-cloudformation": "^1.24.0",
-    "@aws-cdk/aws-greengrass": "^1.24.0",
-    "@aws-cdk/aws-iotanalytics": "^1.24.0",
-    "@aws-cdk/aws-kinesis": "^1.24.0",
-    "@aws-cdk/aws-lambda": "^1.24.0",
-    "@aws-cdk/core": "^1.24.0",
+    "@aws-cdk/aws-cloudformation": "^1.25.0",
+    "@aws-cdk/aws-greengrass": "^1.25.0",
+    "@aws-cdk/aws-iotanalytics": "^1.25.0",
+    "@aws-cdk/aws-kinesis": "^1.25.0",
+    "@aws-cdk/aws-lambda": "^1.25.0",
+    "@aws-cdk/core": "^1.25.0",
     "uuid": "^3.4.0"
   }
 }

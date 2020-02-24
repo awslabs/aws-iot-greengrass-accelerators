@@ -59,7 +59,17 @@ except Exception as e:
     pass
 
 def main(event, context):
-    """Invoked per incoming message"""
+    """Invoked per incoming message
+    
+    This function is invoked everytime a message is placed on an MQTT
+    topic where this function is the target. It simply places the data
+    onto the LocalDataStream.
+
+    Args:
+        event (bytes): UTF-8 encoded byte stream (binary)
+        context (dict): Mirrors cloud Lambda (unused)   
+    """
+
     logger.info(f"Event data is: {event}")
     try:
         # Incoming event is already byte encoded

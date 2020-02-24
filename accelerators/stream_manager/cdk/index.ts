@@ -90,10 +90,24 @@ class GreengrassStreamManagerStack extends cdk.Stack {
             rolePolicy: {
                 "Version": "2012-10-17",
                 "Statement": [
+                    // Allow All IoT functions
                     {
                         "Effect": "Allow",
                         "Action": "iot:*",
                         "Resource": "*",
+                    },
+                    // Allow Greengrass Core to log to CloudWatch Logs
+                    {
+                        "Effect": "Allow",
+                        "Action": [
+                            "logs:CreateLogGroup",
+                            "logs:CreateLogStream",
+                            "logs:PutLogEvents",
+                            "logs:DescribeLogStreams"
+                        ],
+                        "Resource": [
+                            "arn:aws:logs:*:*:*"
+                        ]
                     },
                     // Allow access to the AWS IoT Analytics channel for ingest
                     {

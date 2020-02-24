@@ -43,7 +43,7 @@ def read_from_stream(client, msg_count=10, read_timeout_millis=5000):
             read_timeout_millis=read_timeout_millis,
         ),
     )
-    logger.warning("Successfully read raw data")
+    logger.info(f"Successfully read {len(messages)}")
     last_read_seq_num = messages[-1].sequence_number
 
     def extend_data(m):
@@ -55,14 +55,17 @@ def read_from_stream(client, msg_count=10, read_timeout_millis=5000):
 
 
 def _get_current_epoch_millis():
+    """Expand epoch time in seconds to milliseconds"""
     return round(time() * 1000)
 
 
 def read_from_stream_aggregate_and_publish(client: StreamManagerClient):
     """Read the higher precision local data stream, aggregate, and publish to the aggregate stream"""
-
     raw_stream_data = read_from_stream(
-        client=client, msg_count=10, read_timeout_millis=5000
+        # Source data is ~10mps, so read 5 seconds worth (50)
+        client=client,
+        msg_count=50,
+        read_timeout_millis=5000,
     )
     aggregated_data = {
         "avg_temperature": mean(map(lambda m: m["temperature"], raw_stream_data)),
@@ -72,7 +75,6 @@ def read_from_stream_aggregate_and_publish(client: StreamManagerClient):
             map(lambda m: m["sequence_number"], raw_stream_data)
         ),
     }
-    print(f"Agg data to be published is: {aggregated_data}")
     retries = 3
     backoff = 0.2
 
@@ -82,7 +84,7 @@ def read_from_stream_aggregate_and_publish(client: StreamManagerClient):
             sequence_number = client.append_message(
                 AGGREGATE_STREAM, json.dumps(aggregated_data).encode("utf-8")
             )
-            logger.warning(
+            logger.info(
                 "Successfully appended aggregated data as sequence number %d",
                 sequence_number,
             )
@@ -114,8 +116,8 @@ except Exception as e:
 
 # Create AggregateDataStream to Kinesis
 try:
-    # The LocalDataStream is low priority source for incoming sensor data and
-    # aggregator function.
+    # The Aggregate data stream is a high priority source for aggregate data
+    # sent to Kinesis Data Streams.
     client.create_message_stream(
         MessageStreamDefinition(
             name=AGGREGATE_STREAM,  # Required.
@@ -148,19 +150,14 @@ except Exception as e:
     logger.error(f"General exception error: {e}")
     pass
 
-# While True loop for reading from Local and writing to aggregate
-# read every 5 seconds worth of records, average
-# Write average values to agg stream
-
 while True:
+    # Read the local data stream, aggregate, and publish forever
     try:
         read_from_stream_aggregate_and_publish(client)
     except NotEnoughMessagesException:
         pass
-    sleep(0.5)
 
 
 def main(event, context):
     """Called per invoke, we should never see this used"""
-
     return

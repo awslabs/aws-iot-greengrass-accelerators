@@ -20,6 +20,7 @@ app = flask.Flask(__name__)
 
 @app.route("/api/v1/sensor/data/enable", methods=["GET"])
 def api_sensor_data_enable():
+    """Enable generation of sensor data"""
     global generate_sensor_data
     lock.acquire()
     generate_sensor_data = True
@@ -29,6 +30,7 @@ def api_sensor_data_enable():
 
 @app.route("/api/v1/sensor/data/disable", methods=["GET"])
 def api_sensor_data_disable():
+    """Disables generation of sensor data"""
     global generate_sensor_data
     lock.acquire()
     generate_sensor_data = False
@@ -38,6 +40,7 @@ def api_sensor_data_disable():
 
 @app.route("/api/v1/sensor/data/status", methods=["GET"])
 def api_sensor_data_status():
+    """Returns current status of sensor data generation"""
     global generate_sensor_data
     lock.acquire()
     status = generate_sensor_data
@@ -62,10 +65,10 @@ def api_server():
 
 def sensor_data_server():
     """ Generates and publishes sensor data if enabled
+    
         Data generation is at 10 messages per second, with each message containing
         values for temperature and humidity.
     """
-
     while True:
         lock.acquire()
         if generate_sensor_data:
@@ -74,7 +77,7 @@ def sensor_data_server():
             # Publish data to Lambda Producer directly
             try:
                 client.publish(
-                    topic="sensor_data", qos=0, payload=json.dumps(data).encode()
+                    topic="sensor_data", qos=0, payload=json.dumps(data).encode("utf-8")
                 )
             except Exception as e:
                 logger.error(f"Error appending: {e}")
@@ -100,5 +103,4 @@ app_startup()
 
 def main(event, context):
     """Called per invoke, we should never see this (long running Lambda)"""
-
     return

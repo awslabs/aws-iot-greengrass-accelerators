@@ -19,7 +19,7 @@ from greengrasssdk.stream_manager import (
 
 # Configure logger
 logger = logging.getLogger()
-logger.setLevel(logging.WARN)
+logger.setLevel(logging.INFO)
 
 channel_name = os.environ["STREAM_MANAGER_CHANNEL"]
 client = StreamManagerClient()

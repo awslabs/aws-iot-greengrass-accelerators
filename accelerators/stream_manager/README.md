@@ -15,13 +15,14 @@ Common use cases for stream manager include:
 
 ![Stream Manager and Docker Container](docs/stream-manager-architecture.png)
 
-In this use case, we create two **Local data streams**, with the first stream configured for low-priority export to AWS IoT Analytics and a set amount of local disk space and overwriting the old data. The second stream is exporting data with high priority to an Amazon Kinesis Data Stream, again with a set amount of local disk space, but without overwriting data.
+In this use case, we create two **local data streams**, with the first stream, *LocalDataStream* configured for low-priority export to AWS IoT Analytics and a set amount of local disk space and overwriting the old data. The second stream, *AggregateDataStream*, exports data with high priority to an Amazon Kinesis Data Stream, again using local resources for data persistence.
 
-There are three deployed Lambda functions that serve different purposes:
+There are three deployed Lambda functions and a Greengrass managed Docker container that serve different purposes:
 
-- Producer Function - Reads sensor data (simulated) at high volume (60 readings per-second) and writes it to the Local Data Stream
-- Aggregator Function - Reads the Local Data Stream, aggregates the data by creating an average per sensor every second, then writes the aggregate message to the Aggregated Local Data Stream
-- Reader Container-based App - A Flask web application running in a Docker container that reads from the *Aggregated Local Data Stream*, displaying the aggregated information. The Reader also serves as an on/off switch for the simulated sensor data.
+- Sensor Source Function- Generates simulated data for use by the rest of the accelerator. Can be toggled on or off from the Docker container (flask application).
+- Stream Producer Function - Reads sensor data at high volume (10 readings per-second) and writes it to the Local Data Stream
+- Stream Aggregator Function - Reads the Local Data Stream, aggregates the data by creating an average per sensor every five seconds, then writes the aggregate message to the Aggregate Data Stream
+- Greengrass Managed Docker Container - A Flask web application running in a Docker container that reads from the *Aggregated Local Data Stream*, displaying the aggregated information. The application also serves as an on/off switch for the simulated sensor data.
 
 The two streams are used locally and export the data to AWS IoT Analytics for the raw data, and to Amazon Kinesis Data Streams for the aggregated data.
 
@@ -87,8 +88,13 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
     ```bash
     # Cloud9 Commands - change as needed for local development environment
-    # Install pre-requisites and reboot
-    npm install -g aws-cdk
+    # Install pre-requisites, bootstrap CDK for use in account/region, and reboot
+    npm uninstall -g aws-cdk
+    npm install -g aws-cdk@1.25.0
+    # Bootstrap CDK for current AWS account and region where Cloud9 runs
+    ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+    REGION=$(aws configure get region)
+    cdk bootstrap aws://$ACCOUNT/$REGION
     sudo curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     sudo chmod +x /usr/local/bin/docker-compose
     # Enable soft/hard links

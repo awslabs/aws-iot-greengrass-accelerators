@@ -135,7 +135,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     echo
     echo "********************* This is the URL to access the Flask Container *********************"
     echo "
-                            Flask URL is: http://$MY_IP
+                            Flask URL is: http://$MY_IP"
     ```
 
 1. At this point, the CloudFormation stack has been deployed and the Greengrass container is running. The CloudFormation stack will also trigger an initial deployment of all resources, so the Lambda functions, Stream Manager, and docker containers are also running.

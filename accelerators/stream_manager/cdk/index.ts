@@ -340,5 +340,5 @@ class GreengrassStreamManagerStack extends cdk.Stack {
 
 // Create stack
 const app = new cdk.App();
-new GreengrassStreamManagerStack(app, 'greengrass-stream-manager-accelerator');
+new GreengrassStreamManagerStack(app, 'greengrass-stream-mgr-accel');
 app.synth();

@@ -1,7 +1,15 @@
-version: '3'
+version: '3.7'
 services:
   web:
     image: "gadams999/gg_accel_stream_manager_flask:dev"
     ports:
       # Host:container
       - "8082:5000"
+    networks:
+      # Use the same network where the Greengrass container is running
+      - flask_app_network
+
+networks:
+  flask_app_network:
+    external:
+      name: greengrass_network

@@ -17,8 +17,15 @@ services:
     ports:
       # MQTT TLS port
       - "8883:8883"
-      # Stream Manager port
-      - "8088:8088"
-      # Sensor Data API port
+      # Sensor Data Lambda API port
       - "8180:8180"
+      # Stream Aggregator Lambda API port
+      - "8181:8181"
+    networks:
+      - greengrassnet
     entrypoint: "/greengrass-entrypoint.sh"
+
+networks:
+  greengrassnet:
+    # Name the network for use by the other containers to reference Greengrass by name
+    name: greengrass_network

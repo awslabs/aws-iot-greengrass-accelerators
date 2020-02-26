@@ -1,7 +1,7 @@
 # Common AWS SDKs for use by Lambda functions
 greengrasssdk
 boto3
-# Appears to be needed to support calling docker-compose command
+# Support calling docker-compose command
 docker-compose
 # Other packages used by Lambda
 flask

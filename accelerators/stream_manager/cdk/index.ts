@@ -185,11 +185,12 @@ class GreengrassStreamManagerStack extends cdk.Stack {
                         encodingType: 'binary',
                         pinned: true,
                         timeout: 3,
-                        environment: {
-                            variables: {
-                                "STREAM_MANAGER_AUTHENTICATE_CLIENT": "false"
-                            }
-                        }
+                        // Uncomment if other local processes require access to Stream Manager
+                        // environment: {
+                        //     variables: {
+                        //         "STREAM_MANAGER_AUTHENTICATE_CLIENT": "false"
+                        //     }
+                        // }
                     }
                 },
                 {

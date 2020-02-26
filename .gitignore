@@ -141,3 +141,6 @@ cdk.context.json
 .cdk.staging/
 cdk.out/
 *.tabl.json
+
+# Development files
+docker-compose-dev.yml

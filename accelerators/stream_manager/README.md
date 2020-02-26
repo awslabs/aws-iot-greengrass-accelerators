@@ -36,9 +36,9 @@ TODO: image - GG as host and GG as containers
 
 Greengrass can execute as either daemon on a host (Docker optional) or as a Docker container. All functionality is available in both methods, with the exception that when running as a container, all Docker-related actions are managed by the `dockerd` daemon at the host level.
 
-This accelerator has been designed to run within a Docker container and utilizing the hosts Docker daemon to run Greengrass *and* the contents of the `docker-compose` file sent to Greengrass. In this manner, the accelerator can run on any host with Docker support installed. It can also be modified to run on an existing Greengrass 1.10.0 or newer installation by not running the initial `docker-compose.yml` file.
+This accelerator has been designed to run within a Docker container and utilizing the hosts Docker daemon to run Greengrass *and* the contents of the `docker-compose` file sent to Greengrass. In this manner, the accelerator can run on any host with Docker support installed. It can also be modified to run on an existing Greengrass 1.10.0 or newer host installation by not running the initial `docker-compose.yml` file, by using the `config.json`, certificate and private keys.
 
-there is a local Cloud Development Kit (CDK) script to deploy a CloudFront stack and create the local assets required, such as the certificate and key pair used by the Greengrass core. The second component is a Docker compose file that runs Greengrass locally.
+There is a local Cloud Development Kit (CDK) script to deploy a CloudFront stack, and a Python script to create the local assets required, such as the certificate and key pair used by the Greengrass core. The second component is a Docker compose file that runs Greengrass locally.
 
 
 ## Folder Structure
@@ -109,6 +109,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
 
     # After reboot open a new terminal window and issue these commands
+    # NOTE: If terminal window spins when restarted, close the terminal window and launch a new one
     cd ~/environment
     # Clone the repository
     git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
@@ -141,50 +142,19 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     ```
 
 
-### Visualizing the Data
-
-By downloading a Firehose create file from the S3 bucket, you can view the contents and see that this is all the messages, each as a single JSON message per-line.
-
-Using Amazon Athena, modify the following SQL and run the query to create a database and table from your Firehose S3 bucket:
-
-```sql
-CREATE EXTERNAL TABLE IF NOT EXISTS default.gg_etl (
-  `pid` string,
-  `value` float,
-  `units` string,
-  `source` string,
-  `timestamp` timestamp 
-)
-ROW FORMAT SERDE 'org.openx.data.jsonserde.JsonSerDe'
-WITH SERDEPROPERTIES (
-  'serialization.format' = '1'
-) LOCATION 's3://greengrass-etl-accelerator-firehose-events-NNNNNNNN/firehose/'
-TBLPROPERTIES ('has_encrypted_data'='false');
-```
-
-Once create, you can then directly query the data from Amazon Athena, or use the database and table as a data source for Amazon QuickSight. Here is an Amazon Athena query of vehicle speed, limited to first 10 records:
-
-```sql
-SELECT * FROM default.gg_etl WHERE pid = 'VehicleSpeed'
-LIMIT 10
-```
-
-It will return something similar to this:
-
-![Amazon Athena query results](docs/etl_athena_query.png)
 
 ## Modifications
 
-The most common modifications would be to replace the code for three Lambda functions with code specific for your use case. To modify, start with the *Extract* function, view the contents of the *Extract Queue*, and then continue in a similar manner with the *Transform* and *Load* functions based on the *Load Queue*.
+
 
 ## FAQ and Help
 
-### The `docker-compose` command shows `etl-greengrass exited with code 143`
+### Error seen
 
 #### Resolution
 
-   1. Check that the certificate and private key files are in the correct location, and they are referenced by the correct names in the `config.json` file.
-   1. Ensure there is at least one Lambda function defined within the Greengrass group and that all container-based settings such as Isolation mode are set properly.
+   1. step 1
+   1. step 2
 
 ## Implementation Notes
 
@@ -196,9 +166,9 @@ Different components use either MQTT topics or direct IPC calls to query and com
 
 ### Lambda Functions
 
-Details on Lambda implementations
+Details on Lambda Functions and How They Operate
 
 #### sensor-source
 
-This is a long running Lambda that generates and publishes simulated sensor data to a local stream. It also exposes a simplistic API for turning on and off the sensor data. the API listens on port 0.0.0.0:8180.
+This is a long running Lambda that generates and publishes simulated sensor data to a local stream. It also exposes a simplistic API for turning on and off the sensor data. the API listens on port 0.0.0.0:8180 (this port is opened on the Cloud9 instance).
 

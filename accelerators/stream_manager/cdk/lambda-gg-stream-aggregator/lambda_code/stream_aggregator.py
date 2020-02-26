@@ -39,11 +39,7 @@ app = flask.Flask(__name__)
 lock = Lock()
 
 # Variables made available via Flask
-aggregate_values = {
-    "avg_temperature": None,
-    "avg_hertz": None,
-    "timestamp": None
-}
+aggregate_values = {"avg_temperature": None, "avg_hertz": None, "timestamp": None}
 
 
 @app.route("/api/v1/aggregate", methods=["GET"])
@@ -87,9 +83,9 @@ def read_from_stream_aggregate_and_publish(client: StreamManagerClient):
     """Read the higher precision local data stream, aggregate, and publish to the aggregate stream"""
     global aggregate_values
     raw_stream_data = read_from_stream(
-        # Source data is ~10mps, so read 5 seconds worth (50)
+        # Source data is approx 20 messages-per-second, so read 5 seconds worth (100)
         client=client,
-        msg_count=50,
+        msg_count=100,
         read_timeout_millis=5000,
     )
     aggregated_data = {
@@ -145,6 +141,7 @@ def api_server_worker():
     Thread(
         target=app.run, kwargs={"host": "0.0.0.0", "port": 8181, "threaded": True}
     ).start()
+
 
 def app_startup():
     """Initial startup commands and then separate threads"""
@@ -208,6 +205,7 @@ def app_startup():
     logger.info("Starting Flask API Thread")
     api_server_thread = Thread(target=api_server_worker, args=[])
     api_server_thread.start()
+
 
 # Execute app startup
 app_startup()

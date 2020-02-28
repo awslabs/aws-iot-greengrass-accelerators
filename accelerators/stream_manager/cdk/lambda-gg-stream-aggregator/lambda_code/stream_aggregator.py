@@ -182,7 +182,7 @@ def app_startup():
                             kinesis_stream_name=kinesis_data_stream,
                             # Highest priority
                             priority=1,
-                            batch_size=5,
+                            batch_size=1,
                         )
                     ]
                 ),

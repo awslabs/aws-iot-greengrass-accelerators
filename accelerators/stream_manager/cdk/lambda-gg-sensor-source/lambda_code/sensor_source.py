@@ -81,11 +81,12 @@ def sensor_data_server():
                 )
             except Exception as e:
                 logger.error(f"Error appending: {e}")
-            sleep(0.1)
+            sleep(0.05)
             continue
-        lock.release()
-        # Nothing to do, wait a bit before checking again
-        sleep(0.05)
+        else:
+            lock.release()
+            # Data generation disabled, pause before checking again
+            sleep(0.05)
 
 
 def app_startup():

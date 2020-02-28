@@ -32,13 +32,15 @@ To demonstrate both Stream Manager and the Greengrass Docker application deploym
 
 The Stream Manager creates and persists the data locally, and sends to the cloud when there is connectivity. The Greengrass managed container, a web Flask application, displays the aggregate data from the Stream Aggregator function.
 
-TODO: image - GG as host and GG as containers
-
 Greengrass can execute as either daemon on a host (Docker optional) or as a Docker container. All functionality is available in both methods, with the exception that when running as a container, all Docker-related actions are managed by the `dockerd` daemon at the host level.
 
-This accelerator has been designed to run within a Docker container and utilizing the hosts Docker daemon to run Greengrass *and* the contents of the `docker-compose` file sent to Greengrass. In this manner, the accelerator can run on any host with Docker support installed. It can also be modified to run on an existing Greengrass 1.10.0 or newer host installation by not running the initial `docker-compose.yml` file, by using the `config.json`, certificate and private keys.
+![Greengrass as Container](docs/greengrass-as-container.png)
 
-There is a local Cloud Development Kit (CDK) script to deploy a CloudFront stack, and a Python script to create the local assets required, such as the certificate and key pair used by the Greengrass core. The second component is a Docker compose file that runs Greengrass locally.
+This accelerator has been designed to run within a Docker container and utilizing the hosts Docker daemon to run Greengrass *and* the contents of the `docker-compose` file sent to Greengrass. In this manner, the accelerator can run on any host with Docker support installed. The main difference in running both Greengrass and the managed containers is that they container(s) are running side-by-side on the host system.
+
+The accelerator can also be modified to run on an existing Greengrass 1.10.0 or newer host installation by not running the  `docker-compose up -d` steps below, but by using the contents of the `gg_docker/config/config.json` and `gg_docker/certs/` with you own host system.
+
+The Cloud Development Kit (CDK) is used to deploy a CloudFront stack, and a Python script creates the local assets required, such as the certificate and key pair used by the Greengrass core. The second component is a Docker compose file that runs Greengrass locally.
 
 
 ## Folder Structure
@@ -50,20 +52,22 @@ stream_manager/
 │   ├── etl_accelerator-INPUT.cfn.yaml <-- CloudFormation template
 │   ├── lambda_functions
 │   └── other_files
+├── docker_compose_stack               <-- Compose stack to be managed by Greengrass
+│   ├── docker-compose.yml             <-- Compose file to be run
 ├── gg_docker                          <-- Creates Greengrass instance as container
 │   ├── Dockerfile-greengrass
 │   ├── certs
 │   ├── config
-│   ├── data
+│   ├── deployment
 │   ├── docker-compose.yml
 │   └── log
 ├── docs
 └── test
 ```
 
-There are two main components to using the accelerator. The `cdk/` directory contains the CDK assets to create the Greengrass configuration and long-lived Lambda functions as a *Greengrass deployment*. The *deployment* then waits for the target system, in this case a docker container, to start.
+There are two main components to using the accelerator. The `cdk/` directory contains the CDK assets to create the Greengrass configuration and long-lived Lambda functions as a *Greengrass deployment*. 
 
-The `gg_docker/` directory container the assets to create a Docker image and running container with the dependencies to run the Greengrass deployment. It also has directories to hold the Greengrass configuration and credentials for the Greengrass Core.
+The `gg_docker/` directory container the assets to create a Docker image and run Greengrass as a container locally. It also has directories to hold the Greengrass configuration and credentials for the Greengrass Core, along with the log files.
 
 ## How to Deploy the Accelerator
 
@@ -108,6 +112,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     sudo /etc/init.d/iptables save
     aws ec2 authorize-security-group-ingress --group-name $(curl -s http://169.254.169.254/latest/meta-data/security-groups) --protocol tcp --port 80 --cidr 0.0.0.0/0
     sudo reboot
+    ```
 
 
     # After reboot open a new terminal window and issue these commands
@@ -116,20 +121,20 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     # Clone the repository
     git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
     cd ~/environment/aws-iot-greengrass-accelerators/accelerators/stream_manager/cdk
-
+    
     # Build and deploy the CDK (CloudFormation stack)
     npm install
     npm run build
     cdk --profile default deploy
-
+    
     # Acknowledge the creation above, then run
     python3 deploy_resources.py -p default
-
+    
     # Build and start the Greengrass docker container
     cd ../gg_docker
     docker-compose build
     docker-compose up -d
-
+    
     # Get the IP address for accessing the Flask docker container once it is operational
     MY_IP=$(curl -s ifconfig.co)
     echo

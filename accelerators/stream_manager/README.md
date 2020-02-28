@@ -232,7 +232,9 @@ When running, data from both the LocalDataStream and the AggregateDataStream and
 
 #### Local Flask Application
 
-The Docker managed application starts a Docker container running a web server (Flask) that reads the aggregated simulated data and charts it. If running locally, you can access via http://localhost:8082 or http://0.0.0.0:8082). When using Cloud9, the flask app runs on the Cloud9 instance and can be accessed from the URL returned at the end of the deployment steps.
+The Docker managed application starts a Docker container running a web server (Flask) that reads the aggregated simulated data and charts it. If running locally, you can access via http://localhost:8082 or http://0.0.0.0:8082).
+
+When using Cloud9, the flask app runs on the Cloud9 instance and can be accessed from the URL returned at the end of the deployment steps. Part of the Cloud9 setup is to open inbound port 80 on the Cloud9 instance, then map that to the port the Flask app container runs on (TCP port 8082).
 
 ![Flask application](docs/flask-app.png)
 

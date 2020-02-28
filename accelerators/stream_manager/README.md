@@ -1,6 +1,6 @@
 # AWS IoT Greengrass Stream Manager
 
-This Greengrass accelerator demonstrates the use of the [AWS IoT Greengrass stream manager](https://docs.aws.amazon.com/greengrass/latest/developerguide/stream-manager.html) (stream manager) feature as depicted in the [stream manager section](https://aws.amazon.com/blogs/aws/new-aws-iot-greengrass-adds-docker-support-and-streams-management-at-the-edge/) of the blog post.
+This Greengrass accelerator demonstrates the use of the [AWS IoT Greengrass stream manager](https://docs.aws.amazon.com/greengrass/latest/developerguide/stream-manager.html) (stream manager) and the [Greengrass Docker Application Deployment Connector](https://docs.aws.amazon.com/greengrass/latest/developerguide/docker-app-connector.html) features as depicted in [this blog post](https://aws.amazon.com/blogs/aws/new-aws-iot-greengrass-adds-docker-support-and-streams-management-at-the-edge/).
 
 Common use cases for stream manager include:
 
@@ -82,13 +82,63 @@ The following is a list of prerequisites to deploy the accelerator:
   * Install the [AWS Cloud Development Kit](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html) and perform a [bootstrap](https://docs.aws.amazon.com/cdk/latest/guide/troubleshooting.html#troubleshooting_nobucket) in the region you will be working.
   * Verify Docker Desktop or Docker Machine installed, and you have the ability to create or download images locally and run containers.
 
-### Create and Launch the CloudFormation Stack
+
+
+### Create and Launch the Accelerator Locally
+
+:bulb:These steps assume familiarity with installation of NPM packages, Python, and working at the command line. For a getting-started deployment process, see the next section for a step-by-step deploying via AWS Cloud9.
+
+1. Install and bootstrap the CDK:
+
+   ````bash
+   npm install cdk
+   ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+   REGION=$(aws configure get region)
+   cdk bootstrap aws://$ACCOUNT/$REGION
+   ````
+
+1. Clone the repository if not already done and change into the `cdk/` directory, build and deploy the CloudFormation stack:
+
+   ````bash
+   git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
+   cd aws-iot-greengrass-accelerators/accelerators/stream_manager/cdk
+   npm install
+   npm run build
+   # replace PROFILE_NAME with your specific AWS CLI profile that has username and region
+   cdk --profile PROFILE_NAME deploy
+   ````
+
+1. At this point the CloudFormation stack is deployed. Next, run the `deploy_resources.py` script, which will:
+
+   1. Read the local CDK output to determine the CloudFormation stack name
+   1. From the CloudFormation stack output, read the values to
+   1. Create the `config.json` file for Greengrass in the `stream_maanager/gg_docker/config` directory
+   1. Create the `certificate.pem` and `private_key.pemn` files in the `stream_manager/gg_docker/certs` directory
+   1. Upload the `stream_mananger/docker_compose_stack/docker-compose.yml` file to the S3 directory referenced by the Greengrass Docker Application Deployment Connector.
+
+   ````bash
+   python3 deploy_resources.py -p default
+   ````
+
+1. Next, change to the `stream_manager/gg_docker` directory and start Greengrass running as Docker container. If you intend to run Greengrass on a physical device, copy the contents of the `stream_manager/gg_docker/certs` and the `stream_manager/gg_docker/config` directories to your core (e.g., `/greeengrass/certs` and `/greengrass/config`).
+
+   ```bash
+   cd ../gg_docker
+   docker-compose build
+   docker-compose up -d
+   ```
+
+At this point, the CloudFormation stack has been deployed and the Greengrass container is running. The CloudFormation stack will also trigger an initial deployment of all resources to the Greengrass Core, so the Lambda functions, Stream Manager, and docker containers are also running.
+
+Greengrass will start to write files into the `gg_docker/log` directory, and the web interface to the Flask application can be locally accessed via http://localhost:8082 (IP address dependent on your local Docker process).
+
+### Step-by-Step: Create and Launch the Accelerator via  AWS Cloud9
 
 :bulb: All steps below use a Cloud9 IDE in the same account and region where the accelerator will be run. If running locally, ensure you have the AWS CLI installed, and change the AWS named profile from *default* to one you have created with proper permissions.
 
 Prior to launching the accelerator container locally, the AWS CDK is used to generate a CloudFormation template and deploy it. From Cloud9, follow the steps to create and launch the stack via the CDK.
 
-1. *Pre-requisites* (only needs be run once) - Create a Cloud9 environment (t3.small), open a new Terminal window and run these commands:
+1. *Pre-requisites* (only needs be run once) - Create an **Amazon Linux, t3.small**  Cloud9 environment, open a new Terminal window and run these commands:
 
     ```bash
     # Cloud9 Commands - change as needed for local development environment
@@ -112,9 +162,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     sudo /etc/init.d/iptables save
     aws ec2 authorize-security-group-ingress --group-name $(curl -s http://169.254.169.254/latest/meta-data/security-groups) --protocol tcp --port 80 --cidr 0.0.0.0/0
     sudo reboot
-    ```
-
-
+    
     # After reboot open a new terminal window and issue these commands
     # NOTE: If terminal window spins when restarted, close the terminal window and launch a new one
     cd ~/environment
@@ -137,13 +185,11 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     
     # Get the IP address for accessing the Flask docker container once it is operational
     MY_IP=$(curl -s ifconfig.co)
-    echo
-    echo "********************* This is the URL to access the Flask Container *********************"
-    echo "
-                            Flask URL is: http://$MY_IP"
+    echo "This is the URL to access the Flask Container: http://$MY_IP"
+    # Done!
     ```
 
-1. At this point, the CloudFormation stack has been deployed and the Greengrass container is running. The CloudFormation stack will also trigger an initial deployment of all resources, so the Lambda functions, Stream Manager, and docker containers are also running.
+1. At this point, the CloudFormation stack has been deployed and the Greengrass container is running. The CloudFormation stack will also trigger an initial deployment of all resources to the Greengrass Core, so the Lambda functions, Stream Manager, and docker containers are also running.
 
 1.  :exclamation: The Docker containers run as the root process in Cloud9 (and other Linux environments). If you wish to look at log or deployment files locally, it is easiest to launch another terminal tab and set that user to root:
 
@@ -155,11 +201,42 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     ...
     ```
 
+### Investigating the Accelerator
 
+With the accelerator running via either method, there are few ways to see how the Greengrass Core is creating and processing data both locally and via the Cloud.
 
-## Modifications
+#### Local Log Files
 
+In the `gg_docker/log` directory, there will be both `system/` and `user/` directories where log files are stored. Review the contents of the various Lambda log files for both the deployed Lambda functions and the Docker Application Deployment connector.
 
+:bulb: Using a local IDE such as Visual Studio Code is an easy way to navigate to and review the contents of the log files. From the command line, the `tail -F` command will follow files as the filenames rotate.
+
+From the `stream_manager/gg_docker/log` directory, review the following in order:
+
+| Directory              | Filename                                                     | Contents                                                     |
+| ---------------------- | ------------------------------------------------------------ | ------------------------------------------------------------ |
+| `user/REGION/ACCOUNT/` | `greengrass-stream-mgr-accel-GreengrassLambda-SensorSource.log` | Indication that Flask is running (not currently used).       |
+| `user/REGION/ACCOUNT/` | `greengrass-stream-mgr-accel-GreengrassLambda-StreamProducer.log` | 20 messages per second of accepting and publishing to the LocalDataStream (approx 100 messages for each second). |
+| `user/REGION/ACCOUNT/` | `greengrass-stream-mgr-accel-GreengrassLambda-StreamAggregator.log` | Reading batches of LocalDataStream messages,  then aggregating them to the AggregateDataStream. |
+| `aws`                  | `DockerApplicationDeployment.log`                            | Details on the deployment and running state of Docker containers. |
+
+In normal operation, these log files will write and different rates. By changing the [log level settings](https://docs.aws.amazon.com/greengrass/latest/developerguide/greengrass-logs-overview.html) via the Greengrass Group. These are initially defined in the CDK `index.ts` file and set to an informational (INFO) level.
+
+#### CloudWatch Log Files
+
+As with the local log files, the CDK stack also enables sending log files to CloudWatch Logs under log groups starting with the prefix of `/aws/greengrass/GreengrassSystem` for system logs, and `/aws/greengrass/Lambda` for AWS and user Lambda functions. The log level setting for CloudWatch Logs is set to a warning (WARN) level.
+
+#### AWS IoT Analytics and Amazon Kinesis Data Streams
+
+When running, data from both the LocalDataStream and the AggregateDataStream and being sent to AWS IoT Analytics and Amazon Kinesis Data Streams respective. While this accelerator does not utilize these services, you can review the data being sent by investigating the Analytics data set and create a Kinesis Data Analytics application to review the Data Stream content (or by using a local Kinesis client).
+
+#### Local Flask Application
+
+The Docker managed application starts a Docker container running a web server (Flask) that reads the aggregated simulated data and charts it. If running locally, you can access via http://localhost:8082 or http://0.0.0.0:8082). When using Cloud9, the flask app runs on the Cloud9 instance and can be accessed from the URL returned at the end of the deployment steps.
+
+![Flask application](docs/flask-app.png)
+
+ To make changes to this application, you can modify and upload the `docker_compose_stack/docker-compose.yml` file and deploy. Note: for the Flask app to access the Greengrass running lambda functions, the `docker-compose.ynl` file references and uses the network configuration initiated by the Greengrass docker-compose configuration.
 
 ## FAQ and Help
 
@@ -184,5 +261,15 @@ Details on Lambda Functions and How They Operate
 
 #### sensor-source
 
-This is a long running Lambda that generates and publishes simulated sensor data to a local stream. It also exposes a simplistic API for turning on and off the sensor data. the API listens on port 0.0.0.0:8180 (this port is opened on the Cloud9 instance).
+This is a long-running Lambda that generates and publishes simulated sensor data to a local topic, `sensor_data`. It also exposes a simplistic API for turning on and off the sensor data which is currently unused, but made available on port 0.0.0.0:8180 .
+
+#### stream-producer
+
+This is a long-running Lambda that is invoked for every message published by the *sensor*-source Lambda function on the `sensor_data` topic, and then appends the message to the *LocalDataStream* and 20 messages per second. 
+
+#### stream-aggregator
+
+This is a long-running Lambda that reads the LocalDataStream for 5 seconds with of raw data, aggregate and average the data, and then append the message to the AggregateDataStream. It also exposes an API call that returns the latest aggregate data, which is used by the Flask app running on the Docker Managed Application Container.
+
+
 

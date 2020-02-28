@@ -238,14 +238,62 @@ The Docker managed application starts a Docker container running a web server (F
 
  To make changes to this application, you can modify and upload the `docker_compose_stack/docker-compose.yml` file and deploy. Note: for the Flask app to access the Greengrass running lambda functions, the `docker-compose.ynl` file references and uses the network configuration initiated by the Greengrass docker-compose configuration.
 
+## Accelerator Cleanup
+
+To stop and completely remove this accelerator, follow these steps:
+
+1. From the command line, either locally on in Cloud 9, stop the Greengrass container:
+
+   ```bash
+   docker-compose down
+   ```
+
+1. With the container stopped, change to the CDK directory and issue the command to *destroy* the CloudFormation stack:
+
+   ```bash
+   cd ../cdk
+   # For Cloud9
+   cdk --profile default destroy
+   # For locally running (replace PROFILE_NAME with one used to create stack)
+   cdk --profile PROFILE_NAME destroy
+   ```
+
+   If there are any errors abut not being able to completely destroy the stack, review the error messages and resolve. In most cases it will be related to assets that may have been modified. Once resolve, run the `cdk destroy` command again, or delete the stack from the CloudFormation console.
+
+   Also, at this point the certificate and private key are no longer valid in the Greengrass `certs/` directory. If you wish to redeploy the stack, clear out all of the `certs/` and `config/` directories,
+
+1. If you created any assets that references or used AWS IoT Analytics or Amazon Kinesis Data Streams, delete these also.
+
+1. Review any CloudWatch Logs log groups and delete these if needed.
+
+1. Finally, change out of the GitHub repository and fully delete the directory.
+
+That's it! Fully deployed, run, and cleared up!
+
 ## FAQ and Help
 
-### Error seen
+### docker-compose down: Error while removing network
+
+When stopping Greengrass via `docker-compose down`, you make see this error:
+
+```bash
+$ docker-compose down
+Stopping greengrass-stream-manager-accelerator ... done
+Removing greengrass-stream-manager-accelerator ... done
+Removing network greengrass_network
+ERROR: error while removing network: network greengrass_network id 4517716a2d362a334ecf7901845a5e69645baf867a607ee7175353f93cb65c7a has active endpoints
+```
+
+This is the result of the Flask application container still referencing the Greengrass container's network.
 
 #### Resolution
 
-   1. step 1
-   1. step 2
+   1. Issue the command again:
+
+      ```bash
+      $ docker-compose down
+      Removing network greengrass_network
+      ```
 
 ## Implementation Notes
 

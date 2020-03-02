@@ -112,15 +112,15 @@ The following is a list of prerequisites to deploy the accelerator:
 
    1. Read the local CDK output to determine the CloudFormation stack name
    1. From the CloudFormation stack output, read the values to
-   1. Create the `config.json` file for Greengrass in the `stream_maanager/gg_docker/config` directory
-   1. Create the `certificate.pem` and `private_key.pemn` files in the `stream_manager/gg_docker/certs` directory
-   1. Upload the `stream_mananger/docker_compose_stack/docker-compose.yml` file to the S3 directory referenced by the Greengrass Docker Application Deployment Connector.
+   1. Create the `config.json` file for Greengrass in the `stream_manager/gg_docker/config` directory
+   1. Create the `certificate.pem` and `private_key.pem` files in the `stream_manager/gg_docker/certs` directory
+   1. Upload the `stream_manager/docker_compose_stack/docker-compose.yml` file to the S3 directory referenced by the Greengrass Docker Application Deployment Connector.
 
    ````bash
    python3 deploy_resources.py -p default
    ````
 
-1. Next, change to the `stream_manager/gg_docker` directory and start Greengrass running as Docker container. If you intend to run Greengrass on a physical device, copy the contents of the `stream_manager/gg_docker/certs` and the `stream_manager/gg_docker/config` directories to your core (e.g., `/greeengrass/certs` and `/greengrass/config`).
+1. Next, change to the `stream_manager/gg_docker` directory and start Greengrass running as Docker container. If you intend to run Greengrass on a physical device, copy the contents of the `stream_manager/gg_docker/certs` and the `stream_manager/gg_docker/config` directories to your core (e.g., `/greengrass/certs` and `/greengrass/config`).
 
    ```bash
    cd ../gg_docker
@@ -229,6 +229,8 @@ As with the local log files, the CDK stack also enables sending log files to Clo
 #### AWS IoT Analytics and Amazon Kinesis Data Streams
 
 When running, data from both the LocalDataStream and the AggregateDataStream and being sent to AWS IoT Analytics and Amazon Kinesis Data Streams respective. While this accelerator does not utilize these services, you can review the data being sent by investigating the Analytics data set and create a Kinesis Data Analytics application to review the Data Stream content (or by using a local Kinesis client).
+
+For AWS IoT Analytics, go to the *AWS Console->AWS IoT Analytics->Data sets*, and select the *greengrass_stream_mgr_accel_sensor_datatset*. 
 
 #### Local Flask Application
 

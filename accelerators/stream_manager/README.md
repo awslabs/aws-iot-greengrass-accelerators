@@ -82,9 +82,7 @@ The following is a list of prerequisites to deploy the accelerator:
   * Install the [AWS Cloud Development Kit](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html) and perform a [bootstrap](https://docs.aws.amazon.com/cdk/latest/guide/troubleshooting.html#troubleshooting_nobucket) in the region you will be working.
   * Verify Docker Desktop or Docker Machine installed, and you have the ability to create or download images locally and run containers.
 
-
-
-### Create and Launch the Accelerator Locally
+#### Create and Launch the Accelerator Locally
 
 :bulb:These steps assume familiarity with installation of NPM packages, Python, and working at the command line. For a getting-started deployment process, see the next section for a step-by-step deploying via AWS Cloud9.
 
@@ -132,7 +130,7 @@ At this point, the CloudFormation stack has been deployed and the Greengrass con
 
 Greengrass will start to write files into the `gg_docker/log` directory, and the web interface to the Flask application can be locally accessed via http://localhost:8082 (IP address dependent on your local Docker process).
 
-### Step-by-Step: Create and Launch the Accelerator via  AWS Cloud9
+#### Step-by-Step: Create and Launch the Accelerator via  AWS Cloud9
 
 :bulb: All steps below use a Cloud9 IDE in the same account and region where the accelerator will be run. If running locally, ensure you have the AWS CLI installed, and change the AWS named profile from *default* to one you have created with proper permissions.
 
@@ -140,56 +138,62 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
 1. *Pre-requisites* (only needs be run once) - Create an **Amazon Linux, t3.small**  Cloud9 environment, open a new Terminal window and run these commands:
 
-    ```bash
-    # Cloud9 Commands - change as needed for local development environment
-    # Install pre-requisites, bootstrap CDK for use in account/region, and reboot
-    npm uninstall -g cdk
-    npm install -g aws-cdk@1.26.0
-    # Bootstrap CDK for current AWS account and region where Cloud9 runs
-    ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
-    REGION=$(aws configure get region)
-    cdk bootstrap aws://$ACCOUNT/$REGION
-    sudo curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
-    # Enable soft/hard links
-    sudo cat <<EOF | sudo tee /etc/sysctl.d/98-cloud9-greengrass.conf
-    fs.protected_hardlinks = 1
-    fs.protected_symlinks = 1
-    EOF
-    # Allow access to Cloud9 instance for local Flask app
-    # Add inbound for port 80 to the flask app (80->8082)
-    sudo /sbin/iptables -A PREROUTING -t nat -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8082
-    sudo /etc/init.d/iptables save
-    aws ec2 authorize-security-group-ingress --group-name $(curl -s http://169.254.169.254/latest/meta-data/security-groups) --protocol tcp --port 80 --cidr 0.0.0.0/0
-    sudo reboot
-    
-    # After reboot open a new terminal window and issue these commands
-    # NOTE: If terminal window spins when restarted, close the terminal window and launch a new one
-    cd ~/environment
-    # Clone the repository
-    git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
-    cd ~/environment/aws-iot-greengrass-accelerators/accelerators/stream_manager/cdk
-    
-    # Build and deploy the CDK (CloudFormation stack)
-    npm install
-    npm run build
-    cdk --profile default deploy
-    
-    # Acknowledge the creation above, then run
-    python3 deploy_resources.py -p default
-    
-    # Build and start the Greengrass docker container
-    cd ../gg_docker
-    docker-compose build
-    docker-compose up -d
-    
-    # Get the IP address for accessing the Flask docker container once it is operational
-    MY_IP=$(curl -s ifconfig.co)
-    echo "This is the URL to access the Flask Container: http://$MY_IP"
-    # Done!
-    ```
+   ```bash
+   # Cloud9 Commands - change as needed for local development environment
+   # Install pre-requisites, bootstrap CDK for use in account/region, and reboot
+   npm uninstall -g cdk
+   npm install -g aws-cdk@1.26.0
+   # Bootstrap CDK for current AWS account and region where Cloud9 runs
+   ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+   REGION=$(aws configure get region)
+   cdk bootstrap aws://$ACCOUNT/$REGION
+   sudo curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+   sudo chmod +x /usr/local/bin/docker-compose
+   # Enable soft/hard links
+   sudo cat <<EOF | sudo tee /etc/sysctl.d/98-cloud9-greengrass.conf
+   fs.protected_hardlinks = 1
+   fs.protected_symlinks = 1
+   EOF
+   # Allow access to Cloud9 instance for local Flask app
+   # Add inbound for port 80 to the flask app (80->8082)
+   sudo /sbin/iptables -A PREROUTING -t nat -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8082
+   sudo /etc/init.d/iptables save
+   aws ec2 authorize-security-group-ingress --group-name $(curl -s http://169.254.169.254/latest/meta-data/security-groups) --protocol tcp --port 80 --cidr 0.0.0.0/0
+   sudo reboot
+   ```
+
+1. Build and deploy. Once Cloud9 has restarted, issue these commands. If the terminal window is unresponsive, open a new one.
+
+   ```bash
+   # After reboot open a new terminal window and issue these commands
+   # NOTE: If terminal window spins when restarted, close the terminal window and launch a new one
+   cd ~/environment
+   # Clone the repository
+   git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
+   cd ~/environment/aws-iot-greengrass-accelerators/accelerators/stream_manager/cdk
+   
+   # Build and deploy the CDK (CloudFormation stack)
+   npm install
+   npm run build
+   cdk --profile default deploy
+   
+   # Acknowledge the creation above, then run
+   python3 deploy_resources.py -p default
+   
+   # Build and start the Greengrass docker container
+   cd ../gg_docker
+   docker-compose build
+   docker-compose up -d
+   
+   # Get the IP address for accessing the Flask docker container once it is operational
+   MY_IP=$(curl -s ifconfig.co)
+   echo "This is the URL to access the Flask Container: http://$MY_IP"
+   # Done!
+   ```
 
 1. At this point, the CloudFormation stack has been deployed and the Greengrass container is running. The CloudFormation stack will also trigger an initial deployment of all resources to the Greengrass Core, so the Lambda functions, Stream Manager, and docker containers are also running.
+
+    Greengrass will start to write files into the `gg_docker/log` directory, and the web interface to the Flask application can be accessed via the returned URL on the *This is the URL to access...* line above.
 
 1.  :exclamation: The Docker containers run as the root process in Cloud9 (and other Linux environments). If you wish to look at log or deployment files locally, it is easiest to launch another terminal tab and set that user to root:
 

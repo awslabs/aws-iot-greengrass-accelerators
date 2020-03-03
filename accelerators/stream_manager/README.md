@@ -234,7 +234,9 @@ As with the local log files, the CDK stack also enables sending log files to Clo
 
 When running, data from both the LocalDataStream and the AggregateDataStream and being sent to AWS IoT Analytics and Amazon Kinesis Data Streams respective. While this accelerator does not utilize these services, you can review the data being sent by investigating the Analytics data set and create a Kinesis Data Analytics application to review the Data Stream content (or by using a local Kinesis client).
 
-For AWS IoT Analytics, go to the *AWS Console->AWS IoT Analytics->Data sets*, and select the *greengrass_stream_mgr_accel_sensor_datatset*. 
+For AWS IoT Analytics, go to the *AWS Console->AWS IoT Analytics->Data sets*, and select the *greengrass_stream_mgr_accel_sensor_datatset*. This will show the *Detail* configuration for the dataset along with a *Result preview* of the values being sent. Select the Content menu and download and open the CSV file to see the raw sensor data.
+
+For Amazon Kinesis Data Streams, go to the *AWS Console->Kinesis->Data Analytics*. Create an application and for the *Source*, select the *AggregateData* data stream then click on *Discover schema*. This will read the data stream and extract the message attributes such as **avg_temperature**, **avg_hertz**, **COL_timestamp**, etc. This demonstrates that the data is available in the Kinesis Data Stream for use in other applications.
 
 #### Local Flask Application
 
@@ -270,13 +272,13 @@ To stop and completely remove this accelerator, follow these steps:
 
    Also, at this point the certificate and private key are no longer valid in the Greengrass `certs/` directory. If you wish to redeploy the stack, clear out all of the `certs/` and `config/` directories,
 
-1. If you created any assets that references or used AWS IoT Analytics or Amazon Kinesis Data Streams, delete these also.
+1. If you created any assets that references or used AWS IoT Analytics or Amazon Kinesis Data Streams such as a Kinesis Analytics Application, delete these also.
 
 1. Review any CloudWatch Logs log groups and delete these if needed.
 
 1. Finally, change out of the GitHub repository and fully delete the directory.
 
-That's it! Fully deployed, run, and cleared up!
+That's it! Fully deployed, ran, and cleaned up!
 
 ## FAQ and Help
 

@@ -266,7 +266,7 @@ class GreengrassStreamManagerStack extends cdk.Stack {
                         target: ggLambdaStreamProducer.greengrassLambdaAlias.functionArn
                     },
                     // {
-                    //   // Simulated sensor data published on topic 'sensor_data' and received by the producer Lambda
+                    //   // Placeholder to add additional subscriptions
                     //   id: '2',
                     //   source: ggLambdaSensorSource.greengrassLambdaAlias.functionArn,
                     //   subject: 'sensor_data',

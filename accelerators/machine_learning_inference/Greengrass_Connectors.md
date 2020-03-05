@@ -32,14 +32,14 @@ The common design patterns of using Greengrass Connectors:
 To launch this accelerator, there are a few prerequisites and steps to complete. It is assumed you have basic experience with AWS IoT via the console and CLI.
 
 The main steps for deployment are:
-1. _Complete prerequisites._ Ensure there is an AWS IoT certificate and private key created and accessible locally for use.
-2. _Train the ML model._ We will use an example notebook from Amazon SageMaker to train the model with the Image Classification Algorithm provided by Amazon SageMaker.
-3. _Generate and launch the CloudFormation stack._ This will create the Lambda functions, the Greengrass resources, and an AWS IoT thing to be used as the Greengrass Core. The certificate will be associated with the newly created Thing. At the end, a Greengrass deployment will be created and ready to be pushed to the Greengrass core hardware.
-4. _Create the config.json file_, using the outputs from the CloudFormation. Then place all files into the `/greengrass/certs` and `/greengrass/config` directories.
-5. _Deploy to Greengrass_. From the AWS Console, perform a Greengrass deployment that will push
+1. _[Prerequisites.](#Verify_Prerequisites)_ Ensure there is an AWS IoT certificate and private key created and accessible locally for use.
+2. _[Train the ML model.](#Train_the_model_with_Amazon_SageMaker)_ We will use an example notebook from Amazon SageMaker to train the model with the Image Classification Algorithm provided by Amazon SageMaker.
+3. _[Generate and launch the CloudFormation stack.](#Launch_the_CloudFormation_Stack)_ This will create the Lambda functions, the Greengrass resources, and an AWS IoT thing to be used as the Greengrass Core. The certificate will be associated with the newly created Thing. At the end, a Greengrass deployment will be created and ready to be pushed to the Greengrass core hardware.
+4. _[Create the config.json file](#Configure_the_Greengrass_Core)_, using the outputs from the CloudFormation. Then place all files into the `/greengrass/certs` and `/greengrass/config` directories.
+5. _[Deploy to Greengrass](#Starts_the_Greengrass_Core)_. From the AWS Console, perform a Greengrass deployment that will push
 all resources to the Greengrass Core and start the MLI operations.
 
-### Verify Prerequisites
+### Prerequisites
 
 The following is a list of prerequisites to deploy the accelerator:
 
@@ -106,6 +106,8 @@ To create or overwrite the templates, perform the following steps from a command
 
 1. Clone the repository `git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git` and change to `aws-iot-greengrass-accelerators/accelerators/machine_learning_inference`, where this `Greengrass_Connectors.MD` file is located.
 
+1. The Cloudformation stack [mli_accelerator-connector-INPUT.cfn.yaml](accelerators/machine_learning_inference/cfn/mli_accelerator-connector-INPUT.cfn.yaml) uses `AWS::Serverless` macros, therefore you will need to `package` before `deploy`.
+
 1. Create the CloudFormation output file using the AWS CLI.  Using the commands below, you can either preset the \$AWS_PROFILE, \$REGION, \$CFN_S3_BUCKET, \$ML_FEEDBACK_S3_BUCKET_NAME, \$TRAININGJOBNAME_CONTAINS,\$THINGNAME and \$CERTIFICATE_ID variables, or reference those directly via the `aws cloudformation package` command. The result of that command will be an *OUTPUT* CloudFormation template file, along with the packaged Lambda functions being copied to the S3 bucket. The `AWS_PROFILE` contains the credentials, account details, and optionally region to create the CloudFormation stack.
 
    Complete list of commands to create the CloudFormation template file, upload assets, and create a stack (note the changes for the `--parameter-overrides` section).
@@ -148,7 +150,7 @@ To create or overwrite the templates, perform the following steps from a command
 
 At this point, all resources have been created and an initial Greengrass deployment has also been created and ready to be sent to the device.
 
-### Configure and Starts the Greengrass Core
+### Configure the Greengrass Core
 
 With the stack deployed, we use one output from the CloudFormation stack, the *GreengrassConfig* value, along with the certificate and private key to complete the `config.json` so that Greengrass Core can connect and authenticate.
 
@@ -184,6 +186,11 @@ With the stack deployed, we use one output from the CloudFormation stack, the *G
 1. Go to the folder where Greengrass was installed, such as `/greengrass`
 1. Unzip the contents from the 2 folders in `greengrass-setup.zip` into `certs/` and `config/` folders respectively, using the command `sudo unzip -o greengrass-setup.zip -d /greengrass`
 1. Verify that all certificates are in the `certs/` folder, and `config.json` is in the `config/` folder.
+
+### Starts the Greengrass Core
+
+With the Greengrass configuration `config.json` in place, start the Greengrass Core.
+
 1. Restart the Greengrass software, such as using the command `sudo /greengrass/ggc/core/greengrassd restart`, or `sudo systemctl restart greengrass` if Greengrass Core is under `systemctl` management.
 1. Monitor the log file of the Greengrass software to make sure that Greengrass software started properly, such as using the command `tail -F /greengrass/ggc/var/log/system/runtime.log`.
 1. If the Greengrass software started properly, you should see these in the log file

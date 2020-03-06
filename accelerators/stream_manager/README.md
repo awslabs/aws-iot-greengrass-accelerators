@@ -89,7 +89,7 @@ There are two methods describe below:
 
 #### Create and Launch the Accelerator Locally
 <details>
-<summary>Click here to show the steps to run locally</summary>
+<summary>Click here to show/hide the steps to run locally</summary>
 
 :bulb:These steps assume familiarity with installation of NPM packages, Python, and working at the command line. For a getting-started deployment process, see the next section for a step-by-step deploying via AWS Cloud9.
 
@@ -138,8 +138,11 @@ At this point, the CloudFormation stack has been deployed and the Greengrass con
 Greengrass will start to write files into the `gg_docker/log` directory, and the web interface to the Flask application can be locally accessed via http://localhost:8082 (IP address dependent on your local Docker process).
 </details>
 
+
+#### Step-by-Step: Create and Launch the Accelerator via  AWS Cloud
 <details>
-<summary>#### Step-by-Step: Create and Launch the Accelerator via  AWS Cloud</summary>
+<summary>Click here to show/hide the steps to run locally</summary>
+
 
 :bulb: All steps below use a Cloud9 IDE in the same account and region where the accelerator will be run. If running locally, ensure you have the AWS CLI installed, and change the AWS named profile from *default* to one you have created with proper permissions.
 

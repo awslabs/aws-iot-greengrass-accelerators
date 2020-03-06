@@ -90,7 +90,7 @@ There are two methods describe below:
 #### Create and Launch the Accelerator Locally
 <details>
 <summary>Click here to show/hide the steps to run locally</summary>
-<br />
+<br>
 :bulb:These steps assume familiarity with installation of NPM packages, Python, and working at the command line. For a getting-started deployment process, see the next section for a step-by-step deploying via AWS Cloud9.
 
 1. Install and bootstrap the CDK:

@@ -22,8 +22,9 @@ class GreengrassStreamManagerStack extends cdk.Stack {
         // region: process.env.CDK_DEFAULT_REGION;
 
         // S3 bucket to hold the docker-compose.yml file
+        // This is created with a common bucket name and the account number to make unique
         const s3Bucket = new s3.Bucket(this, 'S3SourceBucket', {
-            bucketName: id.toLowerCase() + "-greengrass-source-" + Math.random().toString(36).substring(2, 15).substr(0, 6),
+            bucketName: id.toLowerCase() + "-greengrass-source-" + process.env.CDK_DEFAULT_ACCOUNT,
             versioned: false,
             publicReadAccess: false,
             blockPublicAccess: s3.BlockPublicAccess.BLOCK_ALL,

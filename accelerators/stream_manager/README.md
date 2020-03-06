@@ -11,7 +11,7 @@ Common use cases for stream manager include:
 - Prioritization of data path to the cloud for multiple streams
 
 
-## Stream Manager Use Case
+# Stream Manager Use Case
 
 ![Stream Manager and Docker Container](docs/stream-manager-architecture.png)
 
@@ -26,7 +26,7 @@ There are three deployed Lambda functions and a Greengrass managed Docker contai
 
 The two streams are used locally and also export the data to AWS IoT Analytics for the raw data, and to Amazon Kinesis Data Streams for the aggregated data.
 
-## Design Pattern
+# Design Pattern
 
 To demonstrate both Stream Manager and the Greengrass Docker application deployment connector, a Lambda function is created to generate test sensor data, which is then read by the *Producer Function* and processed as described above. The data is sent AWS IoT Analytics and an Amazon Kinesis Data Stream in the cloud.
 
@@ -43,7 +43,7 @@ The accelerator can also be modified to run on an existing Greengrass 1.10.0 or 
 The Cloud Development Kit (CDK) is used to deploy a CloudFront stack, and a Python script creates the local assets required, such as the certificate and key pair used by the Greengrass core. The second component is a Docker compose file that runs Greengrass locally.
 
 
-## Folder Structure
+# Folder Structure
 
 ```text
 stream_manager/
@@ -69,11 +69,11 @@ There are two main components to using the accelerator. The `cdk/` directory con
 
 The `gg_docker/` directory container the assets to create a Docker image and run Greengrass as a container locally. It also has directories to hold the Greengrass configuration and credentials for the Greengrass Core, along with the log files.
 
-## How to Deploy the Accelerator
+# How to Deploy the Accelerator
 
 To launch this accelerator as a Docker container, there are a few prerequisites and steps to complete. It is assumed you have basic experience with AWS IoT via the console and CLI.
 
-### Prerequisites
+## Prerequisites
 
 The following is a list of prerequisites to deploy the accelerator:
 
@@ -87,7 +87,7 @@ There are two methods describe below:
 * For all others, use the *Step-by-Step: Create and Launch the Accelerator via AWS Cloud9* method.
 
 
-#### Create and Launch the Accelerator Locally
+## Create and Launch the Accelerator Locally
 <details>
 <summary>Click here to show/hide the steps to run locally</summary>
 <br>
@@ -139,7 +139,7 @@ Greengrass will start to write files into the `gg_docker/log` directory, and the
 </details>
 
 
-#### Step-by-Step: Create and Launch the Accelerator via AWS Cloud9
+## Step-by-Step: Create and Launch the Accelerator via AWS Cloud9
 <details>
 <summary>Click here to show/hide the steps to run via AWS Cloud9</summary>
 <br>
@@ -219,11 +219,11 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     ```
 </details>
 
-### Investigating the Accelerator
+## Investigating the Accelerator
 
 With the accelerator running via either method, there are few ways to see how the Greengrass Core is creating and processing data both locally and via the Cloud.
 
-#### Local Log Files
+### Local Log Files
 
 In the `gg_docker/log` directory, there will be both `system/` and `user/` directories where log files are stored. Review the contents of the various Lambda log files for both the deployed Lambda functions and the Docker Application Deployment connector.
 
@@ -240,11 +240,11 @@ From the `stream_manager/gg_docker/log` directory, review the following in order
 
 In normal operation, these log files will write and different rates. By changing the [log level settings](https://docs.aws.amazon.com/greengrass/latest/developerguide/greengrass-logs-overview.html) via the Greengrass Group. These are initially defined in the CDK `index.ts` file and set to an informational (INFO) level.
 
-#### CloudWatch Log Files
+### CloudWatch Log Files
 
 As with the local log files, the CDK stack also enables sending log files to CloudWatch Logs under log groups starting with the prefix of `/aws/greengrass/GreengrassSystem` for system logs, and `/aws/greengrass/Lambda` for AWS and user Lambda functions. The log level setting for CloudWatch Logs is set to a warning (WARN) level.
 
-#### AWS IoT Analytics and Amazon Kinesis Data Streams
+## AWS IoT Analytics and Amazon Kinesis Data Streams
 
 When running, data from both the LocalDataStream and the AggregateDataStream and being sent to AWS IoT Analytics and Amazon Kinesis Data Streams respective. While this accelerator does not utilize these services, you can review the data being sent by investigating the Analytics data set and create a Kinesis Data Analytics application to review the Data Stream content (or by using a local Kinesis client).
 
@@ -252,7 +252,7 @@ For AWS IoT Analytics, go to the *AWS Console->AWS IoT Analytics->Data sets*, an
 
 For Amazon Kinesis Data Streams, go to the *AWS Console->Kinesis->Data Analytics*. Create an application and for the *Source*, select the *AggregateData* data stream then click on *Discover schema*. This will read the data stream and extract the message attributes such as **avg_temperature**, **avg_hertz**, **COL_timestamp**, etc. This demonstrates that the data is available in the Kinesis Data Stream for use in other applications.
 
-#### Local Flask Application
+## Local Flask Application
 
 The Docker managed application starts a Docker container running a web server (Flask) that reads the aggregated simulated data and charts it. If running locally, you can access via http://localhost:8082 or http://0.0.0.0:8082).
 

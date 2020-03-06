@@ -82,7 +82,12 @@ The following is a list of prerequisites to deploy the accelerator:
   * Install the [AWS Cloud Development Kit](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html) and perform a [bootstrap](https://docs.aws.amazon.com/cdk/latest/guide/troubleshooting.html#troubleshooting_nobucket) in the region you will be working.
   * Verify Docker Desktop or Docker Machine installed, and you have the ability to create or download images locally and run containers.
 
-#### Create and Launch the Accelerator Locally
+There are two methods describe below:
+* If you are familiar with Nodejs, Python and working with the command line on your local system, select the *Create and Launch the Accelerator Locally* method.
+* For all others, use the *Step-by-Step: Create and Launch the Accelerator via AWS Cloud9* method.
+
+<details>
+<summary>#### Create and Launch the Accelerator Locally</summary>
 
 :bulb:These steps assume familiarity with installation of NPM packages, Python, and working at the command line. For a getting-started deployment process, see the next section for a step-by-step deploying via AWS Cloud9.
 
@@ -129,8 +134,10 @@ The following is a list of prerequisites to deploy the accelerator:
 At this point, the CloudFormation stack has been deployed and the Greengrass container is running. The CloudFormation stack will also trigger an initial deployment of all resources to the Greengrass Core, so the Lambda functions, Stream Manager, and docker containers are also running.
 
 Greengrass will start to write files into the `gg_docker/log` directory, and the web interface to the Flask application can be locally accessed via http://localhost:8082 (IP address dependent on your local Docker process).
+</details>
 
-#### Step-by-Step: Create and Launch the Accelerator via  AWS Cloud9
+<details>
+<summary>#### Step-by-Step: Create and Launch the Accelerator via  AWS Cloud</summary>
 
 :bulb: All steps below use a Cloud9 IDE in the same account and region where the accelerator will be run. If running locally, ensure you have the AWS CLI installed, and change the AWS named profile from *default* to one you have created with proper permissions.
 
@@ -142,7 +149,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
    # Cloud9 Commands - change as needed for local development environment
    # Install pre-requisites, bootstrap CDK for use in account/region, and reboot
    npm uninstall -g cdk
-   npm install -g aws-cdk@1.26.0
+   npm install -g aws-cdk@1.7.0
    # Bootstrap CDK for current AWS account and region where Cloud9 runs
    ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
    REGION=$(aws configure get region)
@@ -204,6 +211,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     tail -F log/system/runtime.log
     ...
     ```
+</details>
 
 ### Investigating the Accelerator
 

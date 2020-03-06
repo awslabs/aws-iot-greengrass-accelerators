@@ -139,16 +139,18 @@ Greengrass will start to write files into the `gg_docker/log` directory, and the
 </details>
 
 
-#### Step-by-Step: Create and Launch the Accelerator via  AWS Cloud
+#### Step-by-Step: Create and Launch the Accelerator via AWS Cloud9
 <details>
-<summary>Click here to show/hide the steps to run locally</summary>
+<summary>Click here to show/hide the steps to run via AWS Cloud9</summary>
 
 
 :bulb: All steps below use a Cloud9 IDE in the same account and region where the accelerator will be run. If running locally, ensure you have the AWS CLI installed, and change the AWS named profile from *default* to one you have created with proper permissions.
 
 Prior to launching the accelerator container locally, the AWS CDK is used to generate a CloudFormation template and deploy it. From Cloud9, follow the steps to create and launch the stack via the CDK.
 
-1. *Pre-requisites* (only needs be run once) - Create an **Amazon Linux, t3.small**  Cloud9 environment, open a new Terminal window and run these commands:
+1. Create a new Cloud9 IDE and make sure that **Amazon Linux and t3.small** are selected. :exclamation: The following steps **will not** in Ubuntu is selected.
+
+1. *Pre-requisites* (only needs be run once) - Once the Cloud9 environment is available, open a new Terminal window and run these commands:
 
    ```bash
    # Cloud9 Commands - change as needed for local development environment

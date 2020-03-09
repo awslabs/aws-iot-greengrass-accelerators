@@ -115,10 +115,10 @@ Resources:
           apt update -y
           apt upgrade -y
           apt install python3.7 python3-pip -y
-          apt-get install -y libsm6 libxext6 libxrender-dev libglib2.0-0
+          apt-get install -y libsm6 libxext6 libxrender-dev libglib2.0-0 libgfortran3
           python3.7 -m pip install opencv-python
           python3.7 -m pip install greengrasssdk
-          python3.7 -m pip install mxnet
+          python3.7 -m pip install mxnet==1.2.1 # Follow the version https://docs.aws.amazon.com/greengrass/latest/developerguide/what-is-gg.html#gg-ml-runtimes-pc-libs
           adduser --system ggc_user
           groupadd --system ggc_group
 

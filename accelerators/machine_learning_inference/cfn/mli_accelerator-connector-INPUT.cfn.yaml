@@ -103,7 +103,7 @@ Resources:
     Properties: 
       FunctionName: !Sub pinned-${AWS::StackName}
       Handler: "mlconnector.handler"
-      CodeUri: ../lambda_functions/greengrass_connector
+      CodeUri: lambda_functions/greengrass_connectors
       Runtime: "python3.7"
       Timeout: 25
       AutoPublishAlias: GreenGrassAlias
@@ -153,12 +153,22 @@ Resources:
               LocalInferenceServiceName: "image-classification"
               LocalInferenceServiceTimeoutSeconds: 15
               LocalInferenceServiceMemoryLimitKB: 512000
-              MLFeedbackConnectorConfigId: LC50
+              MLFeedbackConnectorConfigId: RandomSamplingConfiguration
           - ConnectorArn: !Sub arn:aws:greengrass:${AWS::Region}::/connectors/MLFeedback/versions/1
             Id: FeedbackConnector
             Parameters: 
               RequestLimit: 10
               FeedbackConfigurationMap: !Sub "{
+                \"RandomSamplingConfiguration\":{
+                  \"s3-bucket-name\": \"${FeedbackS3BucketName}\",
+                  \"s3-prefix\": \"mlfeedback-random\",
+                  \"file-ext\": \"png,jpg\",
+                  \"content-type\": \"image/jpeg,image/png\",
+                  \"sampling-strategy\":{
+                      \"strategy-name\": \"RANDOM_SAMPLING\",
+                      \"rate\": 0.5
+                  }
+                },
                 \"LC50\":{
                   \"s3-bucket-name\": \"${FeedbackS3BucketName}\",
                   \"s3-prefix\": \"confidence-lower-than-50\",
@@ -174,7 +184,7 @@ Resources:
                   \"content-type\": \"image/jpeg,image/png\",
                   \"sampling-strategy\":{
                       \"strategy-name\": \"ENTROPY\",
-                      \"threshold\": 0.0
+                      \"threshold\": 1.0
                   }
                 }                
               }"
@@ -201,7 +211,7 @@ Resources:
       Runtime: python3.7
       Role: !GetAtt LambdaExecutionRole.Arn
       Timeout: 60
-      CodeUri: ../lambda_functions/cfn_custom_resources  
+      CodeUri: lambda_functions/cfn_custom_resources  
       Environment:
         Variables:
           STACK_NAME: !Ref "AWS::StackName"
@@ -223,7 +233,7 @@ Resources:
       Runtime: python3.7
       Role: !GetAtt LambdaExecutionRole.Arn
       Timeout: 60
-      CodeUri: ../lambda_functions/cfn_custom_resources
+      CodeUri: lambda_functions/cfn_custom_resources
       Environment:
         Variables:
           STACK_NAME: !Ref "AWS::StackName"
@@ -243,7 +253,7 @@ Resources:
       Runtime: python3.7
       Role: !GetAtt CustomResourceTrainingJobLambdaExecutionRole.Arn
       Timeout: 60
-      CodeUri: ../lambda_functions/cfn_custom_resources
+      CodeUri: lambda_functions/cfn_custom_resources
       Environment:
         Variables:
           STACK_NAME: !Ref "AWS::StackName"

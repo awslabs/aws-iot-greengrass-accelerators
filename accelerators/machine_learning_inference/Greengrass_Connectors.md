@@ -32,14 +32,14 @@ The common design patterns of using Greengrass Connectors:
 To launch this accelerator, there are a few prerequisites and steps to complete. It is assumed you have basic experience with AWS IoT via the console and CLI.
 
 The main steps for deployment are:
-1. _Complete prerequisites._ Ensure there is an AWS IoT certificate and private key created and accessible locally for use.
-2. _Train the ML model._ We will use an example notebook from Amazon SageMaker to train the model with the Image Classification Algorithm provided by Amazon SageMaker.
-3. _Generate and launch the CloudFormation stack._ This will create the Lambda functions, the Greengrass resources, and an AWS IoT thing to be used as the Greengrass Core. The certificate will be associated with the newly created Thing. At the end, a Greengrass deployment will be created and ready to be pushed to the Greengrass core hardware.
-4. _Create the config.json file_, using the outputs from the CloudFormation. Then place all files into the `/greengrass/certs` and `/greengrass/config` directories.
-5. _Deploy to Greengrass_. From the AWS Console, perform a Greengrass deployment that will push
+1. _[Prerequisites.](#prerequisites)_ Ensure there is an AWS IoT certificate and private key created and accessible locally for use.
+2. _[Train the ML model.](#train-the-model-with-amazon-sagemaker)_ We will use an example notebook from Amazon SageMaker to train the model with the Image Classification Algorithm provided by Amazon SageMaker.
+3. _[Generate and launch the CloudFormation stack.](#launch-the-cloudformation-stack)_ This will create the Lambda functions, the Greengrass resources, and an AWS IoT thing to be used as the Greengrass Core. The certificate will be associated with the newly created Thing. At the end, a Greengrass deployment will be created and ready to be pushed to the Greengrass core hardware.
+4. _[Create the config.json file](#configure-the-greengrass-core)_, using the outputs from the CloudFormation. Then place all files into the `/greengrass/certs` and `/greengrass/config` directories.
+5. _[Deploy to Greengrass](#deploy-cloud-configurations-to-the-greengrass-core)_. From the AWS Console, perform a Greengrass deployment that will push
 all resources to the Greengrass Core and start the MLI operations.
 
-### Verify Prerequisites
+### Prerequisites
 
 The following is a list of prerequisites to deploy the accelerator:
 
@@ -106,6 +106,8 @@ To create or overwrite the templates, perform the following steps from a command
 
 1. Clone the repository `git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git` and change to `aws-iot-greengrass-accelerators/accelerators/machine_learning_inference`, where this `Greengrass_Connectors.MD` file is located.
 
+1. The Cloudformation stack [mli_accelerator-connector-INPUT.cfn.yaml](accelerators/machine_learning_inference/cfn/mli_accelerator-connector-INPUT.cfn.yaml) uses `AWS::Serverless` macros, therefore you will need to `package` before `deploy`.
+
 1. Create the CloudFormation output file using the AWS CLI.  Using the commands below, you can either preset the \$AWS_PROFILE, \$REGION, \$CFN_S3_BUCKET, \$ML_FEEDBACK_S3_BUCKET_NAME, \$TRAININGJOBNAME_CONTAINS,\$THINGNAME and \$CERTIFICATE_ID variables, or reference those directly via the `aws cloudformation package` command. The result of that command will be an *OUTPUT* CloudFormation template file, along with the packaged Lambda functions being copied to the S3 bucket. The `AWS_PROFILE` contains the credentials, account details, and optionally region to create the CloudFormation stack.
 
    Complete list of commands to create the CloudFormation template file, upload assets, and create a stack (note the changes for the `--parameter-overrides` section).
@@ -148,7 +150,7 @@ To create or overwrite the templates, perform the following steps from a command
 
 At this point, all resources have been created and an initial Greengrass deployment has also been created and ready to be sent to the device.
 
-### Configure and Starts the Greengrass Core
+### Configure the Greengrass Core
 
 With the stack deployed, we use one output from the CloudFormation stack, the *GreengrassConfig* value, along with the certificate and private key to complete the `config.json` so that Greengrass Core can connect and authenticate.
 
@@ -161,14 +163,14 @@ With the stack deployed, we use one output from the CloudFormation stack, the *G
    1. Retrieve the `config.json` created from the CloudFormation, using the AWS CLI command
    ```bash
    aws cloudformation describe-stacks \
-   --stack-name greengrass-mli-accelerator \
+   --stack-name ${STACK_NAME} \
    --output text \  
    --query 'Stacks[*].Outputs[?OutputKey==`GreengrassConfig`].OutputValue' 
    ```
    or you can pipe through a Python json tool for pretty print:
    ```bash
    aws cloudformation describe-stacks \
-   --stack-name greengrass-mli-accelerator \
+   --stack-name ${STACK_NAME} \
    --output text \  
    --query 'Stacks[*].Outputs[?OutputKey==`GreengrassConfig`].OutputValue' 
    | python -m json.tool 
@@ -184,6 +186,11 @@ With the stack deployed, we use one output from the CloudFormation stack, the *G
 1. Go to the folder where Greengrass was installed, such as `/greengrass`
 1. Unzip the contents from the 2 folders in `greengrass-setup.zip` into `certs/` and `config/` folders respectively, using the command `sudo unzip -o greengrass-setup.zip -d /greengrass`
 1. Verify that all certificates are in the `certs/` folder, and `config.json` is in the `config/` folder.
+
+#### Starts the Greengrass Core
+
+With the Greengrass configuration `config.json` in place, start the Greengrass Core.
+
 1. Restart the Greengrass software, such as using the command `sudo /greengrass/ggc/core/greengrassd restart`, or `sudo systemctl restart greengrass` if Greengrass Core is under `systemctl` management.
 1. Monitor the log file of the Greengrass software to make sure that Greengrass software started properly, such as using the command `tail -F /greengrass/ggc/var/log/system/runtime.log`.
 1. If the Greengrass software started properly, you should see these in the log file
@@ -196,7 +203,10 @@ With the stack deployed, we use one output from the CloudFormation stack, the *G
    [...]
    [2019-08-18T01:14:56.739-07:00][INFO]-All topics subscribed.    {"clientId": "<THING NAME>"}
    ```
-1. From the Greengrass Console, navigate to your created Greengrass Group and perform *Actions->Deploy* to deploy to the Greengrass Core machine.
+
+### Deploy Cloud Configurations to the Greengrass Core
+
+1. From the AWS Console of AWS IoT Greengrass, navigate to the Greengrass Group you created with the Cloudformation, and perform *Actions->Deploy* to deploy to the Greengrass Core machine.
    1. Alternatively, Greengrass deployment command can be found in from the CloudFormation stack, using the command below:
 
    ```bash
@@ -242,12 +252,24 @@ The predictions will be published from the Greengrass Core to the cloud, via top
 
 #### Feedback
 
-For the Greengrass Feedback Connector, we created 2 configurations, one for the confidence of prediction lower than 0.5, and one for the entropy:
+For the Greengrass Feedback Connector, we created 3 configurations:
+1. A random sampling at rate of 0.5
+2. A strategy when the confidence of prediction lower than 0.5, 
+3. One based on entropy with threshold 1.0
 
 ```
 {
+  "RandomSamplingConfiguration\":{
+    "s3-bucket-name": "${FeedbackS3BucketName}",
+    "file-ext": "png,jpg",
+    "content-type": "image/jpeg,image/png",
+    "sampling-strategy":{
+        "strategy-name": "RANDOM_SAMPLING",
+        "rate": 0.5
+    }
+  },
   "LC50": {
-    "s3-bucket-name": "kangrich-greengrass-us-west-2",
+    "s3-bucket-name": "${FeedbackS3BucketName}",
     "s3-prefix": "confidence-lower-than-50",
     "content-type": "image/jpeg,image/png",
     "sampling-strategy": {
@@ -256,12 +278,12 @@ For the Greengrass Feedback Connector, we created 2 configurations, one for the 
     }
   },
   "Entropy": {
-    "s3-bucket-name": "kangrich-greengrass-us-west-2",
+    "s3-bucket-name": "${FeedbackS3BucketName}",
     "s3-prefix": "entropy",
     "content-type": "image/jpeg,image/png",
     "sampling-strategy": {
       "strategy-name": "ENTROPY",
-      "threshold": 0
+      "threshold": 1.0
     }
   }
 }
@@ -290,13 +312,25 @@ Good reference of common issues can be found in https://github.com/awsdocs/aws-g
 
 ### Out-of-memory
 
-If you noticed that `memUsed` is higher than the allocated memory `memSize` for either the connector or Lambda function, the function will not be started
+If you noticed that `memUsed` is higher than the allocated memory `memSize` for either the connector or Lambda function, the function will not be started. Try increase the memory allocated for that function.
 
 ```
 [2019-08-28T21:29:03.757Z][WARN]-Worker consumed all allocated memory! Memory Usage (KB).	{"workerId": "e544111a-03f5-40da-5e5c-23df2f6ced65", "funcArn": "arn:aws:lambda:<AWS Region>:<AWS Account ID>:function:pinned-ggc-mli-stack:6", "memSize": 120000, "memUsed": 165172}
 [2019-08-28T21:29:03.757Z][ERROR]-Worker is ungracefully killed.	{"workerId": "e544111a-03f5-40da-5e5c-23df2f6ced65", "funcArn": "arn:aws:lambda:<AWS Region>:<AWS Account ID>:function:pinned-ggc-mli-stack:6", "state": "signal: killed"}
 ```
 
-### Resolution
+### Connector failed to start
 
-Try increase the memory allocated for that function.
+If your deployment failed and the message is that certain worker failed to initialize, such as message below, check the logs for each functions. For custom Lambda function, the logs are in `/greengrass/ggc/var/log/user/<region>/<account ID>/<function name>.log`, and for connectors the logs are in `/greengrass/ggc/var/log/user/<region>/aws/<connector name>.log`.
+
+```
+Deployment 1a440a27-79b1-4346-80fb-934bf8a9bdfe of type NewDeployment for group 82a09694-0be7-4316-9c0a-a64fec972941 failed error: worker with e95c3577-1155-4127-55ec-2b0fedf3b121 failed to initialize
+```
+
+One of the cause could be the missing dependencies. For example, the log of the Image Classification might have the following message. 
+
+```
+[2020-02-20T01:05:20.372Z][FATAL]-lambda_runtime.py:140,Failed to import handler function "handlers.handler" due to exception: libgfortran.so.3: cannot open shared object file: No such file or directory
+```
+
+To resolve the issue, install the dependency as required with command `$ sudo apt-get install -y libgfortran3`

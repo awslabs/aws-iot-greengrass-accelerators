@@ -13,13 +13,11 @@ import { GreengrassLambdaStreamAggregator } from './lambda-gg-stream-aggregator/
 import { RemovalPolicy } from '@aws-cdk/core';
 
 /**
- * A stack that sets up MyCustomResource and shows how to get an attribute from it
+ * A stack that sets up a complete Greengrass environment
  */
 class GreengrassStreamManagerStack extends cdk.Stack {
     constructor(scope: cdk.App, id: string, props?: cdk.StackProps) {
         super(scope, id, props);
-
-        // region: process.env.CDK_DEFAULT_REGION;
 
         // S3 bucket to hold the docker-compose.yml file
         // This is created with a common bucket name and the account number to make unique
@@ -169,24 +167,26 @@ class GreengrassStreamManagerStack extends cdk.Stack {
             name: 'GreengrassFunction'
         });
         // Create the Lambda function definition version from the definition above
-        //@ts-ignore
+        // This is required in order to pass the defaultConfig
+        // @ts-ignore
         const functionDefinitionVersion = new greengrass.CfnFunctionDefinitionVersion(this, 'FunctionDefinitionVersion', {
             functionDefinitionId: functionDefinition.attrId,
             defaultConfig: {
                 execution: {
-                    // All functions run as processes since the deployment is targeted for container
+                    // All functions run as processes since the deployment is targeted for container operation
                     isolationMode: "NoContainer",
                 }
             },
             functions: [
                 {
+                    // This enables the Stream Manager feature in Greengrass (core component such as Local Shadow)
                     id: '1',
                     functionArn: "arn:aws:lambda:::function:GGStreamManager:1",
                     functionConfiguration: {
                         encodingType: 'binary',
                         pinned: true,
                         timeout: 3,
-                        // Uncomment if other local processes require access to Stream Manager
+                        // Uncomment if other local processes require access to Stream Manager on the same host (0.0.0.0)
                         // environment: {
                         //     variables: {
                         //         "STREAM_MANAGER_AUTHENTICATE_CLIENT": "false"
@@ -266,13 +266,13 @@ class GreengrassStreamManagerStack extends cdk.Stack {
                         subject: 'sensor_data',
                         target: ggLambdaStreamProducer.greengrassLambdaAlias.functionArn
                     },
-                    {
-                      // Placeholder to add additional subscriptions - example
-                      id: '2',
-                      source: ggLambdaSensorSource.greengrassLambdaAlias.functionArn,
-                      subject: 'another_topic',
-                      target: ggLambdaStreamProducer.greengrassLambdaAlias.functionArn
-                    },
+                    // {
+                    //   // Placeholder to add additional subscriptions - example
+                    //   id: '2',
+                    //   source: ggLambdaSensorSource.greengrassLambdaAlias.functionArn,
+                    //   subject: 'another_topic',
+                    //   target: ggLambdaStreamProducer.greengrassLambdaAlias.functionArn
+                    // },
                 ]
             }
         });
@@ -312,7 +312,7 @@ class GreengrassStreamManagerStack extends cdk.Stack {
             }
         });
 
-        // Create the Greengrass group, and then associate the GroupVerion w/ resources
+        // Create the Greengrass group, and then associate the GroupVersion w/ resources
         const greengrassGroup = new greengrass.CfnGroup(this, 'GreengrassGroup', {
             name: id.split('-').join('_'),
             roleArn: ggServiceRole.roleArn,

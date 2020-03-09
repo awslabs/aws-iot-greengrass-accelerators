@@ -5,7 +5,7 @@ import kinesis = require('@aws-cdk/aws-kinesis');
 import { IoTAnalytics } from './iot-analytics/iot-analytics';
 import { CustomResourceIoTThingCertPolicy } from './cr-create-iot-thing-cert-policy/cr-iot-thing-cert-policy';
 import { CustomResourceGreengrassServiceRole } from './cr-greengrass-service-role/cr-greengrass-service-role';
-import { CustomResourceGreengrassResetDeployment } from './cr-greengrass-reset-deployment/cr-greengrass-reset-deployment';
+import { CustomResourceGreengrassManageDeployments } from './cr-greengrass-manage-deployments/cr-greengrass-manage-deployments';
 import { CustomResourceS3DeleteObjects } from './cr-s3-delete-objects/cr-s3-delete-objects';
 import { GreengrassLambdaSensorSource } from './lambda-gg-sensor-source/lambda-gg-sensor-source';
 import { GreengrassLambdaStreamProducer } from './lambda-gg-stream-producer/lambda-gg-stream-producer';
@@ -266,14 +266,13 @@ class GreengrassStreamManagerStack extends cdk.Stack {
                         subject: 'sensor_data',
                         target: ggLambdaStreamProducer.greengrassLambdaAlias.functionArn
                     },
-                    // {
-                    //   // Placeholder to add additional subscriptions
-                    //   id: '2',
-                    //   source: ggLambdaSensorSource.greengrassLambdaAlias.functionArn,
-                    //   subject: 'sensor_data',
-                    //   target: ggLambdaStreamProducer.greengrassLambdaAlias.functionArn
-                    // },
-
+                    {
+                      // Placeholder to add additional subscriptions - example
+                      id: '2',
+                      source: ggLambdaSensorSource.greengrassLambdaAlias.functionArn,
+                      subject: 'another_topic',
+                      target: ggLambdaStreamProducer.greengrassLambdaAlias.functionArn
+                    },
                 ]
             }
         });
@@ -313,29 +312,35 @@ class GreengrassStreamManagerStack extends cdk.Stack {
             }
         });
 
-        // Combine all definitions and create the Group
+        // Create the Greengrass group, and then associate the GroupVerion w/ resources
         const greengrassGroup = new greengrass.CfnGroup(this, 'GreengrassGroup', {
             name: id.split('-').join('_'),
             roleArn: ggServiceRole.roleArn,
-            initialVersion: {
-                coreDefinitionVersionArn: coreDefinition.attrLatestVersionArn,
-                subscriptionDefinitionVersionArn: subscriptionDefinition.attrLatestVersionArn,
-                connectorDefinitionVersionArn: connectorDefinition.attrLatestVersionArn,
-                loggerDefinitionVersionArn: loggerDefinition.attrLatestVersionArn,
-                // resourceDefinitionVersionArn: resourceDefinition.attrLatestVersionArn,
-                functionDefinitionVersionArn: functionDefinition.attrLatestVersionArn
-            }
         });
         greengrassGroup.addDependsOn(iotAnalyticsData.sqlDataset);
+        const greengrassGroupVersion = new greengrass.CfnGroupVersion(this, 'GreengrassGroupVersion', {
+            groupId: greengrassGroup.ref,
+            coreDefinitionVersionArn: coreDefinition.attrLatestVersionArn,
+            subscriptionDefinitionVersionArn: subscriptionDefinition.attrLatestVersionArn,
+            connectorDefinitionVersionArn: connectorDefinition.attrLatestVersionArn,
+            loggerDefinitionVersionArn: loggerDefinition.attrLatestVersionArn,
+            // resourceDefinitionVersionArn: resourceDefinition.attrLatestVersionArn,
+            functionDefinitionVersionArn: functionDefinition.attrLatestVersionArn
+        });
 
         // Attach a custom resource to the Greengrass group to do a deployment reset before attempting to delete the group
         // Create Greengrass Service role with permissions the Core's resources should have
-        const ggResetDeployment = new CustomResourceGreengrassResetDeployment(this, "GreengrassResetDeploymentResource", {
-            functionName: id + '-GreengrassResetDeploymentFunction',
+        // NOTE: Add a dependency to the Group's GroupVersion if using that for resource management,
+        // otherwise addDependency to the Group itself if using the initialVersion
+        const ggResetDeployment = new CustomResourceGreengrassManageDeployments(this, "GreengrassManageDeploymentsResource", {
+            functionName: id + '-GreengrassManageDeploymentsFunction',
             stackName: id,
-            greengrassGroup: id.split('-').join('_')
+            greengrassGroupName: greengrassGroup.attrName,
+            greengrassGroupId: greengrassGroup.ref,
+            // Optional - needed if using GroupVersion instead of InitialVersion for the Group
+            greengrassGroupVersionId: greengrassGroupVersion.ref
         });
-        ggResetDeployment.node.addDependency(greengrassGroup);
+        ggResetDeployment.node.addDependency(greengrassGroupVersion);
     }
 }
 

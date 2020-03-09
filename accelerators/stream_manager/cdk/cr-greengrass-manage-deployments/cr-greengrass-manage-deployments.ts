@@ -5,24 +5,26 @@ import cdk = require('@aws-cdk/core');
 
 import uuid = require('uuid/v5');
 
-export interface CustomResourceGreengrassResetDeploymentProps {
+export interface CustomResourceGreengrassManageDeploymentsProps {
   /**
-   * Resource properties used to construct the custom resource and passed as dictionary
-   * to the resource as part of the "ResourceProperties". Note that the properties below
-   * will have an uppercase first character and the rest of the property kept intact.
-   * For example, physicalId will be passed as PhysicalId
+   * Automates the deployment or deployment reset whenever the underlying
+   * Greengrass group is modified via CloudFormation/CDK.
    */
   functionName: string;
   stackName: string;
-  greengrassGroup: string;
+  greengrassGroupName: string;
+  // Used for detecting changes when using InitialVersion
+  greengrassGroupId: string;
+  // Required only when using groupVersion
+  greengrassGroupVersionId?: string;
   physicalId?: string;
 }
 
-export class CustomResourceGreengrassResetDeployment extends cdk.Construct {
+export class CustomResourceGreengrassManageDeployments extends cdk.Construct {
   public readonly roleArn: string;
   // public resource: cfn.CustomResource;
 
-  constructor(scope: cdk.Construct, id: string, props: CustomResourceGreengrassResetDeploymentProps) {
+  constructor(scope: cdk.Construct, id: string, props: CustomResourceGreengrassManageDeploymentsProps) {
     super(scope, id);
     props.physicalId = props.functionName;
 
@@ -30,7 +32,7 @@ export class CustomResourceGreengrassResetDeployment extends cdk.Construct {
       provider: cfn.CustomResourceProvider.fromLambda(new lambda.SingletonFunction(this, 'Singleton', {
         functionName: props.functionName,
         uuid: uuid(props.functionName, uuid.DNS),
-        code: lambda.Code.fromAsset('cr-greengrass-reset-deployment/cr_greengrass_reset_deployment'),
+        code: lambda.Code.fromAsset('cr-greengrass-manage-deployments/cr_greengrass_manage_deployments'),
         handler: 'index.main',
         timeout: cdk.Duration.seconds(30),
         runtime: lambda.Runtime.PYTHON_3_8,

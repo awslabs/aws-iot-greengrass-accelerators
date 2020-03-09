@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Greengrass Managed Container Demo</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.css" rel="stylesheet">
+</head>
+
+<body>
+    <h1 align="center">Greengrass Managed Container</h1>
+    <p align="center">(this container started and managed via <a
+            href="https://docs.aws.amazon.com/greengrass/latest/developerguide/docker-app-connector.html">Greengrass
+            Docker Application Deployment Connector</a> </p>
+    <hr>
+    <div class="container">
+        <div class="row">
+            <div class="col-12">
+                <div class="card">
+                    <div class="card-body">
+                        <canvas id="temp-canvas"></canvas>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!--suppress JSUnresolvedLibraryURL -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.4.0/jquery.min.js"></script>
+    <!--suppress JSUnresolvedLibraryURL -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.3.1/js/bootstrap.min.js"></script>
+    <!--suppress JSUnresolvedLibraryURL -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/2.8.0/Chart.min.js"></script>
+    <script>
+        $(document).ready(function () {
+            // temperature config
+            const temperature_config = {
+                type: 'line',
+                data: {
+                    labels: [],
+                    datasets: [{
+                        label: "Temperature",
+                        yAxisID: 'A',
+                        backgroundColor: 'rgb(64, 255, 64)',
+                        borderColor: 'rgb(64, 255, 64)',
+                        data: [],
+                        fill: false,
+                    },
+                    {
+                        label: "Vibration",
+                        yAxisID: 'B',
+                        lineColor: 'red',
+                        backgroundColor: 'rgb(255, 64, 64)',
+                        borderColor: 'rgb(255, 64, 64)',
+                        data: [],
+                        fill: false,
+                    }],
+                },
+                options: {
+                    responsive: true,
+                    title: {
+                        display: true,
+                        text: 'Temperature'
+                    },
+                    tooltips: {
+                        mode: 'index',
+                        intersect: false,
+                    },
+                    hover: {
+                        mode: 'nearest',
+                        intersect: true
+                    },
+                    scales: {
+                        xAxes: [{
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Time'
+                            }
+                        }],
+                        yAxes: [{
+                            id: 'A',
+                            type: 'linear',
+                            position: 'left',
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Temp (F)'
+                            }
+                        }, {
+                            id: 'B',
+                            type: 'linear',
+                            position: 'right',
+                            display: true,
+                            scaleLabel: {
+                                display: true,
+                                labelString: 'Vibration (Hz)'
+                            }
+
+                        }]
+                    }
+                }
+            };
+
+
+            const context = document.getElementById('temp-canvas').getContext('2d');
+
+            const lineChart = new Chart(context, temperature_config);
+
+
+            const source = new EventSource("/chart-data");
+
+            source.onmessage = function (event) {
+                const data = JSON.parse(event.data);
+                console.log(data);
+                if (temperature_config.data.labels.length === 20) {
+                    temperature_config.data.labels.shift();
+                    temperature_config.data.datasets[0].data.shift();
+                    temperature_config.data.datasets[1].data.shift();
+                }
+                temperature_config.data.labels.push(data.time);
+                temperature_config.data.datasets[0].data.push(data.temperature);
+                temperature_config.data.datasets[1].data.push(data.hertz);
+                lineChart.update();
+            }
+        });
+    </script>
+</body>
+
+</html>

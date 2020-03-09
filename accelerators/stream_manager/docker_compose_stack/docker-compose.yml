@@ -1,0 +1,17 @@
+version: '3.7'
+services:
+  web:
+    # This pulls the image from DockerHub. Use the local Dockerfile to create
+    # or modify the image, and make it accessible to Greengrass
+    image: "gadams999/gg_accel_stream_manager_flask:latest"
+    ports:
+      # Host:container
+      - "8082:5000"
+    networks:
+      # Use the same network where the Greengrass container is running
+      - flask_app_network
+
+networks:
+  flask_app_network:
+    external:
+      name: greengrass_network

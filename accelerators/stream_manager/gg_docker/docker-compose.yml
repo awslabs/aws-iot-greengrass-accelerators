@@ -1,0 +1,31 @@
+version: '3.7'
+
+services:
+  greengrass:
+    init: true
+    build:
+      context: .
+      dockerfile: Dockerfile-greengrass
+    container_name: greengrass-stream-manager-accelerator
+    image: x86_64/greengrass-stream-manager-accelerator:latest
+    volumes:
+      - ./certs:/greengrass/certs
+      - ./config:/greengrass/config
+      - ./deployment:/greengrass/ggc/deployment
+      - ./log:/greengrass/ggc/var/log
+      - /var/run/docker.sock:/var/run/docker.sock
+    ports:
+      # MQTT TLS port
+      - "8883:8883"
+      # Sensor Data Lambda API port
+      - "8180:8180"
+      # Stream Aggregator Lambda API port
+      - "8181:8181"
+    networks:
+      - greengrassnet
+    entrypoint: "/greengrass-entrypoint.sh"
+
+networks:
+  greengrassnet:
+    # Name the network for use by the other containers to reference Greengrass by name
+    name: greengrass_network

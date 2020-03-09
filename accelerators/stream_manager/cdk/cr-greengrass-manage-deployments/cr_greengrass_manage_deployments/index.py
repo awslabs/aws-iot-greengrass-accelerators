@@ -38,9 +38,11 @@ def reset_deployment(group_id):
 
 
 def main(event, context):
-    # NOTE: All ResourceProperties passed will uppercase the first letter
-    #       of the property and leave the rest of the case intact.
-
+    """Invoked by CloudFormation, event contains the passed parameters
+    
+    NOTE: All ResourceProperties passed will uppercase the first letter
+          of the property and leave the rest of the case intact.
+    """
     physical_id = event["ResourceProperties"]["PhysicalId"]
     group_name = event["ResourceProperties"]["GreengrassGroupName"]
     group_id = event["ResourceProperties"]["GreengrassGroupId"]
@@ -48,8 +50,8 @@ def main(event, context):
     response_data = {}
 
     try:
+        # Log event for troubleshooting
         logger.info("Input event: %s", event)
-
         # Check if this is a Create and we're failing Creates
         if event["RequestType"] == "Create" and event["ResourceProperties"].get(
             "FailCreate", False

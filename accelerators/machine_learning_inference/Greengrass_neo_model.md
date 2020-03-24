@@ -230,77 +230,9 @@ To test out this accelererator without any hardware, you can install the Greengr
 
 #### Prediction
 
-The predictions will be published from the Greengrass Core to the cloud, via topic `mli/predictions/<THING NAME>`. The message can be observed using the MQTT Test client in AWS IoT Console
+The Lambda script [greengrass_long_run.py](cfn/lambda_functions/neo_models/greengrass_long_run.py) will post the thumbnail of the image as MQTT payload via topic `mli/predictions/<THING NAME>`.
 
-1. Login to https://console.aws.amazon.com/iot/home?#/test
-1. Change to the region where the Greengrass Core is connecting to
-1. In the `Subscription topic`, enter either the specific topic for the Greengrass Core `mli/predictions/<THING NAME>` or generic topic `mli/predictions/#`
-1. Select `Subscribe`
-1. The prediction messages should be shown in the console, such as 
-```
-[
-  {
-    "confidence": "0.21719395",
-    "prediction": "n03983396 pop bottle, soda bottle"
-  }
-]
-```
-
-#### Feedback
-
-For the Greengrass Feedback Connector, we created 3 configurations:
-1. A random sampling at rate of 0.5
-2. A strategy when the confidence of prediction lower than 0.5, 
-3. One based on entropy with threshold 1.0
-
-```
-{
-  "RandomSamplingConfiguration\":{
-    "s3-bucket-name": "${FeedbackS3BucketName}",
-    "file-ext": "png,jpg",
-    "content-type": "image/jpeg,image/png",
-    "sampling-strategy":{
-        "strategy-name": "RANDOM_SAMPLING",
-        "rate": 0.5
-    }
-  },
-  "LC50": {
-    "s3-bucket-name": "${FeedbackS3BucketName}",
-    "s3-prefix": "confidence-lower-than-50",
-    "content-type": "image/jpeg,image/png",
-    "sampling-strategy": {
-      "strategy-name": "LEAST_CONFIDENCE",
-      "threshold": 0.5
-    }
-  },
-  "Entropy": {
-    "s3-bucket-name": "${FeedbackS3BucketName}",
-    "s3-prefix": "entropy",
-    "content-type": "image/jpeg,image/png",
-    "sampling-strategy": {
-      "strategy-name": "ENTROPY",
-      "threshold": 1.0
-    }
-  }
-}
-```
-
-The configuration ID is then configured to the Greengrass Image Classification Connector as `MLFeedbackConnectorConfigId` and the Greengrass Image Classification Connector will invoke the ML Feedback Connector accordingly.
-
-Alternatively, the Greengrass ML Feedback Connector can be invoked explicitly in the Lambda function, such as:
-
-```python
-def invoke_feedback_connector(content,model_prediction):
-    log.info("Invoking feedback connector.")
-    try:
-        feedback_mlclient.publish(
-            ConfigId=feedback_config_id,
-            ModelInput=content,
-            ModelPrediction=model_prediction
-        )
-    except Exception as e:
-        logging.info("Exception raised when invoking feedback connector:{}".format(e))
-```
+You can use the [sample IoT Client notebook](notebooks/iot_client.ipynb) to view the thumbnail from the MQTT message.
 
 ## FAQ and Help
 

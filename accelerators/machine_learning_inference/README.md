@@ -88,4 +88,5 @@ Details of how to run the machine learning inference is in separate document:
 
 * [Machine Learning Inference using pre-trained model uploaded to S3](S3_MODELS.md)
 * [Machine Learning Inference using Greengrass connector with Amazon SageMaker training job](Greengrass_Connectors.md)
+* [Machine Learning Inference using NEO DLR model compiled using Amazon SageMaker](NEO_DLR_on_Greengrass.md)
 

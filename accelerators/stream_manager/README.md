@@ -147,7 +147,9 @@ Greengrass will start to write files into the `gg_docker/log` directory, and the
 
 Prior to launching the accelerator container locally, the AWS CDK is used to generate a CloudFormation template and deploy it. From Cloud9, follow the steps to create and launch the stack via the CDK.
 
-1. Create a new Cloud9 IDE and make sure that **Amazon Linux and t3.small** are selected. :exclamation:The following steps **will not** in Ubuntu is selected.
+1. Create a new Cloud9 IDE and make sure that **Amazon Linux and t3.small** are selected.
+
+   :exclamation:The following steps **will not** work if Ubuntu is selected.
 
 1. *Pre-requisites* (only needs be run once) - Once the Cloud9 environment is available, open a new Terminal window and run these commands:
 

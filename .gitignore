@@ -135,7 +135,7 @@ typings/
 .env.test
 # Ignore locks
 yarn.lock
-package-lock.json
+# package-lock.json
 # CDK Context & Staging files
 cdk.context.json
 .cdk.staging/

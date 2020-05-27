@@ -1,6 +1,6 @@
 {
   "name": "gg-accelerator-stream-manager",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Deploy stack to test Stream Manager and Docker deployment connector",
   "private": true,
   "scripts": {
@@ -15,17 +15,17 @@
   },
   "license": "Apache-2.0",
   "devDependencies": {
-    "@types/node": "^13.7.7",
-    "@types/uuid": "^3.4.8",
+    "@types/node": "^13.13.9",
+    "@types/uuid": "^3.4.9",
     "typescript": "~3.7.2"
   },
   "dependencies": {
-    "@aws-cdk/aws-cloudformation": "^1.27.0",
-    "@aws-cdk/aws-greengrass": "^1.27.0",
-    "@aws-cdk/aws-iotanalytics": "^1.27.0",
-    "@aws-cdk/aws-kinesis": "^1.27.0",
-    "@aws-cdk/aws-lambda": "^1.27.0",
-    "@aws-cdk/core": "^1.27.0",
+    "@aws-cdk/aws-cloudformation": "^1.42.0",
+    "@aws-cdk/aws-greengrass": "^1.42.0",
+    "@aws-cdk/aws-iotanalytics": "^1.42.0",
+    "@aws-cdk/aws-kinesis": "^1.42.0",
+    "@aws-cdk/aws-lambda": "^1.42.0",
+    "@aws-cdk/core": "^1.42.0",
     "uuid": "^3.4.0"
   }
 }

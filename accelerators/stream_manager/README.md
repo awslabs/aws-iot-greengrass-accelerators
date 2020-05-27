@@ -155,7 +155,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
    # Cloud9 Commands - change as needed for local development environment
    # Install pre-requisites, bootstrap CDK for use in account/region, and reboot
    npm uninstall -g cdk
-   npm install -g aws-cdk@1.27.0
+   npm install -g aws-cdk@1.42.0
    # Bootstrap CDK for current AWS account and region where Cloud9 runs
    ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
    REGION=$(aws configure get region)

@@ -334,3 +334,5 @@ One of the cause could be the missing dependencies. For example, the log of the 
 ```
 
 To resolve the issue, install the dependency as required with command `$ sudo apt-get install -y libgfortran3`
+
+You might need other dependencies as described in the [AWS Greengrass ML Image Classification Connector](https://github.com/awsdocs/aws-greengrass-developer-guide/blob/master/doc_source/image-classification-connector.md#-python-37--2)

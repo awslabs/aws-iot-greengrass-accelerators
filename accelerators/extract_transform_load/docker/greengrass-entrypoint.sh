@@ -22,7 +22,7 @@ while [ -d /proc/$daemon_pid ]
 do
  # Sleep for 1s before checking that greengrass daemon is still alive
  daemon_cmdline=`cat /proc/$daemon_pid/cmdline`
- if [[ $daemon_cmdline != ^/greengrass/ggc/packages/1.9.2/bin/daemon.* ]]; then 
+ if [[ $daemon_cmdline != ^/greengrass/ggc/packages/*/bin/daemon.* ]]; then 
   sleep 1;
  else
   break;

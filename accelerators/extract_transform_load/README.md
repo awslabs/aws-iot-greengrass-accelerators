@@ -222,15 +222,12 @@ At this point, the Docker configuration has the details needed to start the cont
 
 ```bash
 # Make sure the latest Greengrass version is built
-$ docker-compose build --no-cache
+$ docker pull amazon/aws-iot-greengrass:latest
+$ docker-compose --build up
 Building greengrass
 Step 1/10 : FROM amazon/aws-iot-greengrass:latest
 ...
 Successfully tagged x86_64/greengrass-accelerator-etl:latest
-
-# Start location container
-$ docker-compose up
-
 Creating etl-greengrass ... done
 Attaching to etl-greengrass
 etl-greengrass | Starting Redis locally

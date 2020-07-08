@@ -1,17 +1,15 @@
 # Start with pre-built Greengrass docker image
-FROM amazon/aws-iot-greengrass:1.10.0-amazonlinux
+FROM amazon/aws-iot-greengrass:latest
 
 # Install system dependencies and supporting services for accelerator
 # (none so far)
 # Set ENV_VAR for Greengrass version 1.10.0
-ARG GREENGRASS_RELEASE_URL=https://d1onfpft10uf5o.cloudfront.net/greengrass-core/downloads/1.10.0/greengrass-linux-x86-64-1.10.0.tar.gz
 # Install pre-req for docker including system path to docker-compose
 RUN amazon-linux-extras install docker && \
     rm -rf /var/cache/amzn2extras
 
 # Setup Greengrass to inside Docker Image and access dockerd
-RUN export GREENGRASS_RELEASE=$(basename $GREENGRASS_RELEASE_URL) && \
-    chgrp ggc_group /opt && \
+RUN chgrp ggc_group /opt && \
     chmod 777 /opt
 
 # Add python packages from requirements.txt

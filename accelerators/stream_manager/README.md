@@ -116,10 +116,10 @@ There are two methods describe below:
 1. At this point the CloudFormation stack is deployed. Next, run the `deploy_resources.py` script, which will:
 
    1. Read the local CDK output to determine the CloudFormation stack name
-   1. From the CloudFormation stack output, read the values to
-   1. Create the `config.json` file for Greengrass in the `stream_manager/gg_docker/config` directory
-   1. Create the `certificate.pem` and `private_key.pem` files in the `stream_manager/gg_docker/certs` directory
-   1. Upload the `stream_manager/docker_compose_stack/docker-compose.yml` file to the S3 directory referenced by the Greengrass Docker Application Deployment Connector.
+   1. From the CloudFormation stack output, read the values to:
+      1. Create the `config.json` file for Greengrass in the `stream_manager/gg_docker/config` directory
+      1. Create the `certificate.pem` and `private_key.pem` files in the `stream_manager/gg_docker/certs` directory
+   1. And finally upload the `stream_manager/docker_compose_stack/docker-compose.yml` file to the S3 directory referenced by the Greengrass Docker Application Deployment Connector.
 
    ````bash
    python3 deploy_resources.py -p default
@@ -129,6 +129,8 @@ There are two methods describe below:
 
    ```bash
    cd ../gg_docker
+   # Build from the latest published version of Greengrass
+   docker pull amazon/aws-iot-greengrass:latest
    docker-compose build
    docker-compose up -d
    ```

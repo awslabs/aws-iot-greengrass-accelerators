@@ -199,6 +199,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
    
    # Build and start the Greengrass docker container
    cd ../gg_docker
+   docker pull amazon/aws-iot-greengrass:latest
    docker-compose build
    docker-compose up -d
    

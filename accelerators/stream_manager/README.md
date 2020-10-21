@@ -230,8 +230,6 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
     </details>
 
-1.  :exclamation: Because Docker runs as root, any changes to the
-
 ## Investigating the Accelerator
 
 With the accelerator running via either method, there are few ways to see how the Greengrass Core is creating and processing data both locally and via the Cloud.

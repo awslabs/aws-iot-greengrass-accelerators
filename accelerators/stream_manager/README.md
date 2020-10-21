@@ -220,13 +220,13 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
 1.  :exclamation: The Docker containers run as the root process in Cloud9 (and other Linux environments). If you wish to look at log or deployment files locally, it is easiest to launch another terminal tab and set that user to root:
 
-        ```bash
-        sudo su -
-        cd ~ec2-user/environment/aws-iot-greengrass-accelerators/accelerators/stream_manager/gg_docker/
-        # You can now cat|more|less|tail files from here
-        tail -F log/system/runtime.log
-        ...
-        ```
+    ```bash
+    sudo su -
+    cd ~ec2-user/environment/aws-iot-greengrass-accelerators/accelerators/stream_manager/gg_docker/
+    # You can now cat|more|less|tail files from here
+    tail -F log/system/runtime.log
+    ...
+    ```
 
     </details>
 

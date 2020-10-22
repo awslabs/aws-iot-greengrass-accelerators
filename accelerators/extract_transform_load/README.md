@@ -149,7 +149,7 @@ To create or overwrite the templates, perform the following steps from a command
 
     * **\$AWS_PROFILE** - Reference an AWS CLI profile in `~/.aws` with the account credentials needed to build and deploy the CloudFormation template.
     * **\$REGION** - The AWS region for deploying the stack.
-    * **\$S3_BUCKET** - A pre-created S3 bucket to hold the CloudFormation artifacts (e.g., Lambda function zip files).
+    * **\$S3_BUCKET** - An existing S3 bucket to hold the CloudFormation artifacts (e.g., Lambda function zip files).
 
    Below is a list of the commands to create the CloudFormation template file, upload assets, and create a stack (note the changes for the `--parameter-overrides` section where you need to provide the `ThingName` and `CertificateArn` values).
    
@@ -221,9 +221,11 @@ At this point, the Docker configuration has the details needed to start the cont
 :exclamation: The first build may take a long time to complete as it installs dependencies. Further runs will use the locally created image so startup time will be shortened.
 
 ```bash
-$ docker-compose up --build
+# Make sure the latest Greengrass version is built
+$ docker pull amazon/aws-iot-greengrass:latest
+$ docker-compose --build up
 Building greengrass
-Step 1/9 : FROM amazon/aws-iot-greengrass:latest
+Step 1/10 : FROM amazon/aws-iot-greengrass:latest
 ...
 Successfully tagged x86_64/greengrass-accelerator-etl:latest
 Creating etl-greengrass ... done
@@ -242,9 +244,9 @@ To verify operation, you can look at the log files `docker/log/user/…/` for th
 
 ### Visualizing the Data
 
-By downloading a Firehose create file from the S3 bucket, you can view the contents and see that this is all the messages, each as a single JSON message per-line.
+By downloading one of the Amazon Kinesis Data Firehose created files from the S3 bucket deployed as part of the stack (name starts with *greengrass-atl-accelerate-firehouse-event*), you can view the contents and see that this is all the messages, each as a single JSON message per-line.
 
-Using Amazon Athena, modify the following SQL and run the query to create a database and table from your Firehose S3 bucket:
+Using Amazon Athena, modify the following SQL and run the query to create a database and table from your Firehose events S3 bucket (copy the actual S3 bucket name and replace the *LOCATION* entry below):
 
 ```sql
 CREATE EXTERNAL TABLE IF NOT EXISTS default.gg_etl (
@@ -272,6 +274,17 @@ It will return something similar to this:
 
 ![Amazon Athena query results](docs/etl_athena_query.png)
 
+## Accelerator Cleanup
+
+To stop any potential costs from accruing, follow these steps to stop and delete all AWS resources:
+
+1. From the terminal window where docker-compose is running, issue a CTRL+C command stop the container.
+1. Delete all of the contents of the Firehose events bucket.
+1. From the Cloudformation console, delete the `greengrass-etl-accelerator` stack.
+1. Optional: In you do not intend to use the device certifcate again, from the IoT console->Secure-Certificates, delete the certificate.
+1. From CloudWatch->Logs->Log groups, select and delete any logs created by CloudFormation or the Greengrass Core itself.
+1. In the `docker/` directory, delete the contents of the `certs/`, `config/`, `deployment/`, `log/`, and `redis/` directories. Or simply delete the entire repository if completed with using the accelerator.
+
 ## Modifications
 
 The most common modifications would be to replace the code for three Lambda functions with code specific for your use case. To modify, start with the *Extract* function, view the contents of the *Extract Queue*, and then continue in a similar manner with the *Transform* and *Load* functions based on the *Load Queue*.
@@ -282,5 +295,12 @@ The most common modifications would be to replace the code for three Lambda func
 
 #### Resolution
 
-   1. Check that the certificate and private key files are in the correct location, and they are referenced by the correct names in the `config.json` file.
-   1. Ensure there is at least one Lambda function defined within the Greengrass group and that all container-based settings such as Isolation mode are set properly.
+1. Check that the certificate and private key files are in the correct location, and they are referenced by the correct names in the `config.json` file.
+1. Ensure there is at least one Lambda function defined within the Greengrass group and that all container-based settings such as Isolation mode are set properly.
+
+### Cloudformation does not delete the stack with error "The following resource(s) failed to delete: [FirehoseBucket]."
+
+#### Resolution
+
+1. Ensure all objects have been deleted from the `greengrass-etl-accelerator-firehose-events-NNNNNNNN` bucket, where `NNNNNNN` will be a random number.
+1. Perform the CloudFormation delete stack operation again.

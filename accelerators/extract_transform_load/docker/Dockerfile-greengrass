@@ -1,28 +1,30 @@
 FROM amazon/aws-iot-greengrass:latest
 
 # Install system dependencies and supporting services for accelerator
+RUN yum -y install make
+RUN yum -y install pkgconfig
 RUN yum install -y procps wget git gcc && \
-    rm -rf /var/cache/yum
+rm -rf /var/cache/yum
 WORKDIR /usr/local/src
 RUN wget --quiet http://download.redis.io/redis-stable.tar.gz && \
-    tar xzf redis-stable.tar.gz && \
-    rm redis-stable.tar.gz && \
-    cd redis-stable && \
-    make distclean && \
-    make && \
-    mkdir /etc/redis && \
-    cp src/redis-server src/redis-cli /usr/local/bin && \
-    cd /opt && \
-    git clone --branch v1.0.0 https://github.com/RedisTimeSeries/RedisTimeSeries.git && \
-    cd RedisTimeSeries && \
-    git submodule init && \
-    git submodule update && \
-    cd src && \
-    make all && \
-    mkdir -p /usr/local/lib/redis/modules && \
-    cp redistimeseries.so /usr/local/lib/redis/modules
+tar xzf redis-stable.tar.gz && \
+rm redis-stable.tar.gz && \
+cd redis-stable && \
+make distclean && \
+make && \
+mkdir /etc/redis && \
+cp src/redis-server src/redis-cli /usr/local/bin && \
+cd /opt && \
+git clone --branch v1.0.0 https://github.com/RedisTimeSeries/RedisTimeSeries.git && \
+cd RedisTimeSeries && \
+git submodule init && \
+git submodule update && \
+cd src && \
+make all && \
+mkdir -p /usr/local/lib/redis/modules && \
+cp redistimeseries.so /usr/local/lib/redis/modules
 RUN yum remove -y gcc && \
-    rm -rf /var/cache/yum
+rm -rf /var/cache/yum
 
 COPY redis.conf /etc/redis/
 

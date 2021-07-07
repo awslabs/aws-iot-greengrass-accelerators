@@ -1,6 +1,6 @@
-# Greengrass Accelerators
+# AWS IoT Greengrass Accelerators
 
-Each folder contains a Greengrass accelerator based around common design patterns or use cases.
+Each folder contains a AWS IoT Greengrass accelerator based around common design patterns or use cases.
 
 ## Accelerators
 

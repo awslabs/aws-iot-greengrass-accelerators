@@ -104,7 +104,7 @@ extract_transform_load/
 └── test
 ```
 
-There are two main components to using the accelerator. The `cfn/` directory contains the CloudFormation assets to create the Greengrass configuration and long-lived AWS Lambda functions as a _Greengrass deployment_. The _deployment_ then waits for the target system, in this case a docker container, to start.
+There are two main components to using the accelerator. The `cfn/` directory contains the AWS CloudFormation assets to create the Greengrass configuration and long-lived AWS Lambda functions as a _Greengrass deployment_. The _deployment_ then waits for the target system, in this case a docker container, to start.
 
 The `docker/` directory container the assets to create a Docker image and running container with the dependencies such as Redis, to run the AWS IoT Greengrass deployment. It also has directories to hold the Greengrass configuration and credentials for the Greengrass core.
 
@@ -222,10 +222,10 @@ At this point, the Docker configuration has the details needed to start the cont
 
 ```bash
 # Make sure the latest Greengrass version is built
-$ docker pull amazon/aws-iot-greengrass:latest
+$ docker pull amazon/aws-iot-greengrass:1.11.3-amazonlinux-x86-64
 $ docker-compose --build up
 Building greengrass
-Step 1/10 : FROM amazon/aws-iot-greengrass:latest
+Step 1/10 : FROM amazon/aws-iot-greengrass:1.11.3-amazonlinux-x86-64
 ...
 Successfully tagged x86_64/greengrass-accelerator-etl:latest
 Creating etl-greengrass ... done
@@ -240,7 +240,9 @@ etl-greengrass | Greengrass successfully started with PID: 17
 
 8. From the AWS IoT Greengrass Console, navigate to your Greengrass Group and perform _Actions->Deploy_ to deploy to the running Docker container.
 
-To verify operation, you can look at the log files `docker/log/user/…/` for the AWS Lambda functions for messages. Also, the S3 bucket used by Firehose should start to receive events. And, every 30 seconds, statistical messages will start to be published on the MQTT topic `core_name/telemetry` (default being `gg_etl_accel/telemetry`).
+To verify operation, you can review the content of the AWS Lambda log files located in `docker/log/user/…/`, to verify the extract and transform functions are processing data. Also, the Amazon S3 bucket used by Amazon Kinesis Data Firehose should start to receive events. You can obtain the bucket name from the CloudFormation stack _Outputs_ section in the AWS Console. Every 30 seconds, statistical messages will also be published on the MQTT topic `core_name/telemetry` (default being `gg_etl_accel/telemetry`).
+
+> **NOTE** The OBD-II replay file will run for approximately 37 minutes. Restarting the Greengrass core will reset the extract function and start the replay process again.
 
 ### Visualizing the Data
 
@@ -274,16 +276,19 @@ It will return something similar to this:
 
 ![Amazon Athena query results](docs/etl_athena_query.png)
 
+You may need to run the query more than once if the values returned are all zeros.
+
 ## Accelerator Cleanup
 
 To stop any potential costs from accruing, follow these steps to stop and delete all AWS resources:
 
 1. From the terminal window where docker-compose is running, issue a CTRL+C command stop the container.
+1. Run the command `docker-compose down` to release all resources.
 1. Delete all of the contents of the Firehose events bucket.
 1. From the Cloudformation console, delete the `greengrass-etl-accelerator` stack.
 1. Optional: In you do not intend to use the device certificate again, from the IoT console->Secure-Certificates, delete the certificate.
 1. From CloudWatch->Logs->Log groups, select and delete any logs created by CloudFormation or the Greengrass core itself.
-1. In the `docker/` directory, delete the contents of the `certs/`, `config/`, `deployment/`, `log/`, and `redis/` directories. Or simply delete the entire repository if completed with using the accelerator.
+1. In the `docker/` directory, delete the contents of the `certs/`, `config/`, `deployment/`, `log/`, and `redis/` directories. Or simply delete the entire repository if you are done using the accelerator.
 
 ## Modifications
 

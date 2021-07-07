@@ -1,7 +1,7 @@
-FROM amazon/aws-iot-greengrass:latest
+FROM amazon/aws-iot-greengrass:1.11.3-amazonlinux-x86-64
 
 # Install system dependencies and supporting services for accelerator
-RUN yum install -y procps wget git gcc && \
+RUN yum update -y && yum install -y procps wget git gcc && \
     rm -rf /var/cache/yum
 WORKDIR /usr/local/src
 RUN wget --quiet http://download.redis.io/redis-stable.tar.gz && \
@@ -21,8 +21,8 @@ RUN wget --quiet http://download.redis.io/redis-stable.tar.gz && \
     make all && \
     mkdir -p /usr/local/lib/redis/modules && \
     cp redistimeseries.so /usr/local/lib/redis/modules
-RUN yum remove -y gcc && \
-    rm -rf /var/cache/yum
+# RUN yum remove -y gcc && \
+#     rm -rf /var/cache/yum
 
 COPY redis.conf /etc/redis/
 

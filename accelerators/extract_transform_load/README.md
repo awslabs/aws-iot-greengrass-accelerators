@@ -22,7 +22,7 @@ Finally, individual records are stored as JSON records in Amazon S3 via Amazon K
 The design is composed of three main parts:
 
 - The source - A vehicle with a standard [OBD-II port](https://en.wikipedia.org/wiki/On-board_diagnostics#OBD-II).
-- Greengrass Core - Local hardware that can connect to the vehicle via data logger, and has a connection to the AWS Cloud.
+- Greengrass core - Local hardware that can connect to the vehicle via data logger, and has a connection to the AWS Cloud.
 - AWS Cloud - Ultimate destination for transformed data--to Kinesis Data Firehose, AWS IoT topics, and AWS IoT Analytics.
 
 ![ETL Solution Diagram](docs/etl_overview.png)

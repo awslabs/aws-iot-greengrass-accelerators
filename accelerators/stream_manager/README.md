@@ -145,7 +145,8 @@ Greengrass will start to write files into the `gg_docker/log` directory, and the
 <details>
 <summary>Click here to show/hide the steps to run via AWS Cloud9</summary>
 <br>
-:bulb: All steps below use a Cloud9 IDE in the same account and region where the accelerator will be run. If running locally, ensure you have the AWS CLI installed, and change the AWS named profile from *default* to one you have created with proper permissions.
+
+:bulb: All steps below use a Cloud9 IDE in the same account and region where the accelerator will be run. If running locally, ensure you have the AWS CLI installed, and change the AWS named profile from _default_ to one you have created with proper permissions.
 
 Prior to launching the accelerator container locally, the AWS CDK is used to generate a CloudFormation template and deploy it. From Cloud9, follow the steps to create and launch the stack via the CDK.
 
@@ -153,7 +154,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
     :exclamation:The following steps **will not** work if Ubuntu is selected.
 
-1.  Once the Cloud9 environment starts, follow [these steps](https://docs.aws.amazon.com/cloud9/latest/user-guide/move-environment.html#move-environment-resize) to resize the disk. Create the `resize.sh` file and run `sh resize.sh 40` to extend the disk to 40GiB.
+1.  Once the Cloud9 environment starts, follow [these steps](https://docs.aws.amazon.com/cloud9/latest/user-guide/move-environment.html#move-environment-resize) to resize the disk. Create the `resize.sh` file and run `bash resize.sh 40` to extend the disk to 40GiB.
 
 1.  _Pre-requisites_ (only needs be run once and the environment will reboot) - Open a new Terminal window and run these commands:
 
@@ -161,7 +162,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     # Cloud9 Commands - change as needed for local development environment
     # Install pre-requisites, bootstrap CDK for use in account/region, and reboot
     npm uninstall -g cdk
-    npm install -g aws-cdk@1.69.0
+    npm install -g aws-cdk@latest
     sudo yum install iptables-services -y
     # Bootstrap CDK for current AWS account and region where Cloud9 runs
     ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
@@ -169,7 +170,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     cdk bootstrap aws://$ACCOUNT/$REGION
     sudo curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
     sudo chmod +x /usr/local/bin/docker-compose
-    pip3 install boto3
+    pip3 install --user boto3
     # Enable soft/hard links
     sudo cat <<EOF | sudo tee /etc/sysctl.d/98-cloud9-greengrass.conf
     fs.protected_hardlinks = 1
@@ -204,7 +205,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
     # Build and start the Greengrass docker container
     cd ../gg_docker
-    docker pull amazon/aws-iot-greengrass:latest
+    docker pull amazon/aws-iot-greengrass:1.11.3-amazonlinux-x86-64
     docker-compose build
     docker-compose up -d
 
@@ -218,7 +219,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
     Greengrass will start to write files into the `gg_docker/log` directory, and the web interface to the Flask application can be accessed via the returned URL on the _This is the URL to access..._ line above.
 
-1.  :exclamation: The Docker containers run as the root process in Cloud9 (and other Linux environments). If you wish to look at log or deployment files locally, it is easiest to launch another terminal tab and set that user to root:
+1.  :exclamation: The Docker containers run as the root process in Cloud9 (and other Linux environments). If you wish to look at log or deployment files locally, it is easiest to launch another terminal tab and set the user to root:
 
     ```bash
     sudo su -

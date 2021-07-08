@@ -47,11 +47,8 @@ The Cloud Development Kit (CDK) is used to deploy a CloudFront stack, and a Pyth
 stream_manager/
 ├── README.md                          <-- This file!
 ├── cdk
-│   ├── etl_accelerator-INPUT.cfn.yaml <-- CloudFormation template
-│   ├── lambda_functions
-│   └── other_files
 ├── docker_compose_stack               <-- Compose stack to be managed by Greengrass
-│   ├── docker-compose.yml             <-- Compose file to be run
+│   ├── docker-compose.yml
 ├── gg_docker                          <-- Creates Greengrass instance as container
 │   ├── Dockerfile-greengrass
 │   ├── certs

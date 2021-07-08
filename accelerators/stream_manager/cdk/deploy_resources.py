@@ -16,7 +16,7 @@ parser.add_argument(
     help="Your AWS CLI profile name",
 )
 
-# Template is only for Greengrass 1.10.0 and newer
+# Template is only for Greengrass 1.10.0 and newer, and not Greengrass 2.x
 config_json_template = {
     "coreThing": {
         "caPath": "root.ca.pem",
@@ -51,9 +51,9 @@ config_json_template = {
 def read_manifest():
     """Read the manifest file to get the stackname
 
-        As of cdk 1.13.1, the stackname can be found in the manifest file
-        as an artifact object with a type of aws:cloudformation:stack
-    
+    As of cdk 1.13.1, the stackname can be found in the manifest file
+    as an artifact object with a type of aws:cloudformation:stack
+
     """
     manifest_file = Path("cdk.out/manifest.json")
     if manifest_file.is_file():
@@ -68,23 +68,27 @@ def read_manifest():
     except ValueError as e:
         print(f"Invalid format of {manifest_file}, error: {e}")
         sys.exit(1)
-    # Only return the first artifact
+    # Return the stack name, account, and region
     for i in manifest["artifacts"]:
         if manifest["artifacts"][i]["type"] == "aws:cloudformation:stack":
-            return i
+            return {
+                "stackname": i,
+                "account": manifest["artifacts"][i]["environment"].split("/")[2],
+                "region": manifest["artifacts"][i]["environment"].split("/")[-1],
+            }
 
 
 if __name__ == "__main__":
     # Confirm profile given as parameters
     args = parser.parse_args()
-    print(args.profile)
 
     # Read config file
-    print("Reading deployed CDK manifest file contents")
-    stackname = read_manifest()
+    stackname_manifest = read_manifest()
+    stackname = stackname_manifest["stackname"]
+    region = stackname_manifest["region"]
 
     # Get outputs to create files and config.json
-    session = boto3.Session(profile_name=args.profile)
+    session = boto3.Session(profile_name=args.profile, region_name=region)
     cloudformation = session.resource("cloudformation")
     stack = cloudformation.Stack(stackname)
     stack.load()
@@ -106,7 +110,7 @@ if __name__ == "__main__":
         # Thing's certificate
         f.write(certificate_pem)
     with open(Path("../gg_docker/certs/private.key"), "w") as f:
-        # Thing's certificate
+        # Thing's private key
         f.write(private_key)
     # Finally the root CA file
     url = "https://www.amazontrust.com/repository/AmazonRootCA1.pem"
@@ -132,4 +136,3 @@ if __name__ == "__main__":
         Bucket=source_bucket,
         Key="docker-compose.yml",
     )
-

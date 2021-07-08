@@ -1,4 +1,4 @@
-version: '3.7'
+version: "3.7"
 
 services:
   greengrass:
@@ -13,7 +13,7 @@ services:
       - ./config:/greengrass/config
       - ./deployment:/greengrass/ggc/deployment
       - ./log:/greengrass/ggc/var/log
-      - ./state:/greengrass/ggc/var/state
+      # - ./state:/greengrass/ggc/var/state
       - /var/run/docker.sock:/var/run/docker.sock
     ports:
       # MQTT TLS port

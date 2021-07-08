@@ -95,19 +95,22 @@ There are two methods describe below:
 1. Install and bootstrap the CDK:
 
    ```bash
-   npm install cdk
-   ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
-   REGION=$(aws configure get region)
+   npm install -g aws-cdk
+   export ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+   # Set REGION to where the accelerator will be installed
+   export REGION=us-east-1
    cdk bootstrap aws://$ACCOUNT/$REGION
    ```
 
-1. Clone the repository if not already done and change into the `cdk/` directory, build and deploy the CloudFormation stack:
+1. Clone the repository and change into the `cdk/` directory, build and deploy the CloudFormation stack:
 
    ```bash
    git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
    cd aws-iot-greengrass-accelerators/accelerators/stream_manager/cdk
    npm install
    npm run build
+   # Set region for deployment (optional if the AWS CLI profile has the region set to where you want to deploy)
+   export CDK_DEPLOY_REGION=us-east-1
    # replace PROFILE_NAME with your specific AWS CLI profile that has username and region
    cdk --profile PROFILE_NAME deploy
    ```
@@ -129,7 +132,7 @@ There are two methods describe below:
    ```bash
    cd ../gg_docker
    # Build from the latest published version of Greengrass
-   docker pull amazon/aws-iot-greengrass:latest
+   docker pull amazon/aws-iot-greengrass:1.11.3-amazonlinux-x86-64
    docker-compose build
    docker-compose up -d
    ```

@@ -4,6 +4,6 @@ Each folder contains an AWS IoT Greengrass accelerator based around common desig
 
 ## Accelerators
 
-- [Extract, Transform, and Load](extract_transform_load/README.md)
-- [Machine Learning Inference](machine_learning_inference/README.md)
-- [Stream Manager](stream_manager/README.md) (and Docker Application Management)
+- [Extract, Transform, and Load](extract_transform_load)
+- [Machine Learning Inference](machine_learning_inference)
+- [Stream Manager](stream_manager) (and Docker Application Management)

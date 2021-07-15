@@ -1,6 +1,6 @@
 # AWS IoT Greengrass V2 Base Implementation
 
-This accelerator deploys a single instance of an AWS IoT Greengrass core device, an example component, and creates a deployment to the core device. Once completed and the local container started, a fully functional AWS IoT Greengrass environment will be running with developer tools included. [foo](http://dfssfd.com)
+This accelerator deploys a single instance of an AWS IoT Greengrass core device, an example component, and creates a deployment to the core device. Once completed and the local container started, a fully functional AWS IoT Greengrass environment will be running with developer tools included.
 
 # Base Implementation Use Case
 
@@ -71,10 +71,8 @@ This approach uses your local system for installation and running the accelerato
    ```bash
    git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
    cd aws-iot-greengrass-accelerators/vs/base_implementation/cdk
-   npm install
-   npm run build
-   # Set region for deployment (optional if the AWS CLI profile has the region set to where you want to deploy)
-   export CDK_DEPLOY_REGION=us-east-1
+   npx install
+   npx run build
    # replace PROFILE_NAME with your specific AWS CLI profile that has username and region
    cdk --profile PROFILE_NAME deploy
    ```

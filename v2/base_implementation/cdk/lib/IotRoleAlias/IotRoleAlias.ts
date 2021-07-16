@@ -26,7 +26,7 @@ export interface IotRoleAliasProps {
    */
   readonly iamRoleName?: string
   /**
-   * IAM policy to apply (inline) to the IAM role. Use syntax for IAM Policy.
+   * IAM policy document to apply (inline) to the IAM role.
    *
    * @default - None
    */
@@ -52,7 +52,6 @@ export interface IotRoleAliasProps {
 
 export class IotRoleAlias extends cdk.Construct {
   public readonly iamRoleArn: string
-  public readonly iamRoleName: string
   public readonly roleAliasName: string
 
   /**
@@ -89,9 +88,9 @@ export class IotRoleAlias extends cdk.Construct {
         [inlinePolicyName]: props.iamPolicy
       }
     })
+    this.iamRoleArn = iamRole.roleArn
 
     const provider = IotRoleAlias.getOrCreateProvider(this, completeIamRoleName)
-
     const customResource = new cdk.CustomResource(this, "IotCreateRoleAlias", {
       serviceToken: provider.serviceToken,
       properties: {
@@ -100,6 +99,7 @@ export class IotRoleAlias extends cdk.Construct {
         IamRoleArn: iamRole.roleArn
       }
     })
+    this.roleAliasName = completeIoTRoleAliasName
 
     // Permissions for the IAM role created/deleted
     provider.onEventHandler.role?.addToPrincipalPolicy(
@@ -137,9 +137,6 @@ export class IotRoleAlias extends cdk.Construct {
       }
       return result
     }
-
-    // Set resource return values from function
-    this.iamRoleArn = customResource.getAttString("IamRoleArn")
   }
 
   // Separate static function to create or return singleton

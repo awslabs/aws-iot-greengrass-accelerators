@@ -24,7 +24,7 @@ export class BaseImplementationStack extends cdk.Stack {
     // testing what two calls looks like
     const test = new IotRoleAlias(this, "IoTRoleAlias2", {
       stackName: id,
-      iotRoleAliasName: "GreengrassV2TokenExchangeRole",
+      iotRoleAliasName: "GreengrassV2TokenExchangeRoleNumber2",
       iamRoleName: "my_other_role",
       iamPolicy: myConst.greengrassMinimalRoleAliasPolicy
     })

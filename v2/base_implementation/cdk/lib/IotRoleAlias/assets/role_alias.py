@@ -4,13 +4,13 @@
 import os
 import sys
 import json
-import logging as log
+import logging as logger
 import boto3
 import botocore
 from botocore.exceptions import ClientError
 
 
-log.getLogger().setLevel(log.INFO)
+logger.getLogger().setLevel(logger.INFO)
 
 
 def get_aws_client(name):
@@ -45,12 +45,14 @@ def create_iot_role_alias(role_name, role_alias_name, policy, policy_name):
         )
         role_arn = resp["Role"]["Arn"]
     except c_iam.exceptions.EntityAlreadyExistsException:
-        log.error(
+        logger.error(
             f"IAM role {role_name} already exists, is this a duplicate stack? Exiting"
         )
         sys.exit(1)
     except ClientError as e:
-        log.warning(f"Error calling iam.create_role() for role {role_name}, error: {e}")
+        logger.warning(
+            f"Error calling iam.create_role() for role {role_name}, error: {e}"
+        )
 
     # Attach the policy to the role
     try:
@@ -60,7 +62,7 @@ def create_iot_role_alias(role_name, role_alias_name, policy, policy_name):
             PolicyDocument=json.dumps(policy),
         )
     except ClientError as e:
-        log.warning(
+        logger.warning(
             f"Error calling iam_client.put_role_policy() for role {role_name}, error: {e}"
         )
 
@@ -71,7 +73,7 @@ def create_iot_role_alias(role_name, role_alias_name, policy, policy_name):
             roleArn=role_arn,
         )
     except ClientError as e:
-        log.warning(
+        logger.warning(
             f"Error calling iot.create_role_alias() for role alias {role_alias_name}, error: {e}"
         )
 
@@ -86,7 +88,7 @@ def delete_iot_role_alias(role_name, role_alias_name):
     try:
         c_iot.delete_role_alias(roleAlias=role_alias_name)
     except ClientError as e:
-        log.warning(
+        logger.warning(
             f"Error calling iot.delete_role_alias() for role alias {role_alias_name}, error: {e}"
         )
 
@@ -98,7 +100,9 @@ def delete_iot_role_alias(role_name, role_alias_name):
         for policy in policies:
             c_iam.delete_role_policy(RoleName=role_name, PolicyName=policy)
     except ClientError as e:
-        log.warning(f"Error deleting inline policies for role {role_name}, error: {e}")
+        logger.warning(
+            f"Error deleting inline policies for role {role_name}, error: {e}"
+        )
     # Delete attached managed policies
     try:
         policies = c_iam.list_attached_role_policies(
@@ -107,18 +111,22 @@ def delete_iot_role_alias(role_name, role_alias_name):
         for policy in policies:
             c_iam.detach_role_policy(RoleName=role_name, PolicyArn=policy["PolicyArn"])
     except ClientError as e:
-        log.warning(f"Error deleting inline policies for role {role_name}, error: {e}")
+        logger.warning(
+            f"Error deleting inline policies for role {role_name}, error: {e}"
+        )
 
     # Delete role
     try:
         c_iam.delete_role(RoleName=role_name)
     except ClientError as e:
-        log.warning(f"Error calling iam.create_role() for role {role_name}, error: {e}")
+        logger.warning(
+            f"Error calling iam.create_role() for role {role_name}, error: {e}"
+        )
 
 
 def handler(event, context):
-    log.info("Received event: %s", event)
-    log.info("Environment: %s", dict(os.environ))
+    logger.info("Received event: %s", event)
+    logger.info("Environment: %s", dict(os.environ))
     props = event["ResourceProperties"]
     try:
         # Check if this is a Create and we're failing Creates
@@ -127,32 +135,33 @@ def handler(event, context):
         ):
             raise RuntimeError("Create failure requested, logging")
         elif event["RequestType"] == "Create":
-            log.info("Request CREATE")
+            logger.info("Request CREATE")
             response = create_iot_role_alias(
                 role_name=props["IamRoleName"],
                 role_alias_name=props["IotRoleAliasName"],
                 policy=props["IamPolicy"],
                 policy_name=props["PolicyName"],
             )
-
             # set response data (PascalCase key)
-            # return IAM role arn, iot role alias name
+            # return IAM role arn
             response_data = {"IamRoleArn": response}
         elif event["RequestType"] == "Update":
-            log.info("Request UPDATE")
+            logger.info("Request UPDATE")
             response_data = {}
         elif event["RequestType"] == "Delete":
-            log.info("Request DELETE")
+            logger.info("Request DELETE")
             delete_iot_role_alias(
                 role_name=props["IamRoleName"],
                 role_alias_name=props["IotRoleAliasName"],
             )
-
+            logger.info(
+                f'Role alias {props["IotRoleAliasName"]} and IAM role {props["IamRoleName"]} successfully deleted'
+            )
             response_data = {}
         else:
-            log.info("Should not get here in normal cases - could be REPLACE")
-
+            logger.error("Should not get here in normal cases - could be REPLACE")
+        # Resource id set to unique IAM role name
         output = {"PhysicalResourceId": props["IamRoleName"], "Data": response_data}
-        log.info("Output from Lambda: %s", json.dumps(output, indent=2))
+        logger.info("Output from Lambda: %s", json.dumps(output, indent=2))
     except Exception as e:
-        log.exception(e)
+        logger.exception(e)

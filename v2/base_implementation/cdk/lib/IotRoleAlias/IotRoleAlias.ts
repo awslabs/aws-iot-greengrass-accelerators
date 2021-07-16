@@ -10,57 +10,98 @@ import * as lambda from "@aws-cdk/aws-lambda"
 import { Construct } from "@aws-cdk/core"
 
 /**
- * @summary The properties for the IotCreateThingCertPolicy class.
+ * @summary The properties for the IotRoleAlias class.
  */
 export interface IotRoleAliasProps {
   /**
-   * Name of CloudFormation stack used as part of role alias name
+   * Base AWS IoT role alias name.
+   *
+   * @default - None
    */
-  stackName: string
-  /** Name of AWS IoT role alias to create */
-  iotRoleAliasName: string
-  /** IAM Role name to create */
-  iamRoleName: string
-  /** IAM policy to apply (inline) to the IAM role */
-  iamPolicy: object
-  /** Name to assign the default inline policy */
-  iamPolicyName?: string
+  readonly iotRoleAliasName: string
+  /**
+   * Optional base IAM Role name.
+   *
+   * @default - `roleAliasName` value is used.
+   */
+  readonly iamRoleName?: string
+  /**
+   * IAM policy to apply (inline) to the IAM role. Use syntax for IAM Policy.
+   *
+   * @default - None
+   */
+  readonly iamPolicy: iam.PolicyDocument
+  /**
+   * Optional name of the default inline policy created on the IAM role.
+   *
+   * @default -"DefaultPolicyForRoleAlias"
+   */
+  readonly iamPolicyName?: string
 }
+
+/**
+ * This construct creates an AWS IoT role alias based upon a provided IAM
+ * policy that will be attached to an associated IAM role.
+ *
+ * @summary Creates an AWS IoT role alias and referenced IAM role with provided IAM policy.
+ */
+
+/**
+ * @summary The IotRoleAlias class.
+ */
 
 export class IotRoleAlias extends cdk.Construct {
   public readonly iamRoleArn: string
+  public readonly iamRoleName: string
   public readonly roleAliasName: string
 
+  /**
+   *
+   * @summary Constructs a new instance of the IotRoleAlias class.
+   * @param {cdk.App} scope - represents the scope for all the resources.
+   * @param {string} id - this is a scope-unique id.
+   * @param {IotRoleAliasProps} props - user provided props for the construct.
+   * @since 1.114.0
+   */
   constructor(scope: cdk.Construct, id: string, props: IotRoleAliasProps) {
     super(scope, id)
 
+    const stackName = cdk.Stack.of(this).stackName
+
     // Validate and derive final values for resources
-    const inlinePolicyName = props.iamPolicyName || "DefaultPolicyForRoleAlias"
+    const inlinePolicyName = props.iamPolicyName || "DefaultPolicyForIotRoleAlias"
+    const iamRoleName = props.iamRoleName || props.iotRoleAliasName
 
     // IAM Role name (64 max, regex: [^_+=,.@-], add 8 random id at end)
-    // myStack-this_is_my_text-ABCxyz12
-    let completeIamRoleName = `${props.stackName}-${props.iamRoleName.replace(/[^\w+=,.@-]/g, "")}`
+    let completeIamRoleName = `${stackName}-${iamRoleName.replace(/[^\w+=,.@-]/g, "")}`
     completeIamRoleName = `${completeIamRoleName.substring(0, 55)}-${makeid(8)}`
 
     // IoT role alias name (128 max, [\w=,@-], add 8 random id at end)
-    let completeIoTRoleAliasName = `${props.stackName}-${props.iotRoleAliasName.replace(/[^\w=,@-]/g, "")}`
+    let completeIoTRoleAliasName = `${stackName}-${props.iotRoleAliasName.replace(/[^\w=,@-]/g, "")}`
     completeIoTRoleAliasName = `${completeIoTRoleAliasName.substring(0, 119)}-${makeid(8)}`
 
-    const provider = IotRoleAlias.getOrCreateProvider(this, completeIamRoleName)
-
-    const customResource = new cdk.CustomResource(this, "IoTCreateThingCertPolicy", {
-      serviceToken: provider.serviceToken,
-      properties: {
-        StackName: props.stackName,
-        IamRoleName: completeIamRoleName,
-        IamPolicy: props.iamPolicy,
-        IotRoleAliasName: completeIoTRoleAliasName,
-        PolicyName: inlinePolicyName
+    // Create IAM role with permissions
+    const iamRole = new iam.Role(this, "TestRoleName", {
+      roleName: completeIamRoleName,
+      assumedBy: new iam.ServicePrincipal("credentials.iot.amazonaws.com"),
+      description: "Allow Greengrass token exchange service to obtain temporary credentials",
+      inlinePolicies: {
+        [inlinePolicyName]: props.iamPolicy
       }
     })
 
-    // Add resource-specific permissions to the Lambda role policy
-    // IAM related on roles
+    const provider = IotRoleAlias.getOrCreateProvider(this, completeIamRoleName)
+
+    const customResource = new cdk.CustomResource(this, "IotCreateRoleAlias", {
+      serviceToken: provider.serviceToken,
+      properties: {
+        StackName: stackName,
+        IotRoleAliasName: completeIoTRoleAliasName,
+        IamRoleArn: iamRole.roleArn
+      }
+    })
+
+    // Permissions for the IAM role created/deleted
     provider.onEventHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: [
@@ -76,7 +117,7 @@ export class IotRoleAlias extends cdk.Construct {
         resources: [`arn:${cdk.Fn.ref("AWS::Partition")}:iam::${cdk.Fn.ref("AWS::AccountId")}:role/${completeIamRoleName}`]
       })
     )
-    // IoT role alias
+    // Permissions for the IoT role alias created/deleted
     provider.onEventHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["iot:CreateRoleAlias", "iot:DeleteRoleAlias"],
@@ -100,13 +141,15 @@ export class IotRoleAlias extends cdk.Construct {
     // Set resource return values from function
     this.iamRoleArn = customResource.getAttString("IamRoleArn")
   }
+
+  // Separate static function to create or return singleton
   static getOrCreateProvider = (scope: cdk.Construct, roleName: string): cr.Provider => {
     const stack = cdk.Stack.of(scope)
     const uniqueId = "CreateIoTRoleAlias"
     const existing = stack.node.tryFindChild(uniqueId) as cr.Provider
 
     if (existing === undefined) {
-      const createThingFn = new lambda.Function(stack, `${uniqueId}Provider`, {
+      const createThingFn = new lambda.Function(stack, `${uniqueId}-Provider`, {
         runtime: lambda.Runtime.PYTHON_3_8,
         timeout: cdk.Duration.minutes(1),
         handler: "role_alias.handler",
@@ -114,13 +157,14 @@ export class IotRoleAlias extends cdk.Construct {
       })
       // Role permissions are handled by the main constructor
 
-      // Provider that invokes the Lambda function
+      // Create the provider that invokes the Lambda function
       const createThingProvider = new cr.Provider(stack, uniqueId, {
         onEventHandler: createThingFn,
         logRetention: logs.RetentionDays.ONE_DAY
       })
       return createThingProvider
     } else {
+      // Second or additional call, use existing provider
       return existing
     }
   }

@@ -2,6 +2,8 @@
 // SPDX-License-Identifier: MIT-0
 
 import * as lambda from "@aws-cdk/aws-lambda"
+import * as iam from "@aws-cdk/aws-iam"
+import { PolicyStatement } from "@aws-cdk/aws-iam"
 
 export const PYTHON_LAMBDA_RUNTIME: lambda.Runtime = lambda.Runtime.PYTHON_3_8
 
@@ -46,28 +48,6 @@ export const greengrassCoreMinimalIoTPolicy = {
     {
       Effect: "Allow",
       Action: ["greengrass:GetComponentVersionArtifact", "greengrass:ResolveComponentCandidates", "greengrass:GetDeploymentConfiguration"],
-      Resource: "*"
-    }
-  ]
-}
-
-export const greengrassMinimalRoleAliasPolicy = {
-  Version: "2012-10-17",
-  Statement: [
-    {
-      Effect: "Allow",
-      Action: [
-        "iot:DescribeCertificate",
-        "logs:CreateLogGroup",
-        "logs:CreateLogStream",
-        "logs:PutLogEvents",
-        "logs:DescribeLogStreams",
-        "iot:Connect",
-        "iot:Publish",
-        "iot:Subscribe",
-        "iot:Receive",
-        "s3:GetBucketLocation"
-      ],
       Resource: "*"
     }
   ]

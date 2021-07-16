@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT-0
 
 import * as cdk from "@aws-cdk/core"
+import * as iam from "@aws-cdk/aws-iam"
 import { IotCreateThingCertPolicy } from "./IotCreateThingCertPolicy/IotCreateThingCertPolicy"
 import { IotRoleAlias } from "./IotRoleAlias/IotRoleAlias"
 import * as myConst from "./Constants"
@@ -14,20 +15,39 @@ export class BaseImplementationStack extends cdk.Stack {
 
     // Create IoT role alias
 
-    const greengrassRoleAlias = new IotRoleAlias(this, "IoTRoleAlias", {
-      stackName: id,
-      iotRoleAliasName: "GreengrassV2TokenExchangeRole",
-      iamRoleName: "RoleAliasForGreengrassCore",
-      iamPolicy: myConst.greengrassMinimalRoleAliasPolicy
+    const greengrassRoleMinimalPolicy = new iam.PolicyDocument({
+      statements: [
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: [
+            "iot:DescribeCertificate",
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents",
+            "logs:DescribeLogStreams",
+            "iot:Connect",
+            "iot:Publish",
+            "iot:Subscribe",
+            "iot:Receive",
+            "s3:GetBucketLocation"
+          ],
+          resources: ["*"]
+        })
+      ]
     })
 
-    // testing what two calls looks like
-    const test = new IotRoleAlias(this, "IoTRoleAlias2", {
-      stackName: id,
-      iotRoleAliasName: "GreengrassV2TokenExchangeRoleNumber2",
-      iamRoleName: "my_other_role",
-      iamPolicy: myConst.greengrassMinimalRoleAliasPolicy
+    const greengrassRoleAlias = new IotRoleAlias(this, "IoTRoleAlias", {
+      iotRoleAliasName: "GreengrassV2TokenExchangeRole",
+      iamRoleName: "RoleAliasForGreengrassCore",
+      iamPolicy: greengrassRoleMinimalPolicy
     })
+
+    // // testing what two calls looks like
+    // const test = new IotRoleAlias(this, "IoTRoleAlias2", {
+    //   iotRoleAliasName: "GreengrassV2TokenExchangeRoleNumber2",
+    //   iamRoleName: "my_other_role",
+    //   iamPolicy: myConst.greengrassMinimalRoleAliasPolicy
+    // })
 
     // IoT thing, certificate/private key, and IoT Policy
 

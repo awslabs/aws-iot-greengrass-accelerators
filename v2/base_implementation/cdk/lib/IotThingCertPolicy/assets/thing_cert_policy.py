@@ -19,18 +19,19 @@ import time
 
 logger.getLogger().setLevel(logger.INFO)
 
-temp_event = {
+temp_event_create = {
     "RequestType": "Create",
-    "ServiceToken": "arn:aws:lambda:us-west-2:904880203774:function:test1-IotThingCertPolicyFunctionframeworkonEvent86-sPwcDc5WWA1e",
-    "ResponseURL": "https://cloudformation-custom-resource-response-uswest2.s3-us-west-2.amazonaws.com/arn%3Aaws%3Acloudformation%3Aus-west-2%3A904880203774%3Astack/test1/d92d29d0-e89c-11eb-bd43-0a0fbc569219%7CGreengrassCoreIotThingCertPolicyFunctionA5730834%7C3ec9952f-3339-49ac-a7f1-44af6561f751?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20210719T142454Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIA54RCMT6SKBOPMYGJ%2F20210719%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=6ca872aaf6e32362a505f3a033dea0121c99ea1bf2a218768854224ed1e1c1fa",
-    "StackId": "arn:aws:cloudformation:us-west-2:904880203774:stack/test1/d92d29d0-e89c-11eb-bd43-0a0fbc569219",
-    "RequestId": "3ec9952f-3339-49ac-a7f1-44af6561f751",
+    "ServiceToken": "arn:aws:lambda:us-west-2:904880203774:function:test1-IotThingCertPolicyFunctionframeworkonEvent86-CBSzZWfvqop6",
+    "ResponseURL": "https://cloudformation-custom-resource-response-uswest2.s3-us-west-2.amazonaws.com/arn%3Aaws%3Acloudformation%3Aus-west-2%3A904880203774%3Astack/test1/9a9c54b0-e8c5-11eb-a1c8-068346d307f3%7CGreengrassCoreIotThingCertPolicyFunctionA5730834%7Cd461a1a0-964e-4ade-ac1f-be88175a8d06?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20210719T191652Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIA54RCMT6SKBOPMYGJ%2F20210719%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=3e1b109982a482443352ff382da9aa10686e13e94da2eeefc890af54875a8c89",
+    "StackId": "arn:aws:cloudformation:us-west-2:904880203774:stack/test1/9a9c54b0-e8c5-11eb-a1c8-068346d307f3",
+    "RequestId": "d461a1a0-964e-4ade-ac1f-be88175a8d06",
     "LogicalResourceId": "GreengrassCoreIotThingCertPolicyFunctionA5730834",
     "ResourceType": "AWS::CloudFormation::CustomResource",
     "ResourceProperties": {
-        "ServiceToken": "arn:aws:lambda:us-west-2:904880203774:function:test1-IotThingCertPolicyFunctionframeworkonEvent86-sPwcDc5WWA1e",
-        "ThingName": "test1-greengrass-core-wP7iXabb",
-        "IotPolicy": '"{\\n  Version: \\"2012-10-17\\",\\n  Statement: [\\n    {\\n      Effect: \\"Allow\\",\\n      Action: [\\"iot:Connect\\"],\\n      Resource: \\"arn:aws:iot:us-west-2:904880203774:client/greengrass-core*\\"\\n    },\\n    {\\n      Effect: \\"Allow\\",\\n      Action: [\\"iot:Receive\\", \\"iot:Publish\\"],\\n      Resource: [\\n        \\"arn:aws:iot:us-west-2:904880203774:topic/$aws/things/greengrass-core*/greengrass/health/json\\",\\n        \\"arn:aws:iot:us-west-2:904880203774:topic/$aws/things/greengrass-core*/greengrassv2/health/json\\",\\n        \\"arn:aws:iot:us-west-2:904880203774:topic/$aws/things/greengrass-core*/jobs/*\\",\\n        \\"arn:aws:iot:us-west-2:904880203774:topic/$aws/things/greengrass-core*/shadow/*\\"\\n      ]\\n    },\\n    {\\n      Effect: \\"Allow\\",\\n      Action: [\\"iot:Subscribe\\"],\\n      Resource: [\\n        \\"arn:aws:iot:us-west-2:904880203774:topicfilter/$aws/things/greengrass-core*/jobs/*\\",\\n        \\"arn:aws:iot:us-west-2:904880203774:topicfilter/$aws/things/greengrass-core*/shadow/*\\"\\n      ]\\n    },\\n    {\\n      Effect: \\"Allow\\",\\n      Action: [\\"iot:GetThingShadow\\", \\"iot:UpdateThingShadow\\", \\"iot:DeleteThingShadow\\"],\\n      Resource: [\\"arn:aws:iot:us-west-2:904880203774:thing/greengrass-core*\\"]\\n    },\\n    {\\n      Effect: \\"Allow\\",\\n      Action: \\"iot:AssumeRoleWithCertificate\\",\\n      Resource: \\"arn:aws:iot:us-west-2:904880203774:rolealias/test1-GreengrassV2TokenExchangeRole-37cW5k8U\\"\\n    },\\n    {\\n      Effect: \\"Allow\\",\\n      Action: [\\"greengrass:GetComponentVersionArtifact\\", \\"greengrass:ResolveComponentCandidates\\", \\"greengrass:GetDeploymentConfiguration\\"],\\n      Resource: \\"*\\"\\n    }\\n  ]\\n}"',
+        "ServiceToken": "arn:aws:lambda:us-west-2:904880203774:function:test1-IotThingCertPolicyFunctionframeworkonEvent86-CBSzZWfvqop6",
+        "IoTPolicyName": "test1-greengrass-core-IAqStcTo",
+        "ThingName": "test1-greengrass-core-PDGtAKoC",
+        "IotPolicy": '"{\\n  Version: \\"2012-10-17\\",\\n  Statement: [\\n    {\\n      Effect: \\"Allow\\",\\n      Action: [\\"iot:Connect\\"],\\n      Resource: \\"arn:aws:iot:us-west-2:904880203774:client/greengrass-core*\\"\\n    },\\n    {\\n      Effect: \\"Allow\\",\\n      Action: [\\"iot:Receive\\", \\"iot:Publish\\"],\\n      Resource: [\\n        \\"arn:aws:iot:us-west-2:904880203774:topic/$aws/things/greengrass-core*/greengrass/health/json\\",\\n        \\"arn:aws:iot:us-west-2:904880203774:topic/$aws/things/greengrass-core*/greengrassv2/health/json\\",\\n        \\"arn:aws:iot:us-west-2:904880203774:topic/$aws/things/greengrass-core*/jobs/*\\",\\n        \\"arn:aws:iot:us-west-2:904880203774:topic/$aws/things/greengrass-core*/shadow/*\\"\\n      ]\\n    },\\n    {\\n      Effect: \\"Allow\\",\\n      Action: [\\"iot:Subscribe\\"],\\n      Resource: [\\n        \\"arn:aws:iot:us-west-2:904880203774:topicfilter/$aws/things/greengrass-core*/jobs/*\\",\\n        \\"arn:aws:iot:us-west-2:904880203774:topicfilter/$aws/things/greengrass-core*/shadow/*\\"\\n      ]\\n    },\\n    {\\n      Effect: \\"Allow\\",\\n      Action: [\\"iot:GetThingShadow\\", \\"iot:UpdateThingShadow\\", \\"iot:DeleteThingShadow\\"],\\n      Resource: [\\"arn:aws:iot:us-west-2:904880203774:thing/greengrass-core*\\"]\\n    },\\n    {\\n      Effect: \\"Allow\\",\\n      Action: \\"iot:AssumeRoleWithCertificate\\",\\n      Resource: \\"arn:aws:iot:us-west-2:904880203774:rolealias/test1-GreengrassV2TokenExchangeRole-3WORRPAi\\"\\n    },\\n    {\\n      Effect: \\"Allow\\",\\n      Action: [\\"greengrass:GetComponentVersionArtifact\\", \\"greengrass:ResolveComponentCandidates\\", \\"greengrass:GetDeploymentConfiguration\\"],\\n      Resource: \\"*\\"\\n    }\\n  ]\\n}"',
         "StackName": "test1",
     },
 }
@@ -71,14 +72,9 @@ def get_aws_client(name):
     )
 
 
-def create_resources(thing_name: str, iot_policy: str):
+def create_resources(thing_name: str, iot_policy: str, iot_policy_name: str):
     """Create AWS IoT thing, certificate and attach certificate with policy and thing.
-        Returns the Arns for the values and a Parameter Store Arn for the private key
-
-    :param thing_name: thingName to create, defaults to None
-    :type thing_name: str, required
-    :param iot_policy: AWS IoT policy to be created and stringified JSON
-    :type iot_policy: str
+    Returns the Arns for the values and a Parameter Store Arn for the private key
     """
     c_iot = get_aws_client("iot")
 
@@ -132,9 +128,37 @@ def create_resources(thing_name: str, iot_policy: str):
         logger.error(f"Error creating certificate, {e}")
         sys.exit(1)
     response["CertificateArn"] = result["certificateArn"]
+
     # policy
+    try:
+        c_iot.create_policy(policyName=iot_policy_name, policyDocument=iot_policy)
+    except ClientError as e:
+        logger.error(f"Error creating policy {iot_policy_name}, {e}")
+        sys.exit(1)
+
     # attach cert-pol
+    try:
+        c_iot.attach_policy(
+            policyName=iot_policy_name, target=response["CertificateArn"]
+        )
+    except ClientError as e:
+        logger.error(
+            f"Error attaching certificate {response['CertificateArn']} to policy {iot_policy_name}, {e}"
+        )
+        sys.exit(1)
+
     # attach cert-thing
+    try:
+        c_iot.attach_thing_principal(
+            thingName=thing_name,
+            principal=response["CertificateArn"],
+        )
+    except ClientError as e:
+        logger.error(
+            f"Error attaching certificate {response['CertificateArn']} to thing {thing_name}, {e}"
+        )
+        sys.exit(1)
+
     # store pk in SSM param store
 
     # return stuff
@@ -142,17 +166,39 @@ def create_resources(thing_name: str, iot_policy: str):
     return response
 
 
-def delete_resources(thing_name, certificate_arn):
+def delete_resources(thing_name, certificate_arn, iot_policy_name):
     """Delete thing, certificate, and policy in reverse order. Check for modifications
     since create (policy versions, etc)"""
 
     c_iot = get_aws_client("iot")
 
     # delete ssm param store
-    # detach cert-thing
-    # detach cert-pol
-    # delete policy versions
+
+    # delete policy (prune versions, detach from targets)
+    # delete all non active policy versions
+    try:
+        response = c_iot.list_policy_versions(policyName=iot_policy_name)
+        for version in response["policyVersions"]:
+            if not version["isDefaultVersion"]:
+                c_iot.delete_policy_version(
+                    policyName=iot_policy_name, policyVersionId=version["versionId"]
+                )
+    except ClientError as e:
+        logger.error(
+            f"Unable to delete policy versions for policy {iot_policy_name}, {e}"
+        )
+    # Detach any principals
+    try:
+        response = c_iot.list_targets_for_policy(policyName=iot_policy_name)
+        for target in response["targets"]:
+            c_iot.detach_policy(policyName=iot_policy_name, target=target)
+    except ClientError as e:
+        logger.error(f"Unable to detach targets from policy {iot_policy_name}, {e}")
     # delete policy
+    try:
+        c_iot.delete_policy(policyName=iot_policy_name)
+    except ClientError as e:
+        logger.error(f"Unable to delete policy {iot_policy_name}, {e}")
 
     # delete cert
     # detach all policies and things from cert
@@ -204,7 +250,9 @@ def handler(event, context):
         elif event["RequestType"] == "Create":
             logger.info("Request CREATE")
             resp = create_resources(
-                thing_name=props["ThingName"], iot_policy=props["IotPolicy"]
+                thing_name=props["ThingName"],
+                iot_policy=props["IotPolicy"],
+                iot_policy_name=props["IoTPolicyName"],
             )
 
             # set response data (PascalCase key)
@@ -222,6 +270,7 @@ def handler(event, context):
             resp = delete_resources(
                 thing_name=props["ThingName"],
                 certificate_arn=event["PhysicalResourceId"],
+                iot_policy_name=props["IoTPolicyName"],
             )
             response_data = {}
             physical_resource_id = event["PhysicalResourceId"]
@@ -241,7 +290,7 @@ if __name__ == "__main__":
 
     # create
     print("running CREATE")
-    response = handler(temp_event, {})
-    time.sleep(2)
-    temp_event["RequestType"] = "Delete"
-    response = handler(temp_event, {})
+    response = handler(temp_event_create, {})
+    # time.sleep(2)
+    # temp_event["RequestType"] = "Delete"
+    # response = handler(temp_event, {})

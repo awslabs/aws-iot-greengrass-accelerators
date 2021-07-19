@@ -75,9 +75,11 @@ export class IotThingCertPolicy extends cdk.Construct {
     // Validate and derive final values for resources
     let completeIotThingName = `${stackName}-${props.thingName.replace(/[^\[a-zA-Z0-9:_-]]/g, "")}`
     completeIotThingName = `${completeIotThingName.substring(0, 119)}-${makeid(8)}`
+    let completePolicyName = `${stackName}-${props.thingName.replace(/[^[\w+=,.@-]]/g, "")}`
+    completePolicyName = `${completePolicyName.substring(0, 119)}-${makeid(8)}`
 
     var policyTemplate = _.template(props.iotPolicy)
-    var iotPolicy = JSON.stringify(policyTemplate(props.policyParameterMapping))
+    var iotPolicy = policyTemplate(props.policyParameterMapping)
 
     const provider = IotThingCertPolicy.getOrCreateProvider(this, this.customResourceName)
     const customResource = new cdk.CustomResource(this, this.customResourceName, {
@@ -85,7 +87,8 @@ export class IotThingCertPolicy extends cdk.Construct {
       properties: {
         StackName: stackName,
         ThingName: completeIotThingName,
-        IotPolicy: iotPolicy
+        IotPolicy: iotPolicy,
+        IoTPolicyName: completePolicyName
       }
     })
 
@@ -99,10 +102,23 @@ export class IotThingCertPolicy extends cdk.Construct {
         ]
       })
     )
+
+    // Create and delete specific policy
+    provider.onEventHandler.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ["iot:CreatePolicy", "iot:DeletePolicy", "iot:DeletePolicyVersion", "iot:ListPolicyVersions", "iot:ListTargetsForPolicy"],
+        resources: [
+          `arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:policy/${completePolicyName}`
+        ]
+      })
+    )
+
     // Actions without resource types
     provider.onEventHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: [
+          "iot:AttachPolicy",
+          "iot:AttachThingPrincipal",
           "iot:CreateCertificateFromCsr",
           "iot:DeleteCertificate",
           "iot:DetachPolicy",

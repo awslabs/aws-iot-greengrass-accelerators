@@ -3,7 +3,7 @@
 
 import * as cdk from "@aws-cdk/core"
 import * as iam from "@aws-cdk/aws-iam"
-import { IotCreateThingCertPolicy } from "./IotCreateThingCertPolicy/IotCreateThingCertPolicy"
+import { IotThingCertPolicy } from "./IotThingCertPolicy/IotThingCertPolicy"
 import { IotRoleAlias } from "./IotRoleAlias/IotRoleAlias"
 import * as myConst from "./Constants"
 
@@ -42,16 +42,24 @@ export class BaseImplementationStack extends cdk.Stack {
       iamPolicy: greengrassRoleMinimalPolicy
     })
 
-    // // testing what two calls looks like
-    // const test = new IotRoleAlias(this, "IoTRoleAlias2", {
-    //   iotRoleAliasName: "GreengrassV2TokenExchangeRoleNumber2",
-    //   iamRoleName: "my_other_role",
-    //   iamPolicy: myConst.greengrassMinimalRoleAliasPolicy
-    // })
-
     // IoT thing, certificate/private key, and IoT Policy
 
-    // const iotThingCertPol = new IotCreateThingCertPolicy(this, "CreateIoTThing", {
+    const iotThingCertPol = new IotThingCertPolicy(this, "GreengrassCore", {
+      thingName: "greengrass-core",
+      iotPolicy: myConst.greengrassCoreMinimalIoTPolicy,
+      policyParameterMapping: {
+        thingname: "greengrass-core",
+        region: cdk.Fn.ref("AWS::Region"),
+        account: cdk.Fn.ref("AWS::AccountId"),
+        rolealiasname: greengrassRoleAlias.roleAliasName
+      }
+    })
+    const output1 = new cdk.CfnOutput(this, "test", {
+      exportName: "foo",
+      value: iotThingCertPol.thingArn
+    })
+
+    // const iotThingCertPol = new IotThingCertPolicy(this, "CreateIoTThing", {
     //   stackName: id,
     //   thingName: "foo-test",
     //   createCertificate: true,

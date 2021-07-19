@@ -7,7 +7,6 @@ import * as logs from "@aws-cdk/aws-logs"
 import * as iam from "@aws-cdk/aws-iam"
 import * as cr from "@aws-cdk/custom-resources"
 import * as lambda from "@aws-cdk/aws-lambda"
-import { Construct } from "@aws-cdk/core"
 
 /**
  * @summary The properties for the IotRoleAlias class.
@@ -53,6 +52,9 @@ export interface IotRoleAliasProps {
 export class IotRoleAlias extends cdk.Construct {
   public readonly iamRoleArn: string
   public readonly roleAliasName: string
+  public readonly roleAliasArn: string
+
+  private customResourceName = "IotRoleAliasFunction"
 
   /**
    *
@@ -80,7 +82,7 @@ export class IotRoleAlias extends cdk.Construct {
     completeIoTRoleAliasName = `${completeIoTRoleAliasName.substring(0, 119)}-${makeid(8)}`
 
     // Create IAM role with permissions
-    const iamRole = new iam.Role(this, "TestRoleName", {
+    const iamRole = new iam.Role(this, "IamRole", {
       roleName: completeIamRoleName,
       assumedBy: new iam.ServicePrincipal("credentials.iot.amazonaws.com"),
       description: "Allow Greengrass token exchange service to obtain temporary credentials",
@@ -88,10 +90,9 @@ export class IotRoleAlias extends cdk.Construct {
         [inlinePolicyName]: props.iamPolicy
       }
     })
-    this.iamRoleArn = iamRole.roleArn
 
-    const provider = IotRoleAlias.getOrCreateProvider(this, completeIamRoleName)
-    const customResource = new cdk.CustomResource(this, "IotCreateRoleAlias", {
+    const provider = IotRoleAlias.getOrCreateProvider(this, this.customResourceName)
+    const customResource = new cdk.CustomResource(this, this.customResourceName, {
       serviceToken: provider.serviceToken,
       properties: {
         StackName: stackName,
@@ -99,8 +100,8 @@ export class IotRoleAlias extends cdk.Construct {
         IamRoleArn: iamRole.roleArn
       }
     })
-    this.roleAliasName = completeIoTRoleAliasName
 
+    // Custom resource Lambda role permissions
     // Permissions for the IAM role created/deleted
     provider.onEventHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -127,6 +128,13 @@ export class IotRoleAlias extends cdk.Construct {
       })
     )
 
+    // class public values
+    this.iamRoleArn = iamRole.roleArn
+    this.roleAliasName = completeIoTRoleAliasName
+    this.roleAliasArn = `arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref(
+      "AWS::AccountId"
+    )}:rolealias/${completeIoTRoleAliasName}`
+
     function makeid(length: number) {
       // Generate a n-length random value for each resource
       var result = ""
@@ -139,10 +147,10 @@ export class IotRoleAlias extends cdk.Construct {
     }
   }
 
-  // Separate static function to create or return singleton
-  static getOrCreateProvider = (scope: cdk.Construct, roleName: string): cr.Provider => {
+  // Separate static function to create or return singleton provider
+  static getOrCreateProvider = (scope: cdk.Construct, resourceName: string): cr.Provider => {
     const stack = cdk.Stack.of(scope)
-    const uniqueId = "CreateIoTRoleAlias"
+    const uniqueId = resourceName
     const existing = stack.node.tryFindChild(uniqueId) as cr.Provider
 
     if (existing === undefined) {

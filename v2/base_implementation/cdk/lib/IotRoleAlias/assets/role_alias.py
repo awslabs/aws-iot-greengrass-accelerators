@@ -2,7 +2,6 @@
 # SPDX-License-Identifier: MIT-0
 
 import os
-import sys
 import json
 import logging as logger
 import boto3
@@ -82,5 +81,6 @@ def handler(event, context):
             "Data": response_data,
         }
         logger.info("Output from Lambda: %s", json.dumps(output, indent=2))
+        return output
     except Exception as e:
         logger.exception(e)

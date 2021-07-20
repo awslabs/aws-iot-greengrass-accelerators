@@ -48,26 +48,26 @@ export class BaseImplementationStack extends cdk.Stack {
       thingName: "greengrass-core",
       iotPolicy: myConst.greengrassCoreMinimalIoTPolicy,
       policyParameterMapping: {
-        thingname: "greengrass-core",
+        // thingname: "greengrass-core",
         region: cdk.Fn.ref("AWS::Region"),
         account: cdk.Fn.ref("AWS::AccountId"),
         rolealiasname: greengrassRoleAlias.roleAliasName
       }
     })
     new cdk.CfnOutput(this, "OutputThingArn", {
-      exportName: "ThingArn",
+      // exportName: "ThingArn",
       value: iotThingCertPol.thingArn
     })
     new cdk.CfnOutput(this, "CertificatePemParameter", {
-      exportName: "CertificatePemParameter",
+      // exportName: "CertificatePemParameter",
       value: iotThingCertPol.certificatePemParameter
     })
     new cdk.CfnOutput(this, "PrivateKeySecretParameter", {
-      exportName: "PrivateKeySecretParameter",
+      // exportName: "PrivateKeySecretParameter",
       value: iotThingCertPol.privateKeySecretParameter
     })
     new cdk.CfnOutput(this, "DataAtsEndpointAddress", {
-      exportName: "DataAtsEndpointAddress",
+      // exportName: "DataAtsEndpointAddress",
       value: iotThingCertPol.dataAtsEndpointAddress
     })
   }

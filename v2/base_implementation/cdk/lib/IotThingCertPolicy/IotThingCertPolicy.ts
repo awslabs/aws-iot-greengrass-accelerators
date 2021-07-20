@@ -79,6 +79,12 @@ export class IotThingCertPolicy extends cdk.Construct {
     let completePolicyName = `${stackName}-${props.thingName.replace(/[^[\w+=,.@-]]/g, "")}`
     completePolicyName = `${completePolicyName.substring(0, 119)}-${makeid(8)}`
 
+    // The policy template maps replacements from the props.policyParameterMapping along with
+    // the following provided variables:
+    // completePolicyName - used as: <% completePolicyName %>
+    let policyParameters: any = props.policyParameterMapping
+    policyParameters.completePolicyName = completePolicyName
+
     var policyTemplate = _.template(props.iotPolicy)
     var iotPolicy = policyTemplate(props.policyParameterMapping)
 

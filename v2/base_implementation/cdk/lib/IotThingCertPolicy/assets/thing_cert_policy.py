@@ -72,22 +72,25 @@ def get_aws_client(name):
     )
 
 
-def create_resources(thing_name: str, iot_policy: str, iot_policy_name: str):
+def create_resources(
+    thing_name: str, iot_policy: str, iot_policy_name: str, stack_name: str
+):
     """Create AWS IoT thing, certificate and attach certificate with policy and thing.
     Returns the Arns for the values and a Parameter Store Arn for the private key
     """
     c_iot = get_aws_client("iot")
+    c_ssm = get_aws_client("ssm")
 
     response = {}
 
     # thing
     try:
         result = c_iot.create_thing(thingName=thing_name)
+        response["ThingArn"] = result["thingArn"]
+        response["ThingName"] = result["thingName"]
     except ClientError as e:
         logger.error(f"Error creating thing {thing_name}, {e}")
         sys.exit(1)
-    response["ThingArn"] = result["thingArn"]
-    response["ThingName"] = result["thingName"]
 
     # cert
     # Create certificate and private key
@@ -124,10 +127,11 @@ def create_resources(thing_name: str, iot_policy: str, iot_policy_name: str):
             ),
             setAsActive=True,
         )
+        certificate_pem = result["certificatePem"]
+        response["CertificateArn"] = result["certificateArn"]
     except ClientError as e:
         logger.error(f"Error creating certificate, {e}")
         sys.exit(1)
-    response["CertificateArn"] = result["certificateArn"]
 
     # policy
     try:
@@ -159,20 +163,62 @@ def create_resources(thing_name: str, iot_policy: str, iot_policy_name: str):
         )
         sys.exit(1)
 
-    # store pk in SSM param store
+    # store certificate and private key in SSM param store
+    try:
+        parameter_private_key = f"/{stack_name}/{thing_name}/private_key"
+        parameter_certificate_pem = f"/{stack_name}/{thing_name}/certificate_pem"
+        # private key
+        result = c_ssm.put_parameter(
+            Name=parameter_private_key,
+            Description=f"Certificate private key for IoT thing {thing_name}",
+            Value=private_key,
+            Type="SecureString",
+            Tier="Standard",
+        )
+        response["PrivateKeySecretParameter"] = parameter_private_key
+        # certificate pem
+        result = c_ssm.put_parameter(
+            Name=parameter_certificate_pem,
+            Description=f"Certificate PEM for IoT thing {thing_name}",
+            Value=certificate_pem,
+            Type="String",
+            Tier="Advanced",
+        )
+        response["CertificatePemParameter"] = parameter_certificate_pem
+    except ClientError as e:
+        logger.error(f"Error creating secure string parameters, {e}")
+        sys.exit(1)
 
-    # return stuff
+    # Additional data - these calls and responses are used in other constructs or external applications
 
+    # Get the IoT-Data endpoint
+    try:
+        result = c_iot.describe_endpoint(endpointType="iot:Data-ATS")
+        response["DataAtsEndpointAddress"] = result["endpointAddress"]
+    except ClientError as e:
+        logger.error(f"Could not obtain iot:Data-ATS endpoint, {e}")
+        response["DataAtsEndpointAddress"] = "stack_error: see log files"
     return response
 
 
-def delete_resources(thing_name, certificate_arn, iot_policy_name):
+def delete_resources(
+    thing_name: str, certificate_arn: str, iot_policy_name: str, stack_name: str
+):
     """Delete thing, certificate, and policy in reverse order. Check for modifications
     since create (policy versions, etc)"""
 
     c_iot = get_aws_client("iot")
+    c_ssm = get_aws_client("ssm")
 
     # delete ssm param store
+    try:
+        parameter_private_key = f"/{stack_name}/{thing_name}/private_key"
+        parameter_certificate_pem = f"/{stack_name}/{thing_name}/certificate_pem"
+        c_ssm.delete_parameters(
+            Names=[parameter_private_key, parameter_certificate_pem]
+        )
+    except ClientError as e:
+        logger.error(f"Unable to delete parameter store values, {e}")
 
     # delete policy (prune versions, detach from targets)
     # delete all non active policy versions
@@ -253,13 +299,16 @@ def handler(event, context):
                 thing_name=props["ThingName"],
                 iot_policy=props["IotPolicy"],
                 iot_policy_name=props["IoTPolicyName"],
+                stack_name=props["StackName"],
             )
 
             # set response data (PascalCase key)
-            # TODO: ThingArn, CertificateArn, CertificatePem, PrivateKeySecretArn
             response_data = {
                 "ThingArn": resp["ThingArn"],
                 "CertificateArn": resp["CertificateArn"],
+                "PrivateKeySecretParameter": resp["PrivateKeySecretParameter"],
+                "CertificatePemParameter": resp["CertificatePemParameter"],
+                "DataAtsEndpointAddress": resp["DataAtsEndpointAddress"],
             }
             physical_resource_id = response_data["CertificateArn"]
         elif event["RequestType"] == "Update":
@@ -271,6 +320,7 @@ def handler(event, context):
                 thing_name=props["ThingName"],
                 certificate_arn=event["PhysicalResourceId"],
                 iot_policy_name=props["IoTPolicyName"],
+                stack_name=props["StackName"],
             )
             response_data = {}
             physical_resource_id = event["PhysicalResourceId"]

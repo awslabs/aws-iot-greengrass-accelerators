@@ -6,7 +6,7 @@ import * as lambda from "@aws-cdk/aws-lambda"
 export const PYTHON_LAMBDA_RUNTIME: lambda.Runtime = lambda.Runtime.PYTHON_3_8
 
 // Greengrass core minimal policy template
-//
+// NOTE: Additional permissions may be needed for components
 export const greengrassCoreMinimalIoTPolicy = `{
   "Version": "2012-10-17",
   "Statement": [
@@ -50,29 +50,3 @@ export const greengrassCoreMinimalIoTPolicy = `{
     }
   ]
 }`
-
-// import json
-// from jinja2 import Environment, BaseLoader
-
-// x = '''{
-//   "Version": "2012-10-17",
-//   ""Statement"": [
-//     {
-//       ""Effect"": "Allow",
-//       ""Action"": ["iot:Connect"],
-//       ""Resource"": "arn:aws:iot:<%= region %>:<%= account %>:client/<%= thingname %>*"
-//     },
-//     {
-//       ""Effect"": "Allow",
-//       ""Action"": ["iot:Receive", "iot:Publish"],
-//       ""Resource"": [
-//         "arn:aws:iot:<%= region %>:<%= account %>:topic/$aws/things/core-device-thing-name*/greengrass/health/json",
-//         "arn:aws:iot:<%= region %>:<%= account %>:topic/$aws/things/core-device-thing-name*/greengrassv2/health/json",
-//         "arn:aws:iot:<%= region %>:<%= account %>:topic/$aws/things/core-device-thing-name*/jobs/*",
-//         "arn:aws:iot:<%= region %>:<%= account %>:topic/$aws/things/core-device-thing-name*/shadow/*"
-//       ]
-//     }
-//   ]
-// }'''
-// rtemplate = Environment(loader=BaseLoader).from_string(x)
-// rtemplate.render(thing_name="foo")

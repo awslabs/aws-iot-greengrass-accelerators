@@ -54,22 +54,21 @@ export class BaseImplementationStack extends cdk.Stack {
         rolealiasname: greengrassRoleAlias.roleAliasName
       }
     })
-    const output1 = new cdk.CfnOutput(this, "test", {
-      exportName: "foo",
+    new cdk.CfnOutput(this, "OutputThingArn", {
+      exportName: "ThingArn",
       value: iotThingCertPol.thingArn
     })
-
-    // const iotThingCertPol = new IotThingCertPolicy(this, "CreateIoTThing", {
-    //   stackName: id,
-    //   thingName: "foo-test",
-    //   createCertificate: true,
-    //   iotPolicy: {
-    //     Version: "2012-10-17",
-    //     Statement: [
-    //       { Effect: "Allow", Action: "iot:*", Resource: "*" },
-    //       { Effect: "Allow", Action: "greengrass:*", Resource: "*" }
-    //     ]
-    //   }
-    // })
+    new cdk.CfnOutput(this, "CertificatePemParameter", {
+      exportName: "CertificatePemParameter",
+      value: iotThingCertPol.certificatePemParameter
+    })
+    new cdk.CfnOutput(this, "PrivateKeySecretParameter", {
+      exportName: "PrivateKeySecretParameter",
+      value: iotThingCertPol.privateKeySecretParameter
+    })
+    new cdk.CfnOutput(this, "DataAtsEndpointAddress", {
+      exportName: "DataAtsEndpointAddress",
+      value: iotThingCertPol.dataAtsEndpointAddress
+    })
   }
 }

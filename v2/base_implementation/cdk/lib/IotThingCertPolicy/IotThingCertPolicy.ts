@@ -57,8 +57,9 @@ export interface IotThingCertPolicyProps {
 export class IotThingCertPolicy extends cdk.Construct {
   public readonly thingArn: string
   public readonly certificateArn: string
-  public readonly certificatePem: string
-  public readonly privateKeySecretArn: string
+  public readonly certificatePemParameter: string
+  public readonly privateKeySecretParameter: string
+  public readonly dataAtsEndpointAddress: string
   private customResourceName = "IotThingCertPolicyFunction"
 
   /**
@@ -113,6 +114,21 @@ export class IotThingCertPolicy extends cdk.Construct {
       })
     )
 
+    // Create SSM parameter
+    provider.onEventHandler.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ["ssm:DeleteParameters", "ssm:PutParameter"],
+        resources: [
+          `arn:${cdk.Fn.ref("AWS::Partition")}:ssm:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref(
+            "AWS::AccountId"
+          )}:parameter/${stackName}/${completeIotThingName}/private_key`,
+          `arn:${cdk.Fn.ref("AWS::Partition")}:ssm:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref(
+            "AWS::AccountId"
+          )}:parameter/${stackName}/${completeIotThingName}/certificate_pem`
+        ]
+      })
+    )
+
     // Actions without resource types
     provider.onEventHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -121,6 +137,7 @@ export class IotThingCertPolicy extends cdk.Construct {
           "iot:AttachThingPrincipal",
           "iot:CreateCertificateFromCsr",
           "iot:DeleteCertificate",
+          "iot:DescribeEndpoint",
           "iot:DetachPolicy",
           "iot:DetachThingPrincipal",
           "iot:ListAttachedPolicies",
@@ -133,10 +150,11 @@ export class IotThingCertPolicy extends cdk.Construct {
     )
 
     // class public values
-    this.certificatePem = customResource.getAttString("CertificatePem")
-    this.privateKeySecretArn = customResource.getAttString("PrivateKeySecretArn")
-    this.thingArn = customResource.getAttString("ThingArn").toString()
+    this.certificatePemParameter = customResource.getAttString("CertificatePemParameter")
+    this.privateKeySecretParameter = customResource.getAttString("PrivateKeySecretParameter")
+    this.thingArn = customResource.getAttString("ThingArn")
     this.certificateArn = customResource.getAttString("CertificateArn")
+    this.dataAtsEndpointAddress = customResource.getAttString("DataAtsEndpointAddress")
 
     function makeid(length: number) {
       // Generate a n-length random value for each resource

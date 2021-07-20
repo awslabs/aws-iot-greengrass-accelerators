@@ -39,15 +39,45 @@ export class BaseImplementationStack extends cdk.Stack {
       ]
     })
 
+    // Create IoT role alias
+    const roleAliasName = fullResourceName({
+      stackName: cdk.Stack.of(this).stackName,
+      baseName: "GreengrassV2TokenExchangeRole",
+      suffix: stackRandom,
+      resourceRegex: "\\w=,@-",
+      maxLength: 128
+    })
+    const iamRoleName = fullResourceName({
+      stackName: cdk.Stack.of(this).stackName,
+      baseName: "RoleForIoTRoleAlias",
+      suffix: stackRandom,
+      resourceRegex: "\\w+=,.@-",
+      maxLength: 64
+    })
     const greengrassRoleAlias = new IotRoleAlias(this, "IoTRoleAlias", {
-      iotRoleAliasName: "GreengrassV2TokenExchangeRole",
-      iamRoleName: "RoleAliasForGreengrassCore",
+      iotRoleAliasName: roleAliasName,
+      iamRoleName: iamRoleName,
       iamPolicy: greengrassRoleMinimalPolicy
     })
 
     // IoT thing, certificate/private key, and IoT Policy
+    const greengrassCoreThingName = fullResourceName({
+      stackName: cdk.Stack.of(this).stackName,
+      baseName: "greengrass-core",
+      suffix: stackRandom,
+      resourceRegex: "a-zA-Z0-9:_-",
+      maxLength: 128
+    })
+    const greengrassCoreIotPolicyName = fullResourceName({
+      stackName: cdk.Stack.of(this).stackName,
+      baseName: "greengrass-minimal-policy",
+      suffix: stackRandom,
+      resourceRegex: "\\w+=,.@-",
+      maxLength: 128
+    })
     const iotThingCertPol = new IotThingCertPolicy(this, "GreengrassCore", {
-      thingName: "greengrass-core",
+      thingName: greengrassCoreThingName,
+      iotPolicyName: greengrassCoreIotPolicyName,
       iotPolicy: myConst.greengrassCoreMinimalIoTPolicy,
       policyParameterMapping: {
         region: cdk.Fn.ref("AWS::Region"),

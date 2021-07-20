@@ -13,15 +13,15 @@ import * as lambda from "@aws-cdk/aws-lambda"
  */
 export interface IotRoleAliasProps {
   /**
-   * Base AWS IoT role alias name.
+   * AWS IoT role alias name.
    *
    * @default - None
    */
   readonly iotRoleAliasName: string
   /**
-   * Optional base IAM Role name.
+   * Optional IAM Role name.
    *
-   * @default - `roleAliasName` value is used.
+   * @default - `iotRoleAliasName` value is used.
    */
   readonly iamRoleName?: string
   /**
@@ -73,17 +73,9 @@ export class IotRoleAlias extends cdk.Construct {
     const inlinePolicyName = props.iamPolicyName || "DefaultPolicyForIotRoleAlias"
     const iamRoleName = props.iamRoleName || props.iotRoleAliasName
 
-    // IAM Role name (64 max, regex: [^_+=,.@-], add 8 random id at end)
-    let completeIamRoleName = `${stackName}-${iamRoleName.replace(/[^\w+=,.@-]/g, "")}`
-    completeIamRoleName = `${completeIamRoleName.substring(0, 55)}-${makeid(8)}`
-
-    // IoT role alias name (128 max, [\w=,@-], add 8 random id at end)
-    let completeIoTRoleAliasName = `${stackName}-${props.iotRoleAliasName.replace(/[^\w=,@-]/g, "")}`
-    completeIoTRoleAliasName = `${completeIoTRoleAliasName.substring(0, 119)}-${makeid(8)}`
-
     // Create IAM role with permissions
     const iamRole = new iam.Role(this, "IamRole", {
-      roleName: completeIamRoleName,
+      roleName: props.iamRoleName,
       assumedBy: new iam.ServicePrincipal("credentials.iot.amazonaws.com"),
       description: "Allow Greengrass token exchange service to obtain temporary credentials",
       inlinePolicies: {
@@ -96,7 +88,7 @@ export class IotRoleAlias extends cdk.Construct {
       serviceToken: provider.serviceToken,
       properties: {
         StackName: stackName,
-        IotRoleAliasName: completeIoTRoleAliasName,
+        IotRoleAliasName: props.iotRoleAliasName,
         IamRoleArn: iamRole.roleArn
       }
     })
@@ -115,7 +107,7 @@ export class IotRoleAlias extends cdk.Construct {
           "iam:PassRole", // Needed to associate IAM role with alias role
           "iam:PutRolePolicy"
         ],
-        resources: [`arn:${cdk.Fn.ref("AWS::Partition")}:iam::${cdk.Fn.ref("AWS::AccountId")}:role/${completeIamRoleName}`]
+        resources: [`arn:${cdk.Fn.ref("AWS::Partition")}:iam::${cdk.Fn.ref("AWS::AccountId")}:role/${props.iamRoleName}`]
       })
     )
     // Permissions for the IoT role alias created/deleted
@@ -123,28 +115,17 @@ export class IotRoleAlias extends cdk.Construct {
       new iam.PolicyStatement({
         actions: ["iot:CreateRoleAlias", "iot:DeleteRoleAlias"],
         resources: [
-          `arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:rolealias/${completeIoTRoleAliasName}`
+          `arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:rolealias/${props.iotRoleAliasName}`
         ]
       })
     )
 
     // class public values
     this.iamRoleArn = iamRole.roleArn
-    this.roleAliasName = completeIoTRoleAliasName
-    this.roleAliasArn = `arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref(
-      "AWS::AccountId"
-    )}:rolealias/${completeIoTRoleAliasName}`
-
-    function makeid(length: number) {
-      // Generate a n-length random value for each resource
-      var result = ""
-      var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-      var charactersLength = characters.length
-      for (var i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength))
-      }
-      return result
-    }
+    this.roleAliasName = props.iotRoleAliasName
+    this.roleAliasArn = `arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:rolealias/${
+      props.iotRoleAliasName
+    }`
   }
 
   // Separate static function to create or return singleton provider

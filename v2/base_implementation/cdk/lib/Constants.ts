@@ -13,30 +13,30 @@ export const greengrassCoreMinimalIoTPolicy = `{
     {
       "Effect": "Allow",
       "Action": ["iot:Connect"],
-      "Resource": "arn:aws:iot:<%= region %>:<%= account %>:client/<%= completePolicyName %>*"
+      "Resource": "arn:aws:iot:<%= region %>:<%= account %>:client/<%= thingname %>*"
     },
     {
       "Effect": "Allow",
       "Action": ["iot:Receive", "iot:Publish"],
       "Resource": [
-        "arn:aws:iot:<%= region %>:<%= account %>:topic/$aws/things/<%= completePolicyName %>*/greengrass/health/json",
-        "arn:aws:iot:<%= region %>:<%= account %>:topic/$aws/things/<%= completePolicyName %>*/greengrassv2/health/json",
-        "arn:aws:iot:<%= region %>:<%= account %>:topic/$aws/things/<%= completePolicyName %>*/jobs/*",
-        "arn:aws:iot:<%= region %>:<%= account %>:topic/$aws/things/<%= completePolicyName %>*/shadow/*"
+        "arn:aws:iot:<%= region %>:<%= account %>:topic/$aws/things/<%= thingname %>*/greengrass/health/json",
+        "arn:aws:iot:<%= region %>:<%= account %>:topic/$aws/things/<%= thingname %>*/greengrassv2/health/json",
+        "arn:aws:iot:<%= region %>:<%= account %>:topic/$aws/things/<%= thingname %>*/jobs/*",
+        "arn:aws:iot:<%= region %>:<%= account %>:topic/$aws/things/<%= thingname %>*/shadow/*"
       ]
     },
     {
       "Effect": "Allow",
       "Action": ["iot:Subscribe"],
       "Resource": [
-        "arn:aws:iot:<%= region %>:<%= account %>:topicfilter/$aws/things/<%= completePolicyName %>*/jobs/*",
-        "arn:aws:iot:<%= region %>:<%= account %>:topicfilter/$aws/things/<%= completePolicyName %>*/shadow/*"
+        "arn:aws:iot:<%= region %>:<%= account %>:topicfilter/$aws/things/<%= thingname %>*/jobs/*",
+        "arn:aws:iot:<%= region %>:<%= account %>:topicfilter/$aws/things/<%= thingname %>*/shadow/*"
       ]
     },
     {
       "Effect": "Allow",
       "Action": ["iot:GetThingShadow", "iot:UpdateThingShadow", "iot:DeleteThingShadow"],
-      "Resource": ["arn:aws:iot:<%= region %>:<%= account %>:thing/<%= completePolicyName %>*"]
+      "Resource": ["arn:aws:iot:<%= region %>:<%= account %>:thing/<%= thingname %>*"]
     },
     {
       "Effect": "Allow",

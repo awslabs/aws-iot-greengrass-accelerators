@@ -21,6 +21,12 @@ export interface IotThingCertPolicyProps {
    */
   thingName: string
   /**
+   * Name of the AWS IoT Core policy to create.
+   *
+   * @default - None
+   */
+  iotPolicyName: string
+  /**
    * The AWS IoT policy to be created and attached to the certificate.
    * JSON string converted to IoT policy, lodash format for replacement.
    *
@@ -74,16 +80,12 @@ export class IotThingCertPolicy extends cdk.Construct {
 
     const stackName = cdk.Stack.of(this).stackName
     // Validate and derive final values for resources
-    let completeIotThingName = `${stackName}-${props.thingName.replace(/[^\[a-zA-Z0-9:_-]]/g, "")}`
-    completeIotThingName = `${completeIotThingName.substring(0, 119)}-${makeid(8)}`
-    let completePolicyName = `${stackName}-${props.thingName.replace(/[^[\w+=,.@-]]/g, "")}`
-    completePolicyName = `${completePolicyName.substring(0, 119)}-${makeid(8)}`
 
     // The policy template maps replacements from the props.policyParameterMapping along with
     // the following provided variables:
-    // completePolicyName - used as: <% completePolicyName %>
+    // thingname  - used as: <% thingname %>
     let policyParameters: any = props.policyParameterMapping
-    policyParameters.completePolicyName = completePolicyName
+    policyParameters.thingname = props.thingName
 
     var policyTemplate = _.template(props.iotPolicy)
     var iotPolicy = policyTemplate(props.policyParameterMapping)
@@ -93,9 +95,9 @@ export class IotThingCertPolicy extends cdk.Construct {
       serviceToken: provider.serviceToken,
       properties: {
         StackName: stackName,
-        ThingName: completeIotThingName,
+        ThingName: props.thingName,
         IotPolicy: iotPolicy,
-        IoTPolicyName: completePolicyName
+        IoTPolicyName: props.iotPolicyName
       }
     })
 
@@ -104,9 +106,7 @@ export class IotThingCertPolicy extends cdk.Construct {
     provider.onEventHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["iot:CreateThing", "iot:DeleteThing"],
-        resources: [
-          `arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:thing/${completeIotThingName}`
-        ]
+        resources: [`arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:thing/${props.thingName}`]
       })
     )
 
@@ -115,7 +115,7 @@ export class IotThingCertPolicy extends cdk.Construct {
       new iam.PolicyStatement({
         actions: ["iot:CreatePolicy", "iot:DeletePolicy", "iot:DeletePolicyVersion", "iot:ListPolicyVersions", "iot:ListTargetsForPolicy"],
         resources: [
-          `arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:policy/${completePolicyName}`
+          `arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:policy/${props.iotPolicyName}`
         ]
       })
     )
@@ -125,12 +125,12 @@ export class IotThingCertPolicy extends cdk.Construct {
       new iam.PolicyStatement({
         actions: ["ssm:DeleteParameters", "ssm:PutParameter"],
         resources: [
-          `arn:${cdk.Fn.ref("AWS::Partition")}:ssm:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref(
-            "AWS::AccountId"
-          )}:parameter/${stackName}/${completeIotThingName}/private_key`,
-          `arn:${cdk.Fn.ref("AWS::Partition")}:ssm:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref(
-            "AWS::AccountId"
-          )}:parameter/${stackName}/${completeIotThingName}/certificate_pem`
+          `arn:${cdk.Fn.ref("AWS::Partition")}:ssm:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:parameter/${stackName}/${
+            props.thingName
+          }/private_key`,
+          `arn:${cdk.Fn.ref("AWS::Partition")}:ssm:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:parameter/${stackName}/${
+            props.thingName
+          }/certificate_pem`
         ]
       })
     )
@@ -161,17 +161,6 @@ export class IotThingCertPolicy extends cdk.Construct {
     this.thingArn = customResource.getAttString("ThingArn")
     this.certificateArn = customResource.getAttString("CertificateArn")
     this.dataAtsEndpointAddress = customResource.getAttString("DataAtsEndpointAddress")
-
-    function makeid(length: number) {
-      // Generate a n-length random value for each resource
-      var result = ""
-      var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
-      var charactersLength = characters.length
-      for (var i = 0; i < length; i++) {
-        result += characters.charAt(Math.floor(Math.random() * charactersLength))
-      }
-      return result
-    }
   }
 
   // Separate static function to create or return singleton provider

@@ -191,7 +191,8 @@ export class IotThingCertPolicy extends cdk.Construct {
         entry: path.join(__dirname, "assets"),
         index: "thing_cert_policy.py",
         runtime: lambda.Runtime.PYTHON_3_8,
-        timeout: cdk.Duration.minutes(1)
+        timeout: cdk.Duration.minutes(1),
+        logRetention: logs.RetentionDays.ONE_MONTH
       })
       // Role permissions are handled by the main constructor
 

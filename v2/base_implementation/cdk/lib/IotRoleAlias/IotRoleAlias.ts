@@ -158,7 +158,8 @@ export class IotRoleAlias extends cdk.Construct {
         runtime: lambda.Runtime.PYTHON_3_8,
         timeout: cdk.Duration.minutes(1),
         handler: "role_alias.handler",
-        code: lambda.Code.fromAsset(path.join(__dirname, "assets"))
+        code: lambda.Code.fromAsset(path.join(__dirname, "assets")),
+        logRetention: logs.RetentionDays.ONE_MONTH
       })
       // Role permissions are handled by the main constructor
 

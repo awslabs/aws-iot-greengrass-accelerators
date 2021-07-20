@@ -39,7 +39,7 @@ export class BaseImplementationStack extends cdk.Stack {
       ]
     })
 
-    // Create IoT role alias
+    // Define stack-specific names for IoT role alias
     const roleAliasName = fullResourceName({
       stackName: cdk.Stack.of(this).stackName,
       baseName: "GreengrassV2TokenExchangeRole",
@@ -54,13 +54,14 @@ export class BaseImplementationStack extends cdk.Stack {
       resourceRegex: "\\w+=,.@-",
       maxLength: 64
     })
+    // Then create IoT role alias
     const greengrassRoleAlias = new IotRoleAlias(this, "IoTRoleAlias", {
       iotRoleAliasName: roleAliasName,
       iamRoleName: iamRoleName,
       iamPolicy: greengrassRoleMinimalPolicy
     })
 
-    // IoT thing, certificate/private key, and IoT Policy
+    // Define stack-specific names for the IoT thing name and policy
     const greengrassCoreThingName = fullResourceName({
       stackName: cdk.Stack.of(this).stackName,
       baseName: "greengrass-core",
@@ -75,6 +76,7 @@ export class BaseImplementationStack extends cdk.Stack {
       resourceRegex: "\\w+=,.@-",
       maxLength: 128
     })
+    // Then create IoT thing, certificate/private key, and IoT Policy
     const iotThingCertPol = new IotThingCertPolicy(this, "GreengrassCore", {
       thingName: greengrassCoreThingName,
       iotPolicyName: greengrassCoreIotPolicyName,
@@ -85,6 +87,7 @@ export class BaseImplementationStack extends cdk.Stack {
         rolealiasname: greengrassRoleAlias.roleAliasName
       }
     })
+    // Set stack outputs to be consumed by local processes
     new cdk.CfnOutput(this, "OutputThingArn", {
       // exportName: "ThingArn",
       value: iotThingCertPol.thingArn
@@ -102,7 +105,7 @@ export class BaseImplementationStack extends cdk.Stack {
       value: iotThingCertPol.dataAtsEndpointAddress
     })
 
-    // Create thing group and add thing
+    // Define stack-specific name of the IoT thing group
     const groupName = fullResourceName({
       stackName: cdk.Stack.of(this).stackName,
       baseName: "greengrass-deployment-group",
@@ -110,10 +113,13 @@ export class BaseImplementationStack extends cdk.Stack {
       resourceRegex: "a-zA-Z0-9:_-",
       maxLength: 128
     })
+    // Then create thing group and add thing
     const deploymentGroup = new IotThingGroup(this, "DeploymentGroup", {
       thingGroupName: groupName
     })
     deploymentGroup.addThing(iotThingCertPol.thingArn)
+
+    // ************ End of CDK Constructs / stack - Supporting functions below ************
 
     function makeid(length: number) {
       // Generate a n-length random value for each resource

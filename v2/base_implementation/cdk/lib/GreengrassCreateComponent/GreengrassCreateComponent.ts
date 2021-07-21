@@ -5,89 +5,86 @@ import * as path from "path"
 import * as cdk from "@aws-cdk/core"
 import * as logs from "@aws-cdk/aws-logs"
 import * as iam from "@aws-cdk/aws-iam"
+import * as s3 from "@aws-cdk/aws-s3"
 import * as cr from "@aws-cdk/custom-resources"
 import * as lambda from "@aws-cdk/aws-lambda"
 
 /**
- * @summary The properties for the IotThingGroup class.
+ * @summary The properties for the GreengrassComponent class.
  */
-export interface IotThingGroupProps {
+export interface GreengrassCreateComponentProps {
   /**
-   * AWS IoT thing group name.
+   * AWS IoT Greengrass component name.
    *
    * @default - None
    */
-  readonly thingGroupName: string
+  readonly componentName: string
   /**
-   * Optional name of the parent thing group.
+   * AWS IoT Greengrass component version.
    *
    * @default - None
    */
-  readonly parentGroupName?: string
+  readonly componentVersion: string
   /**
-   * Optional description of the thing group.
+   * S3 Bucket  to upload component artifacts
    *
    * @default - None
    */
-  readonly thingGroupDescription?: string
+  readonly bucket: s3.Bucket
+  /**
+   * Directory path to the artifacts. Should be `../somewhere/artifacts`, and then componentName
+   * and componentVersion will be used to complete.
+   *
+   * @default - None
+   */
+  readonly artifactPath: string
+  /**
+   * Full path to the base recipe file. It will be processed to replace ${COMPONENT_BUCKET} with
+   * actual value.
+   * @default - None
+   */
+  readonly recipeFile: string
 }
 /**
- * This construct creates an AWS IoT thing group and provides methods to add or remove things from the group.
+ * This construct creates an AWS IoT Greengrass component, uploads the artifacts to S3, and publishes
+ * the component.
  *
- * @summary Create an AWS IoT thing group.
+ * @summary Create an AWS IoT Greengrass component.
  */
 
 /**
- * @summary The IotThingGroup class.
+ * @summary The GreengrassComponent class.
  */
 
-export class IotThingGroup extends cdk.Construct {
-  public readonly thingGroupName: string
-  public readonly thingGroupArn: string
-  public readonly thingGroupId: string
-
-  private thingArnList: Array<string> = []
-
-  private customResourceName = "IotThingGroupFunction"
+export class GreengrassCreateComponent extends cdk.Construct {
+  private customResourceName = "GreengrassCreateComponentFunction"
 
   /**
    *
    * @summary Constructs a new instance of the IotRoleAlias class.
    * @param {cdk.App} scope - represents the scope for all the resources.
    * @param {string} id - this is a scope-unique id.
-   * @param {IotThingGroupProps} props - user provided props for the construct.
+   * @param {GreengrassComponentProps} props - user provided props for the construct.
    * @since 1.114.0
    */
-  constructor(scope: cdk.Construct, id: string, props: IotThingGroupProps) {
+  constructor(scope: cdk.Construct, id: string, props: GreengrassCreateComponentProps) {
     super(scope, id)
 
     const stackName = cdk.Stack.of(this).stackName
 
     // Validate and derive final values for resources
-    const thingGroupDescription = props.thingGroupDescription || "CloudFormation generated group"
 
-    const provider = IotThingGroup.getOrCreateProvider(this, this.customResourceName)
+    const provider = GreengrassCreateComponent.getOrCreateProvider(this, this.customResourceName)
     const customResource = new cdk.CustomResource(this, this.customResourceName, {
       serviceToken: provider.serviceToken,
       properties: {
         // resources for lambda
-        StackName: stackName,
-        ThingGroupName: props.thingGroupName,
-        ThingGroupDescription: thingGroupDescription,
-        ThingArnList: this.thingArnList
+        StackName: stackName
       }
     })
 
     // Custom resource Lambda role permissions
     // Permissions for the resource specific calls
-    provider.onEventHandler.role?.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ["iot:CreateThingGroup", "iot:DeleteThingGroup"],
-        resources: [
-          `arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:thinggroup/${props.thingGroupName}`
-        ]
-      })
-    )
     // Permissions needed for all resources
     provider.onEventHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -95,15 +92,6 @@ export class IotThingGroup extends cdk.Construct {
         resources: ["*"]
       })
     )
-
-    // class public values
-    this.thingGroupName = customResource.getAttString("ThingGroupName")
-    this.thingGroupArn = customResource.getAttString("ThingGroupArn")
-    this.thingGroupId = customResource.getAttString("ThingGroupId")
-  }
-  // methods
-  public addThing(thingArn: string): void {
-    this.thingArnList.push(thingArn)
   }
 
   // Separate static function to create or return singleton provider

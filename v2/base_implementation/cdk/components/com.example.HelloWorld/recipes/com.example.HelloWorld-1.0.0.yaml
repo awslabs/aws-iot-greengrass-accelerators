@@ -1,0 +1,19 @@
+---
+RecipeFormatVersion: 2020-01-25
+ComponentName: com.example.HelloWorld
+ComponentVersion: "1.0.0"
+ComponentDescription: My first AWS IoT Greengrass component.
+ComponentPublisher: Amazon
+ComponentConfiguration:
+  DefaultConfiguration:
+    Message: world
+Manifests:
+  - Platform:
+      os: linux
+    Lifecycle:
+      Run: |
+        python3 -u {artifacts:decompressedPath}/com.example.HelloWorld-1.0.0/hello_world.py '{configuration:/Message}'
+    Artifacts:
+      # - URI: s3://${COMPONENT_BUCKET}/artifacts/com.example.HelloWorld/1.0.0/hello_world.py
+      - URI: s3://greengrass-component-artifacts-904880203774-us-west-2/com.example.HelloWorld-1.0.0.zip
+        Unarchive: ZIP

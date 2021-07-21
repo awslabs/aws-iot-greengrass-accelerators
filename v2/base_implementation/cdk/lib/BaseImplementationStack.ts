@@ -1,23 +1,37 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
+import * as path from "path"
 import * as cdk from "@aws-cdk/core"
 import * as iam from "@aws-cdk/aws-iam"
+import * as s3 from "@aws-cdk/aws-s3"
 import { IotThingCertPolicy } from "./IotThingCertPolicy/IotThingCertPolicy"
 import { IotRoleAlias } from "./IotRoleAlias/IotRoleAlias"
 import { IotThingGroup } from "./IotThingGroup/IotThingGroup"
+import { GreengrassCreateComponent } from "./GreengrassCreateComponent/GreengrassCreateComponent"
 import * as myConst from "./Constants"
 
 export class BaseImplementationStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props)
 
-    // Layered constructs - each constructs derived values can be used for subsequent constructs
+    if (cdk.Stack.of(this).stackName.length > 20) {
+      console.error("Stack name must be less than 20 characters in length")
+      process.exitCode = 1
+    }
     // suffix to use for all stack resources to make unique
     // In this stack all resources will use the format STACKNAME-RESOURCENAME-RANDOMSUFFIX
     const stackRandom: string = makeid(8)
 
-    // Create IoT role alias
+    // Layered constructs - each constructs derived values can be used for subsequent constructs
+
+    // create S3 bucket for artifacts - greengrass-component-artifacts-stackRandom-AccountId-Region
+    const componentBucketName = `${cdk.Stack.of(this).stackName}-${cdk.Fn.ref("AWS::AccountId")}-${cdk.Fn.ref("AWS::Region")}`
+    const componentBucket = new s3.Bucket(this, "ComponentBucket", {
+      bucketName: componentBucketName
+    })
+
+    // Create IoT role alias for use by Greengrass core
     const greengrassRoleMinimalPolicy = new iam.PolicyDocument({
       statements: [
         new iam.PolicyStatement({
@@ -35,6 +49,11 @@ export class BaseImplementationStack extends cdk.Stack {
             "s3:GetBucketLocation"
           ],
           resources: ["*"]
+        }),
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ["s3:GetObject"],
+          resources: [`arn:aws:s3:::${componentBucketName}/*`]
         })
       ]
     })
@@ -118,6 +137,19 @@ export class BaseImplementationStack extends cdk.Stack {
       thingGroupName: groupName
     })
     deploymentGroup.addThing(iotThingCertPol.thingArn)
+
+    // Greengrass component process
+
+    // Create Hello World component
+    const componentName = "com.example.HelloWorld"
+    const componentVersion = "1.0.0"
+    const helloWorldComponent = new GreengrassCreateComponent(this, "HelloWorldComponent", {
+      componentName: componentName,
+      componentVersion: componentVersion,
+      bucket: componentBucket,
+      artifactPath: path.join(__dirname, "..", "components", componentName, "artifacts"),
+      recipeFile: path.join(__dirname, "..", "components", componentName, "recipes", `${componentName}-${componentVersion}.yaml`)
+    })
 
     // ************ End of CDK Constructs / stack - Supporting functions below ************
 

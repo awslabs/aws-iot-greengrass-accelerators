@@ -14,6 +14,6 @@ Manifests:
       Run: |
         python3 -u {artifacts:decompressedPath}/com.example.HelloWorld-1.0.0/hello_world.py '{configuration:/Message}'
     Artifacts:
-      # - URI: s3://${COMPONENT_BUCKET}/artifacts/com.example.HelloWorld/1.0.0/hello_world.py
-      - URI: s3://greengrass-component-artifacts-904880203774-us-west-2/com.example.HelloWorld-1.0.0.zip
+      # Contents of component/artifacts/component_name/version will be compressed to component_name-version.zip
+      - URI: s3://${COMPONENT_BUCKET}/${ARTIFACT_KEY_NAME}
         Unarchive: ZIP

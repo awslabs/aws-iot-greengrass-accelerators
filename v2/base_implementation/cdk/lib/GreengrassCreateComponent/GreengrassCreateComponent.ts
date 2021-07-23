@@ -76,8 +76,10 @@ export interface GreengrassCreateComponentProps {
  */
 
 export class GreengrassCreateComponent extends cdk.Construct {
+  public readonly componentName: string
+  public readonly componentVersion: string
+  public readonly componentArn: string
   private customResourceName = "GreengrassCreateComponentFunction"
-
   /**
    *
    * @summary Constructs a new instance of the IotRoleAlias class.
@@ -140,6 +142,29 @@ export class GreengrassCreateComponent extends cdk.Construct {
         ]
       })
     )
+    // Create component
+    provider.onEventHandler.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ["greengrass:CreateComponentVersion"],
+        resources: [
+          `arn:${cdk.Fn.ref("AWS::Partition")}:greengrass:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:components:${
+            props.componentName
+          }`
+        ]
+      })
+    )
+    // Describe component
+    provider.onEventHandler.role?.addToPrincipalPolicy(
+      new iam.PolicyStatement({
+        actions: ["greengrass:DeleteComponent", "greengrass:DescribeComponent"],
+        resources: [
+          `arn:${cdk.Fn.ref("AWS::Partition")}:greengrass:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:components:${
+            props.componentName
+          }:versions:${props.componentVersion}`
+        ]
+      })
+    )
+
     // Permissions needed for all resources
     provider.onEventHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -147,8 +172,11 @@ export class GreengrassCreateComponent extends cdk.Construct {
         resources: ["*"]
       })
     )
+    // class public values
+    this.componentName = props.componentName
+    this.componentVersion = props.componentVersion
+    this.componentArn = customResource.getAttString("ComponentArn")
   }
-
   // Separate static function to create or return singleton provider
   static getOrCreateProvider = (scope: cdk.Construct, resourceName: string): cr.Provider => {
     const stack = cdk.Stack.of(scope)

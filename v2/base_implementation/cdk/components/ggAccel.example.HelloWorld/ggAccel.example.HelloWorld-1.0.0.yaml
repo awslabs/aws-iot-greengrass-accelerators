@@ -1,6 +1,6 @@
 ---
 RecipeFormatVersion: 2020-01-25
-ComponentName: com.example.HelloWorld
+ComponentName: ggAccel.example.HelloWorld
 ComponentVersion: "1.0.0"
 ComponentDescription: My first AWS IoT Greengrass component.
 ComponentPublisher: Amazon
@@ -12,8 +12,9 @@ Manifests:
       os: linux
     Lifecycle:
       Run: |
-        python3 -u {artifacts:decompressedPath}/com.example.HelloWorld-1.0.0/hello_world.py '{configuration:/Message}'
+        python3 -u {artifacts:decompressedPath}/ggAccel.example.HelloWorld-1.0.0/hello_world.py '{configuration:/Message}'
     Artifacts:
       # Contents of component/artifacts/component_name/version will be compressed to component_name-version.zip
-      - URI: s3://${COMPONENT_BUCKET}/${ARTIFACT_KEY_NAME}
+      # Variable-based URI: s3://${COMPONENT_BUCKET}/${ARTIFACT_KEY_NAME} is equivalent (must pass in both variables to the CDK construct)
+      - URI: s3://${COMPONENT_BUCKET}/ggAccel.example.HelloWorld-1.0.0.zip
         Unarchive: ZIP

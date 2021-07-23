@@ -34,117 +34,117 @@ export class BaseImplementationStack extends cdk.Stack {
       autoDeleteObjects: true
     })
 
-    // // Create IoT role alias for use by Greengrass core
-    // const greengrassRoleMinimalPolicy = new iam.PolicyDocument({
-    //   statements: [
-    //     new iam.PolicyStatement({
-    //       effect: iam.Effect.ALLOW,
-    //       actions: [
-    //         "iot:DescribeCertificate",
-    //         "logs:CreateLogGroup",
-    //         "logs:CreateLogStream",
-    //         "logs:PutLogEvents",
-    //         "logs:DescribeLogStreams",
-    //         "iot:Connect",
-    //         "iot:Publish",
-    //         "iot:Subscribe",
-    //         "iot:Receive",
-    //         "s3:GetBucketLocation"
-    //       ],
-    //       resources: ["*"]
-    //     }),
-    //     new iam.PolicyStatement({
-    //       effect: iam.Effect.ALLOW,
-    //       actions: ["s3:GetObject"],
-    //       resources: [`arn:aws:s3:::${componentBucketName}/*`]
-    //     })
-    //   ]
-    // })
+    // Create IoT role alias for use by Greengrass core
+    const greengrassRoleMinimalPolicy = new iam.PolicyDocument({
+      statements: [
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: [
+            "iot:DescribeCertificate",
+            "logs:CreateLogGroup",
+            "logs:CreateLogStream",
+            "logs:PutLogEvents",
+            "logs:DescribeLogStreams",
+            "iot:Connect",
+            "iot:Publish",
+            "iot:Subscribe",
+            "iot:Receive",
+            "s3:GetBucketLocation"
+          ],
+          resources: ["*"]
+        }),
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ["s3:GetObject"],
+          resources: [`arn:aws:s3:::${componentBucketName}/*`]
+        })
+      ]
+    })
 
-    // // Define stack-specific names for IoT role alias
-    // const roleAliasName = fullResourceName({
-    //   stackName: cdk.Stack.of(this).stackName,
-    //   baseName: "GreengrassV2TokenExchangeRole",
-    //   suffix: stackRandom,
-    //   resourceRegex: "\\w=,@-",
-    //   maxLength: 128
-    // })
-    // const iamRoleName = fullResourceName({
-    //   stackName: cdk.Stack.of(this).stackName,
-    //   baseName: "RoleForIoTRoleAlias",
-    //   suffix: stackRandom,
-    //   resourceRegex: "\\w+=,.@-",
-    //   maxLength: 64
-    // })
-    // // Then create IoT role alias
-    // const greengrassRoleAlias = new IotRoleAlias(this, "IoTRoleAlias", {
-    //   iotRoleAliasName: roleAliasName,
-    //   iamRoleName: iamRoleName,
-    //   iamPolicy: greengrassRoleMinimalPolicy
-    // })
+    // Define stack-specific names for IoT role alias
+    const roleAliasName = fullResourceName({
+      stackName: cdk.Stack.of(this).stackName,
+      baseName: "GreengrassV2TokenExchangeRole",
+      suffix: stackRandom,
+      resourceRegex: "\\w=,@-",
+      maxLength: 128
+    })
+    const iamRoleName = fullResourceName({
+      stackName: cdk.Stack.of(this).stackName,
+      baseName: "RoleForIoTRoleAlias",
+      suffix: stackRandom,
+      resourceRegex: "\\w+=,.@-",
+      maxLength: 64
+    })
+    // Then create IoT role alias
+    const greengrassRoleAlias = new IotRoleAlias(this, "IoTRoleAlias", {
+      iotRoleAliasName: roleAliasName,
+      iamRoleName: iamRoleName,
+      iamPolicy: greengrassRoleMinimalPolicy
+    })
 
-    // // Define stack-specific names for the IoT thing name and policy
-    // const greengrassCoreThingName = fullResourceName({
-    //   stackName: cdk.Stack.of(this).stackName,
-    //   baseName: "greengrass-core",
-    //   suffix: stackRandom,
-    //   resourceRegex: "a-zA-Z0-9:_-",
-    //   maxLength: 128
-    // })
-    // const greengrassCoreIotPolicyName = fullResourceName({
-    //   stackName: cdk.Stack.of(this).stackName,
-    //   baseName: "greengrass-minimal-policy",
-    //   suffix: stackRandom,
-    //   resourceRegex: "\\w+=,.@-",
-    //   maxLength: 128
-    // })
-    // // Then create IoT thing, certificate/private key, and IoT Policy
-    // const iotThingCertPol = new IotThingCertPolicy(this, "GreengrassCore", {
-    //   thingName: greengrassCoreThingName,
-    //   iotPolicyName: greengrassCoreIotPolicyName,
-    //   iotPolicy: myConst.greengrassCoreMinimalIoTPolicy,
-    //   policyParameterMapping: {
-    //     region: cdk.Fn.ref("AWS::Region"),
-    //     account: cdk.Fn.ref("AWS::AccountId"),
-    //     rolealiasname: greengrassRoleAlias.roleAliasName
-    //   }
-    // })
-    // // Set stack outputs to be consumed by local processes
-    // new cdk.CfnOutput(this, "OutputThingArn", {
-    //   // exportName: "ThingArn",
-    //   value: iotThingCertPol.thingArn
-    // })
-    // new cdk.CfnOutput(this, "CertificatePemParameter", {
-    //   // exportName: "CertificatePemParameter",
-    //   value: iotThingCertPol.certificatePemParameter
-    // })
-    // new cdk.CfnOutput(this, "PrivateKeySecretParameter", {
-    //   // exportName: "PrivateKeySecretParameter",
-    //   value: iotThingCertPol.privateKeySecretParameter
-    // })
-    // new cdk.CfnOutput(this, "DataAtsEndpointAddress", {
-    //   // exportName: "DataAtsEndpointAddress",
-    //   value: iotThingCertPol.dataAtsEndpointAddress
-    // })
+    // Define stack-specific names for the IoT thing name and policy
+    const greengrassCoreThingName = fullResourceName({
+      stackName: cdk.Stack.of(this).stackName,
+      baseName: "greengrass-core",
+      suffix: stackRandom,
+      resourceRegex: "a-zA-Z0-9:_-",
+      maxLength: 128
+    })
+    const greengrassCoreIotPolicyName = fullResourceName({
+      stackName: cdk.Stack.of(this).stackName,
+      baseName: "greengrass-minimal-policy",
+      suffix: stackRandom,
+      resourceRegex: "\\w+=,.@-",
+      maxLength: 128
+    })
+    // Then create IoT thing, certificate/private key, and IoT Policy
+    const iotThingCertPol = new IotThingCertPolicy(this, "GreengrassCore", {
+      thingName: greengrassCoreThingName,
+      iotPolicyName: greengrassCoreIotPolicyName,
+      iotPolicy: myConst.greengrassCoreMinimalIoTPolicy,
+      policyParameterMapping: {
+        region: cdk.Fn.ref("AWS::Region"),
+        account: cdk.Fn.ref("AWS::AccountId"),
+        rolealiasname: greengrassRoleAlias.roleAliasName
+      }
+    })
+    // Set stack outputs to be consumed by local processes
+    new cdk.CfnOutput(this, "OutputThingArn", {
+      // exportName: "ThingArn",
+      value: iotThingCertPol.thingArn
+    })
+    new cdk.CfnOutput(this, "CertificatePemParameter", {
+      // exportName: "CertificatePemParameter",
+      value: iotThingCertPol.certificatePemParameter
+    })
+    new cdk.CfnOutput(this, "PrivateKeySecretParameter", {
+      // exportName: "PrivateKeySecretParameter",
+      value: iotThingCertPol.privateKeySecretParameter
+    })
+    new cdk.CfnOutput(this, "DataAtsEndpointAddress", {
+      // exportName: "DataAtsEndpointAddress",
+      value: iotThingCertPol.dataAtsEndpointAddress
+    })
 
-    // // Define stack-specific name of the IoT thing group
-    // const groupName = fullResourceName({
-    //   stackName: cdk.Stack.of(this).stackName,
-    //   baseName: "greengrass-deployment-group",
-    //   suffix: stackRandom,
-    //   resourceRegex: "a-zA-Z0-9:_-",
-    //   maxLength: 128
-    // })
-    // // Then create thing group and add thing
-    // const deploymentGroup = new IotThingGroup(this, "DeploymentGroup", {
-    //   thingGroupName: groupName
-    // })
-    // deploymentGroup.addThing(iotThingCertPol.thingArn)
+    // Define stack-specific name of the IoT thing group
+    const groupName = fullResourceName({
+      stackName: cdk.Stack.of(this).stackName,
+      baseName: "greengrass-deployment-group",
+      suffix: stackRandom,
+      resourceRegex: "a-zA-Z0-9:_-",
+      maxLength: 128
+    })
+    // Then create thing group and add thing
+    const deploymentGroup = new IotThingGroup(this, "DeploymentGroup", {
+      thingGroupName: groupName
+    })
+    deploymentGroup.addThing(iotThingCertPol.thingArn)
 
     // Greengrass component process
 
     // Create Hello World component
-    const componentName = "com.example.HelloWorld"
+    const componentName = "ggAccel.example.HelloWorld"
     const componentVersion = "1.0.0"
     const helloWorldComponent = new GreengrassCreateComponent(this, "HelloWorldComponent", {
       componentName: componentName,

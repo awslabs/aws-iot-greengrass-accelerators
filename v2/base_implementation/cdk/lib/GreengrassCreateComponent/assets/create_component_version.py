@@ -139,22 +139,42 @@ def create_resources(
 
     # create component version name=version
     try:
+        # First submit the request
         response = c_greengrassv2.create_component_version(
             inlineRecipe=json.dumps(recipe).encode()
         )
+        component_arn = response["arn"]
+
+        start_time = time.time()
+        while time.time() - start_time < 30:
+            response = c_greengrassv2.describe_component(arn=component_arn)
+            if response["status"]["componentState"] == "DEPLOYABLE":
+                return component_arn
+            time.sleep(2)
+        logger.error(
+            f"Component did not become deployable, last component status returned was: {response}"
+        )
+        sys.exit(1)
     except c_greengrassv2.exceptions.ConflictException as e:
         logger.error(f"Componet already exists, {e}")
         sys.exit(1)
     except Exception as e:
         logger.error(f"Uncaught error: {e}")
         sys.exit(1)
+
     return result
 
 
-def delete_resources():
+def delete_resources(component_arn: str):
     """Delete component version"""
 
     c_greengrassv2 = get_aws_client("greengrassv2")
+    try:
+        c_greengrassv2.delete_component(arn=component_arn)
+    except ClientError as e:
+        logger.error(
+            f"Error deleting component {component_arn}, continuing delete, {e}"
+        )
 
 
 def handler(event, context):
@@ -170,7 +190,7 @@ def handler(event, context):
             raise RuntimeError("Create failure requested, logging")
         elif event["RequestType"] == "Create":
             logger.info("Request CREATE")
-            resp = create_resources(
+            component_arn = create_resources(
                 source_bucket=props["AssetBucket"],
                 target_bucket=props["TargetBucket"],
                 componentZip=props["ComponentZipAsset"],
@@ -181,15 +201,17 @@ def handler(event, context):
             )
 
             # set response data (PascalCase key)
-            response_data = {}
+            response_data = {"ComponentArn": component_arn}
             ############# REPLACE
-            physical_resource_id = "ComponentName"
+            physical_resource_id = component_arn
         elif event["RequestType"] == "Update":
             logger.info("Request UPDATE")
             response_data = {}
         elif event["RequestType"] == "Delete":
             logger.info("Request DELETE")
-            resp = delete_resources()
+            resp = delete_resources(
+                component_arn=event["PhysicalResourceId"],
+            )
             response_data = {}
             physical_resource_id = event["PhysicalResourceId"]
         else:

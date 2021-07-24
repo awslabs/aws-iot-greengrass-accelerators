@@ -19,51 +19,6 @@ import time
 
 logger.getLogger().setLevel(logger.INFO)
 
-temp_event_create = {
-    "RequestType": "Create",
-    "ServiceToken": "arn:aws:lambda:us-west-2:904880203774:function:test1-IotThingCertPolicyFunctionframeworkonEvent86-CBSzZWfvqop6",
-    "ResponseURL": "https://cloudformation-custom-resource-response-uswest2.s3-us-west-2.amazonaws.com/arn%3Aaws%3Acloudformation%3Aus-west-2%3A904880203774%3Astack/test1/9a9c54b0-e8c5-11eb-a1c8-068346d307f3%7CGreengrassCoreIotThingCertPolicyFunctionA5730834%7Cd461a1a0-964e-4ade-ac1f-be88175a8d06?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20210719T191652Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIA54RCMT6SKBOPMYGJ%2F20210719%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=3e1b109982a482443352ff382da9aa10686e13e94da2eeefc890af54875a8c89",
-    "StackId": "arn:aws:cloudformation:us-west-2:904880203774:stack/test1/9a9c54b0-e8c5-11eb-a1c8-068346d307f3",
-    "RequestId": "d461a1a0-964e-4ade-ac1f-be88175a8d06",
-    "LogicalResourceId": "GreengrassCoreIotThingCertPolicyFunctionA5730834",
-    "ResourceType": "AWS::CloudFormation::CustomResource",
-    "ResourceProperties": {
-        "ServiceToken": "arn:aws:lambda:us-west-2:904880203774:function:test1-IotThingCertPolicyFunctionframeworkonEvent86-CBSzZWfvqop6",
-        "IoTPolicyName": "test1-greengrass-core-IAqStcTo",
-        "ThingName": "test1-greengrass-core-PDGtAKoC",
-        "IotPolicy": '"{\\n  Version: \\"2012-10-17\\",\\n  Statement: [\\n    {\\n      Effect: \\"Allow\\",\\n      Action: [\\"iot:Connect\\"],\\n      Resource: \\"arn:aws:iot:us-west-2:904880203774:client/greengrass-core*\\"\\n    },\\n    {\\n      Effect: \\"Allow\\",\\n      Action: [\\"iot:Receive\\", \\"iot:Publish\\"],\\n      Resource: [\\n        \\"arn:aws:iot:us-west-2:904880203774:topic/$aws/things/greengrass-core*/greengrass/health/json\\",\\n        \\"arn:aws:iot:us-west-2:904880203774:topic/$aws/things/greengrass-core*/greengrassv2/health/json\\",\\n        \\"arn:aws:iot:us-west-2:904880203774:topic/$aws/things/greengrass-core*/jobs/*\\",\\n        \\"arn:aws:iot:us-west-2:904880203774:topic/$aws/things/greengrass-core*/shadow/*\\"\\n      ]\\n    },\\n    {\\n      Effect: \\"Allow\\",\\n      Action: [\\"iot:Subscribe\\"],\\n      Resource: [\\n        \\"arn:aws:iot:us-west-2:904880203774:topicfilter/$aws/things/greengrass-core*/jobs/*\\",\\n        \\"arn:aws:iot:us-west-2:904880203774:topicfilter/$aws/things/greengrass-core*/shadow/*\\"\\n      ]\\n    },\\n    {\\n      Effect: \\"Allow\\",\\n      Action: [\\"iot:GetThingShadow\\", \\"iot:UpdateThingShadow\\", \\"iot:DeleteThingShadow\\"],\\n      Resource: [\\"arn:aws:iot:us-west-2:904880203774:thing/greengrass-core*\\"]\\n    },\\n    {\\n      Effect: \\"Allow\\",\\n      Action: \\"iot:AssumeRoleWithCertificate\\",\\n      Resource: \\"arn:aws:iot:us-west-2:904880203774:rolealias/test1-GreengrassV2TokenExchangeRole-3WORRPAi\\"\\n    },\\n    {\\n      Effect: \\"Allow\\",\\n      Action: [\\"greengrass:GetComponentVersionArtifact\\", \\"greengrass:ResolveComponentCandidates\\", \\"greengrass:GetDeploymentConfiguration\\"],\\n      Resource: \\"*\\"\\n    }\\n  ]\\n}"',
-        "StackName": "test1",
-    },
-}
-
-temp_environment = {
-    "AWS_LAMBDA_FUNCTION_VERSION": "$LATEST",
-    "LAMBDA_TASK_ROOT": "/var/task",
-    "AWS_LAMBDA_LOG_GROUP_NAME": "/aws/lambda/test1-CreateIoTRoleAliasProviderA5DE3E61-rLnc8JosvWjj",
-    "LD_LIBRARY_PATH": "/var/lang/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib",
-    "AWS_LAMBDA_LOG_STREAM_NAME": "2021/07/16/[$LATEST]08359e000221485b8a001f401ee9f9b3",
-    "AWS_LAMBDA_RUNTIME_API": "127.0.0.1:9001",
-    "AWS_EXECUTION_ENV": "AWS_Lambda_python3.8",
-    "AWS_LAMBDA_FUNCTION_NAME": "test1-CreateIoTRoleAliasProviderA5DE3E61-rLnc8JosvWjj",
-    "AWS_XRAY_DAEMON_ADDRESS": "169.254.79.2:2000",
-    "PATH": "/var/lang/bin:/usr/local/bin:/usr/bin/:/bin:/opt/bin",
-    "AWS_DEFAULT_REGION": "us-west-2",
-    "PWD": "/var/task",
-    "LAMBDA_RUNTIME_DIR": "/var/runtime",
-    "LANG": "en_US.UTF-8",
-    "AWS_LAMBDA_INITIALIZATION_TYPE": "on-demand",
-    "TZ": ":UTC",
-    "AWS_REGION": "us-west-2",
-    "SHLVL": "0",
-    "_AWS_XRAY_DAEMON_ADDRESS": "169.254.79.2",
-    "_AWS_XRAY_DAEMON_PORT": "2000",
-    "AWS_XRAY_CONTEXT_MISSING": "LOG_ERROR",
-    "_HANDLER": "role_alias.handler",
-    "AWS_LAMBDA_FUNCTION_MEMORY_SIZE": "128",
-    "PYTHONPATH": "/var/runtime",
-    "_X_AMZN_TRACE_ID": "Root=1-60f1f774-66292ad5566a122178506fac;Parent=229af0ed792cd611;Sampled=0",
-}
-
 
 def get_aws_client(name):
     return boto3.client(
@@ -198,6 +153,15 @@ def create_resources(
     except ClientError as e:
         logger.error(f"Could not obtain iot:Data-ATS endpoint, {e}")
         response["DataAtsEndpointAddress"] = "stack_error: see log files"
+
+    # Get the Credential Provider endpoint
+    try:
+        result = c_iot.describe_endpoint(endpointType="iot:CredentialProvider")
+        response["CredentialProviderEndpointAddress"] = result["endpointAddress"]
+    except ClientError as e:
+        logger.error(f"Could not obtain iot:CredentialProvider endpoint, {e}")
+        response["CredentialProviderEndpointAddress"] = "stack_error: see log files"
+
     return response
 
 
@@ -276,10 +240,9 @@ def delete_resources(
     except ClientError as e:
         logger.error(f"Unable to list or detach principals from {thing_name}, {e}")
     try:
-        print(f"test delete {thing_name}")
         c_iot.delete_thing(thingName=thing_name)
     except ClientError as e:
-        logger.error(f"Unable to delete thing {thing_name}, {e}")
+        logger.error(f"Error calling iot.delete_thing() for thing: {thing_name}, {e}")
 
 
 def handler(event, context):
@@ -309,7 +272,12 @@ def handler(event, context):
                 "PrivateKeySecretParameter": resp["PrivateKeySecretParameter"],
                 "CertificatePemParameter": resp["CertificatePemParameter"],
                 "DataAtsEndpointAddress": resp["DataAtsEndpointAddress"],
+                "CredentialProviderEndpointAddress": resp[
+                    "CredentialProviderEndpointAddress"
+                ],
             }
+            # Certificate arn is resource id since it is created with an unknown
+            # value, which is needed for the delete operation
             physical_resource_id = response_data["CertificateArn"]
         elif event["RequestType"] == "Update":
             logger.info("Request UPDATE")
@@ -318,6 +286,7 @@ def handler(event, context):
             logger.info("Request DELETE")
             resp = delete_resources(
                 thing_name=props["ThingName"],
+                # resource id contains the cert arn
                 certificate_arn=event["PhysicalResourceId"],
                 iot_policy_name=props["IoTPolicyName"],
                 stack_name=props["StackName"],
@@ -326,21 +295,8 @@ def handler(event, context):
             physical_resource_id = event["PhysicalResourceId"]
         else:
             logger.info("Should not get here in normal cases - could be REPLACE")
-
         output = {"PhysicalResourceId": physical_resource_id, "Data": response_data}
         logger.info("Output from Lambda: %s", json.dumps(output, indent=2))
         return output
     except Exception as e:
         logger.exception(e)
-
-
-if __name__ == "__main__":
-    for env in temp_environment:
-        os.environ[env] = temp_environment[env]
-
-    # create
-    print("running CREATE")
-    response = handler(temp_event_create, {})
-    # time.sleep(2)
-    # temp_event["RequestType"] = "Delete"
-    # response = handler(temp_event, {})

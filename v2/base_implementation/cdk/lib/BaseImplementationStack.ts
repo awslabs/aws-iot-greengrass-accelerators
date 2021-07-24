@@ -9,6 +9,7 @@ import { IotThingCertPolicy } from "./IotThingCertPolicy/IotThingCertPolicy"
 import { IotRoleAlias } from "./IotRoleAlias/IotRoleAlias"
 import { IotThingGroup } from "./IotThingGroup/IotThingGroup"
 import { GreengrassCreateComponent } from "./GreengrassCreateComponent/GreengrassCreateComponent"
+import { GreengrassCreateDeployment } from "./GreengrassCreateDeployment/GreengrassCreateDeployment"
 import * as myConst from "./Constants"
 
 export class BaseImplementationStack extends cdk.Stack {
@@ -109,23 +110,6 @@ export class BaseImplementationStack extends cdk.Stack {
         rolealiasname: greengrassRoleAlias.roleAliasName
       }
     })
-    // Set stack outputs to be consumed by local processes
-    new cdk.CfnOutput(this, "OutputThingArn", {
-      // exportName: "ThingArn",
-      value: iotThingCertPol.thingArn
-    })
-    new cdk.CfnOutput(this, "CertificatePemParameter", {
-      // exportName: "CertificatePemParameter",
-      value: iotThingCertPol.certificatePemParameter
-    })
-    new cdk.CfnOutput(this, "PrivateKeySecretParameter", {
-      // exportName: "PrivateKeySecretParameter",
-      value: iotThingCertPol.privateKeySecretParameter
-    })
-    new cdk.CfnOutput(this, "DataAtsEndpointAddress", {
-      // exportName: "DataAtsEndpointAddress",
-      value: iotThingCertPol.dataAtsEndpointAddress
-    })
 
     // Define stack-specific name of the IoT thing group
     const groupName = fullResourceName({
@@ -152,7 +136,65 @@ export class BaseImplementationStack extends cdk.Stack {
       bucket: componentBucket,
       sourceArtifactPath: path.join(__dirname, "..", "components", componentName, "artifacts", componentName, componentVersion),
       sourceRecipeFile: path.join(__dirname, "..", "components", componentName, `${componentName}-${componentVersion}.yaml`)
+      // Optional URI demonstrating user defined key name and path
       // targetArtifactKeyName: `path1/path2/${componentName}-${componentVersion}.zip`
+    })
+
+    // Create the deployment with AWS public and stack components, target the thing group
+    const greengrassDeployment = new GreengrassCreateDeployment(this, "GreengrassDeployment", {
+      targetArn: deploymentGroup.thingGroupArn,
+      deploymentName: `${this.stackName} - Example deployment`,
+      components: {
+        // stack component(s)
+        [helloWorldComponent.componentName]: {
+          componentVersion: helloWorldComponent.componentVersion,
+          configurationUpdate: {
+            merge: JSON.stringify({
+              Message: "Welcome from the Greengrass accelerator stack"
+            })
+          }
+        },
+        // public components
+        "aws.greengrass.Nucleus": {
+          componentVersion: "2.3.0"
+        },
+        "aws.greengrass.Cli": {
+          componentVersion: "2.3.0"
+        },
+        "aws.greengrass.LocalDebugConsole": {
+          componentVersion: "2.2.1",
+          configurationUpdate: {
+            merge: JSON.stringify({
+              httpsEnabled: "httpsEnabled"
+            })
+          }
+        }
+      }
+    })
+
+    // Set stack outputs to be consumed by local processes
+    new cdk.CfnOutput(this, "IotRoleAliasName", {
+      value: greengrassRoleAlias.roleAliasName
+    })
+    new cdk.CfnOutput(this, "OutputThingArn", {
+      // exportName: "ThingArn",
+      value: iotThingCertPol.thingArn
+    })
+    new cdk.CfnOutput(this, "CertificatePemParameter", {
+      // exportName: "CertificatePemParameter",
+      value: iotThingCertPol.certificatePemParameter
+    })
+    new cdk.CfnOutput(this, "PrivateKeySecretParameter", {
+      // exportName: "PrivateKeySecretParameter",
+      value: iotThingCertPol.privateKeySecretParameter
+    })
+    new cdk.CfnOutput(this, "DataAtsEndpointAddress", {
+      // exportName: "DataAtsEndpointAddress",
+      value: iotThingCertPol.dataAtsEndpointAddress
+    })
+    new cdk.CfnOutput(this, "CredentialProviderEndpointAddress", {
+      // exportName: "DataAtsEndpointAddress",
+      value: iotThingCertPol.credentialProviderEndpointAddress
     })
 
     // ************ End of CDK Constructs / stack - Supporting functions below ************

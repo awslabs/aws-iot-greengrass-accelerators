@@ -66,6 +66,7 @@ export class IotThingCertPolicy extends cdk.Construct {
   public readonly certificatePemParameter: string
   public readonly privateKeySecretParameter: string
   public readonly dataAtsEndpointAddress: string
+  public readonly credentialProviderEndpointAddress: string
   private customResourceName = "IotThingCertPolicyFunction"
 
   /**
@@ -81,8 +82,8 @@ export class IotThingCertPolicy extends cdk.Construct {
     const stackName = cdk.Stack.of(this).stackName
     // Validate and derive final values for resources
 
-    // The policy template maps replacements from the props.policyParameterMapping along with
-    // the following provided variables:
+    // For the AWS Core policy, the template maps replacements from the
+    // props.policyParameterMapping along with the following provided variables:
     // thingname  - used as: <% thingname %>
     let policyParameters: any = props.policyParameterMapping
     policyParameters.thingname = props.thingName
@@ -161,6 +162,7 @@ export class IotThingCertPolicy extends cdk.Construct {
     this.thingArn = customResource.getAttString("ThingArn")
     this.certificateArn = customResource.getAttString("CertificateArn")
     this.dataAtsEndpointAddress = customResource.getAttString("DataAtsEndpointAddress")
+    this.credentialProviderEndpointAddress = customResource.getAttString("CredentialProviderEndpointAddress")
   }
 
   // Separate static function to create or return singleton provider

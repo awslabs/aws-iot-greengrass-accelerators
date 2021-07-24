@@ -22,55 +22,6 @@ yaml.constructor.SafeConstructor.yaml_constructors[
     "tag:yaml.org,2002:timestamp"
 ] = yaml.constructor.SafeConstructor.yaml_constructors["tag:yaml.org,2002:str"]
 
-temp_environment = {
-    "AWS_LAMBDA_FUNCTION_VERSION": "$LATEST",
-    "AWS_LAMBDA_LOG_GROUP_NAME": "/aws/lambda/base-implementation-GreengrassCreateComponentFunct-T8vRQhoSktZJ",
-    "LD_LIBRARY_PATH": "/var/lang/lib:/lib64:/usr/lib64:/var/runtime:/var/runtime/lib:/var/task:/var/task/lib:/opt/lib",
-    "LAMBDA_TASK_ROOT": "/var/task",
-    "AWS_LAMBDA_LOG_STREAM_NAME": "2021/07/21/[$LATEST]cd6bfd7c6ac843faa9023cf6cca0bd1b",
-    "AWS_LAMBDA_RUNTIME_API": "127.0.0.1:9001",
-    "AWS_EXECUTION_ENV": "AWS_Lambda_python3.8",
-    "AWS_XRAY_DAEMON_ADDRESS": "169.254.79.2:2000",
-    "AWS_LAMBDA_FUNCTION_NAME": "base-implementation-GreengrassCreateComponentFunct-T8vRQhoSktZJ",
-    "PATH": "/var/lang/bin:/usr/local/bin:/usr/bin/:/bin:/opt/bin",
-    "AWS_DEFAULT_REGION": "us-west-2",
-    "PWD": "/var/task",
-    "LAMBDA_RUNTIME_DIR": "/var/runtime",
-    "LANG": "en_US.UTF-8",
-    "AWS_LAMBDA_INITIALIZATION_TYPE": "on-demand",
-    "TZ": ":UTC",
-    "AWS_REGION": "us-west-2",
-    "SHLVL": "0",
-    "_AWS_XRAY_DAEMON_ADDRESS": "169.254.79.2",
-    "_AWS_XRAY_DAEMON_PORT": "2000",
-    "AWS_XRAY_CONTEXT_MISSING": "LOG_ERROR",
-    "_HANDLER": "create_component_version.handler",
-    "AWS_LAMBDA_FUNCTION_MEMORY_SIZE": "128",
-    "PYTHONPATH": "/var/runtime",
-    "_X_AMZN_TRACE_ID": "Root=1-60f899e2-70b02dda1619d879449d3b09;Parent=15e73a3a203f07f0;Sampled=0",
-}
-temp_create = {
-    "RequestType": "Create",
-    "ServiceToken": "arn:aws:lambda:us-west-2:904880203774:function:base-implementation-GreengrassCreateComponentFunct-3EgVfbmieVxm",
-    "ResponseURL": "https://cloudformation-custom-resource-response-uswest2.s3-us-west-2.amazonaws.com/arn%3Aaws%3Acloudformation%3Aus-west-2%3A904880203774%3Astack/base-implementation/e84f4eb0-ebbd-11eb-a1c8-068346d307f3%7CHelloWorldComponentGreengrassCreateComponentFunctionAAAFC343%7Cf7565cc2-251e-474d-b585-3bdcc9a94584?X-Amz-Algorithm=AWS4-HMAC-SHA256&X-Amz-Date=20210723T135920Z&X-Amz-SignedHeaders=host&X-Amz-Expires=7200&X-Amz-Credential=AKIA54RCMT6SNNWC7LWJ%2F20210723%2Fus-west-2%2Fs3%2Faws4_request&X-Amz-Signature=39ced0576b65a11bed0d04c643f63e5f9bd930e0f408acab487917519c694faf",
-    "StackId": "arn:aws:cloudformation:us-west-2:904880203774:stack/base-implementation/e84f4eb0-ebbd-11eb-a1c8-068346d307f3",
-    "RequestId": "f7565cc2-251e-474d-b585-3bdcc9a94584",
-    "LogicalResourceId": "HelloWorldComponentGreengrassCreateComponentFunctionAAAFC343",
-    "ResourceType": "AWS::CloudFormation::CustomResource",
-    "ResourceProperties": {
-        "ServiceToken": "arn:aws:lambda:us-west-2:904880203774:function:base-implementation-GreengrassCreateComponentFunct-3EgVfbmieVxm",
-        "TargetArtifactKeyName": "path1/path2/com.example.HelloWorld-1.0.0.zip",
-        "ComponentZipAsset": "assets/49d082dfe7eae594edfb43694f6ddec8c648113d8a893616264702e1e1a88af6.zip",
-        "ComponentPrefixPath": "",
-        "RecipeFileAsset": "assets/bb47acccfffd74ba4105e22e59bf8fa1010bbbd126a68361ca2cf067001e2cf9.yaml",
-        "ComponentName": "com.example.HelloWorld",
-        "TargetBucket": "base-implementation-ggcomponents-904880203774-us-west-2",
-        "StackName": "base-implementation",
-        "AssetBucket": "cdktoolkit-stagingbucket-1v9z9sly58ptn",
-        "ComponentVersion": "1.0.0",
-    },
-}
-
 
 def get_aws_client(name):
     return boto3.client(
@@ -87,7 +38,6 @@ def replace(data, match, repl):
         return [replace(i, match, repl) for i in data]
     else:
         return data.replace(match, repl)
-        # return repl if data == match else data
 
 
 def create_resources(
@@ -99,13 +49,19 @@ def create_resources(
     component_version: str,
     artifact_file_keyname: str,
 ):
-    """Create Greengrass component version"""
+    """
+    Create Greengrass component version
+
+    Copy the components artifact zip file to stack defined bucket,
+    then read and replace any construct variables in recipe file
+    and create component.
+    """
     c_greengrassv2 = get_aws_client("greengrassv2")
     c_s3 = get_aws_client("s3")
-    result = {}
 
-    # Read artifact file from s3, place in target bucket
-    # Download location - can be /tmp as components will be unique
+    # Read artifact file from CDK asset staging bucket, place in target bucket
+    # /tmp instead of tempfile as Lambda provides that, components will be unique
+    # if function is used for multiple component resources
     artifact_file = str(Path("/tmp", f"{component_name}-{component_version}.zip"))
     c_s3.download_file(
         Bucket=source_bucket,
@@ -113,7 +69,7 @@ def create_resources(
         Filename=artifact_file,
     )
 
-    # read recipe file
+    # read recipe file from CDK asset staging bucket and convert to dict
     obj = c_s3.get_object(Bucket=source_bucket, Key=recipeFile)
     if recipeFile.lower().endswith(".json"):
         recipe = json.loads(obj["Body"].read())
@@ -125,12 +81,13 @@ def create_resources(
         )
         sys.exit(1)
 
-    # transform to JSON, replace variable placeholders,
+    # Optionally replace variable placeholders with provided values
     recipe = replace(recipe, "${COMPONENT_BUCKET}", target_bucket)
     recipe = replace(recipe, "${ARTIFACT_KEY_NAME}", artifact_file_keyname)
-    print(recipe)
+    logger.info(f"Output recipe file is {json.dumps(recipe, indent=2)}")
 
-    # upload will be to artifact_file_keyname or artifact_file if not provided
+    # upload will be to artifact_file_keyname or constructed file name of:
+    # component_name-version.zip if a key name was not provided
     if artifact_file_keyname:
         upload_file_name = artifact_file_keyname
     else:
@@ -145,10 +102,15 @@ def create_resources(
         )
         component_arn = response["arn"]
 
+        # Wait for the component to go into a DEPLOYABLE state
+        # This normally happens immediately but may take additional time
+        # to complete
         start_time = time.time()
         while time.time() - start_time < 30:
             response = c_greengrassv2.describe_component(arn=component_arn)
             if response["status"]["componentState"] == "DEPLOYABLE":
+                # Component registered, return the Arn as resource id so DELETE
+                # has it for cancelling
                 return component_arn
             time.sleep(2)
         logger.error(
@@ -161,8 +123,6 @@ def create_resources(
     except Exception as e:
         logger.error(f"Uncaught error: {e}")
         sys.exit(1)
-
-    return result
 
 
 def delete_resources(component_arn: str):
@@ -199,10 +159,8 @@ def handler(event, context):
                 component_version=props["ComponentVersion"],
                 artifact_file_keyname=props["TargetArtifactKeyName"],
             )
-
-            # set response data (PascalCase key)
+            # set response data (PascalCase key) back to construct
             response_data = {"ComponentArn": component_arn}
-            ############# REPLACE
             physical_resource_id = component_arn
         elif event["RequestType"] == "Update":
             logger.info("Request UPDATE")
@@ -225,13 +183,17 @@ def handler(event, context):
 
 
 if __name__ == "__main__":
+    #### Uncomment for local testing
+    # 1. deploy stack, and from CloudWatch log
+    # 2. copy environment output, remove AWS access key, secret, and session token
+    #    and create temp_environment dict with the output
+    # 3. Create temp_create dict with output of Event
+    # 4. Optionally do the same for a DELETE event too
 
-    for env in temp_environment:
-        os.environ[env] = temp_environment[env]
+    # for env in temp_environment:
+    #     os.environ[env] = temp_environment[env]
 
     # # create
-    print("running CREATE")
-    response = handler(temp_create, {})
-    # time.sleep(2)
-    # temp_event["RequestType"] = "Delete"
-    # response = handler(temp_event, {})
+    # print("running CREATE")
+    # response = handler(temp_create, {})
+    pass

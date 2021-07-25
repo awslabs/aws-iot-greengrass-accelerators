@@ -2,12 +2,12 @@
 # SPDX-License-Identifier: MIT-0
 
 import os
+import sys
 import json
 import logging as logger
 import boto3
 import botocore
 from botocore.exceptions import ClientError
-
 
 logger.getLogger().setLevel(logger.INFO)
 
@@ -32,6 +32,7 @@ def create_iot_role_alias(role_alias_name, iam_role_arn):
         logger.warning(
             f"Error calling iot.create_role_alias() for role alias {role_alias_name}, error: {e}"
         )
+        sys.exit(1)
 
 
 def delete_iot_role_alias(role_alias_name):

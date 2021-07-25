@@ -11,7 +11,7 @@ import * as lambda from "@aws-cdk/aws-lambda"
 /**
  * @summary The properties for the GreengrassCreateDeployment class.
  */
-export interface GreengrassCreateDeploymentProps {
+export interface GreengrassV2DeploymentProps {
   /**
    * Target Arn (thing or thingGroup) for deployment
    *
@@ -66,29 +66,29 @@ export interface GreengrassCreateDeploymentProps {
  * @summary The IotRoleAlias class.
  */
 
-export class GreengrassCreateDeployment extends cdk.Construct {
+export class GreengrassV2Deployment extends cdk.Construct {
   public readonly deploymentId: string
   public readonly iotJobId: string
   public readonly iotJobArn: string
 
-  private customResourceName = "GreengrassCreateDeploymentFunction"
+  private customResourceName = "GreengrassV2DeploymentFunction"
 
   /**
    *
    * @summary Constructs a new instance of the IotRoleAlias class.
    * @param {cdk.App} scope - represents the scope for all the resources.
    * @param {string} id - this is a scope-unique id.
-   * @param {GreengrassCreateDeploymentProps} props - user provided props for the construct.
+   * @param {GreengrassV2DeploymentProps} props - user provided props for the construct.
    * @since 1.114.0
    */
-  constructor(scope: cdk.Construct, id: string, props: GreengrassCreateDeploymentProps) {
+  constructor(scope: cdk.Construct, id: string, props: GreengrassV2DeploymentProps) {
     super(scope, id)
 
     const stackName = cdk.Stack.of(this).stackName
 
     // Validate and derive final values for resources
 
-    const provider = GreengrassCreateDeployment.getOrCreateProvider(this, this.customResourceName)
+    const provider = GreengrassV2Deployment.getOrCreateProvider(this, this.customResourceName)
     const customResource = new cdk.CustomResource(this, this.customResourceName, {
       serviceToken: provider.serviceToken,
       properties: {

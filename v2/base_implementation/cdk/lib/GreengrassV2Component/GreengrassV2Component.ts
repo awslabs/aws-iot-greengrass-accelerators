@@ -14,7 +14,7 @@ import { PythonFunction } from "@aws-cdk/aws-lambda-python"
 /**
  * @summary The properties for the GreengrassComponent class.
  */
-export interface GreengrassCreateComponentProps {
+export interface GreengrassV2ComponentProps {
   /**
    * AWS IoT Greengrass component name.
    *
@@ -75,20 +75,20 @@ export interface GreengrassCreateComponentProps {
  * @summary The GreengrassComponent class.
  */
 
-export class GreengrassCreateComponent extends cdk.Construct {
+export class GreengrassV2Component extends cdk.Construct {
   public readonly componentName: string
   public readonly componentVersion: string
   public readonly componentArn: string
-  private customResourceName = "GreengrassCreateComponentFunction"
+  private customResourceName = "GreengrassV2ComponentFunction"
   /**
    *
    * @summary Constructs a new instance of the IotRoleAlias class.
    * @param {cdk.App} scope - represents the scope for all the resources.
    * @param {string} id - this is a scope-unique id.
-   * @param {GreengrassComponentProps} props - user provided props for the construct.
+   * @param {GreengrassV2ComponentProps} props - user provided props for the construct.
    * @since 1.114.0
    */
-  constructor(scope: cdk.Construct, id: string, props: GreengrassCreateComponentProps) {
+  constructor(scope: cdk.Construct, id: string, props: GreengrassV2ComponentProps) {
     super(scope, id)
 
     const stackName = cdk.Stack.of(this).stackName
@@ -106,7 +106,7 @@ export class GreengrassCreateComponent extends cdk.Construct {
       path: props.sourceRecipeFile
     })
 
-    const provider = GreengrassCreateComponent.getOrCreateProvider(this, this.customResourceName)
+    const provider = GreengrassV2Component.getOrCreateProvider(this, this.customResourceName)
     const customResource = new cdk.CustomResource(this, this.customResourceName, {
       serviceToken: provider.serviceToken,
       properties: {

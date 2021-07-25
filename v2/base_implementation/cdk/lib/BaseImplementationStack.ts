@@ -8,8 +8,8 @@ import * as s3 from "@aws-cdk/aws-s3"
 import { IotThingCertPolicy } from "./IotThingCertPolicy/IotThingCertPolicy"
 import { IotRoleAlias } from "./IotRoleAlias/IotRoleAlias"
 import { IotThingGroup } from "./IotThingGroup/IotThingGroup"
-import { GreengrassCreateComponent } from "./GreengrassCreateComponent/GreengrassCreateComponent"
-import { GreengrassCreateDeployment } from "./GreengrassCreateDeployment/GreengrassCreateDeployment"
+import { GreengrassV2Component } from "./GreengrassV2Component/GreengrassV2Component"
+import { GreengrassV2Deployment } from "./GreengrassV2Deployment/GreengrassV2Deployment"
 import * as myConst from "./Constants"
 
 export class BaseImplementationStack extends cdk.Stack {
@@ -130,7 +130,7 @@ export class BaseImplementationStack extends cdk.Stack {
     // Create Hello World component
     const componentName = "ggAccel.example.HelloWorld"
     const componentVersion = "1.0.0"
-    const helloWorldComponent = new GreengrassCreateComponent(this, "HelloWorldComponent", {
+    const helloWorldComponent = new GreengrassV2Component(this, "HelloWorldComponent", {
       componentName: componentName,
       componentVersion: componentVersion,
       bucket: componentBucket,
@@ -141,7 +141,7 @@ export class BaseImplementationStack extends cdk.Stack {
     })
 
     // Create the deployment with AWS public and stack components, target the thing group
-    const greengrassDeployment = new GreengrassCreateDeployment(this, "GreengrassDeployment", {
+    const greengrassDeployment = new GreengrassV2Deployment(this, "GreengrassDeployment", {
       targetArn: deploymentGroup.thingGroupArn,
       deploymentName: `${this.stackName} - Example deployment`,
       components: {

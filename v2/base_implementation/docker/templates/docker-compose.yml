@@ -1,0 +1,43 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+version: "3.7"
+
+services:
+  greengrass_accel:
+    init: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: greengrass-accel
+    image: public.ecr.aws/aws-iot-greengrass/aws-iot-greengrass-v2:latest
+    ports:
+      # MQTT port for broker
+      - "8883:8883"
+      # Optional ports (uncomment if needed for debug console)
+      # 1441:1441
+      # 1442:1442
+
+    volumes:
+      # Located in ./volumes, persistent directories for configuration
+      # (certs/, config/) and the Greengrass root
+
+      # Contains current state of Greengrass. Clear when testing fresh deployment
+      - ./volumes/gg_root:/greengrass/v2
+
+      # Default config for bootstrapping install and principals
+      - ./volumes/config:/tmp/config/:ro
+      - ./certs:/tmp/certs:ro
+      # Optional: Use for running container-based components by mapping the
+      # docker socket file from the root host (see README for changes needed to
+      # AWS IoT Greengrass docker image)
+      - /var/run/docker.sock:/var/run/docker.sock
+
+    environment:
+      # These values used for first time run of Greengrass
+      GGC_ROOT_PATH: "/greengrass/v2"
+      PROVISION: "false"
+      COMPONENT_DEFAULT_USER: "ggc_user:ggc_group"
+      DEPLOY_DEV_TOOLS: "true"
+      INIT_CONFIG: "/tmp/config/config.yaml"
+      AWS_REGION: "${AWS_REGION}"

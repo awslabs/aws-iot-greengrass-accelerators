@@ -1,0 +1,16 @@
+---
+system:
+  certificateFilePath: "${CERTIFICATE_PEM}"
+  privateKeyPath: "${CERTIFICATE_PRIVATE_KEY}"
+  rootCaPath: "${AMAZON_ROOT_CA}"
+  rootpath: "/greengrass/v2"
+  thingName: "${THING_NAME}"
+services:
+  aws.greengrass.Nucleus:
+    componentType: "NUCLEUS"
+    version: "2.3.0"
+    configuration:
+      awsRegion: "${AWS_REGION}"
+      iotRoleAlias: "Test-gg-beta-alias"
+      iotDataEndpoint: "${DATA_ATS_ENDPOINT}"
+      iotCredEndpoint: "${CREDENTIAL_PROVIDER_ENDPOINT}"

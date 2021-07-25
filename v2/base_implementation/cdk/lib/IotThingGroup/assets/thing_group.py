@@ -132,16 +132,3 @@ def handler(event, context):
         return output
     except Exception as e:
         logger.exception(e)
-
-
-if __name__ == "__main__":
-    pass
-    # for env in temp_environment:
-    #     os.environ[env] = temp_environment[env]
-
-    # # create
-    # print("running CREATE")
-    # response = handler(temp_event_create, {})
-    # time.sleep(2)
-    # temp_event["RequestType"] = "Delete"
-    # response = handler(temp_event, {})

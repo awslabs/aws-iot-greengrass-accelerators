@@ -2,10 +2,9 @@
 # SPDX-License-Identifier: MIT-0
 
 import os
-import re
 import sys
 import json
-from collections import OrderedDict
+import time
 import logging as logger
 from pathlib import Path
 import boto3
@@ -14,10 +13,10 @@ import yaml.constructor
 from botocore.config import Config
 from botocore.exceptions import ClientError
 
-import time
 
 logger.getLogger().setLevel(logger.INFO)
 # Yaml dates can be represented as strings in Greengrass recipe files
+# force any unquoted dates to string instead of datetime
 yaml.constructor.SafeConstructor.yaml_constructors[
     "tag:yaml.org,2002:timestamp"
 ] = yaml.constructor.SafeConstructor.yaml_constructors["tag:yaml.org,2002:str"]

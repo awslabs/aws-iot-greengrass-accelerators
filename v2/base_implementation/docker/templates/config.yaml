@@ -1,8 +1,8 @@
 ---
 system:
-  certificateFilePath: "${CERTIFICATE_PEM}"
-  privateKeyPath: "${CERTIFICATE_PRIVATE_KEY}"
-  rootCaPath: "${AMAZON_ROOT_CA}"
+  certificateFilePath: "/tmp/certs/device.pem.crt"
+  privateKeyPath: "/tmp/certs/private.pem.key"
+  rootCaPath: "/tmp/certs/AmazonRootCA1.pem"
   rootpath: "/greengrass/v2"
   thingName: "${THING_NAME}"
 services:
@@ -11,6 +11,6 @@ services:
     version: "2.3.0"
     configuration:
       awsRegion: "${AWS_REGION}"
-      iotRoleAlias: "Test-gg-beta-alias"
+      iotRoleAlias: "${IOT_ROLE_ALIAS}"
       iotDataEndpoint: "${DATA_ATS_ENDPOINT}"
       iotCredEndpoint: "${CREDENTIAL_PROVIDER_ENDPOINT}"

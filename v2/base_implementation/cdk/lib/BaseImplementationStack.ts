@@ -176,7 +176,7 @@ export class BaseImplementationStack extends cdk.Stack {
     new cdk.CfnOutput(this, "IotRoleAliasName", {
       value: greengrassRoleAlias.roleAliasName
     })
-    new cdk.CfnOutput(this, "OutputThingArn", {
+    new cdk.CfnOutput(this, "ThingArn", {
       // exportName: "ThingArn",
       value: iotThingCertPol.thingArn
     })

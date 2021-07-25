@@ -1,5 +1,5 @@
 # Base ignores, add other as needed
-
+docker-compose.yml
 # Operating System Specific
 # macOS
 .DS_Store
@@ -143,4 +143,4 @@ cdk.out/
 *.tabl.json
 
 # Development files
-docker/docker-compose.yml
+docker-compose.yml

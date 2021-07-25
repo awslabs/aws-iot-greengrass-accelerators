@@ -18,7 +18,11 @@ parser = argparse.ArgumentParser()
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument("--profile", help="Your AWS CLI profile name")
 group.add_argument(
-    "--clean", help="Clear all docker configuration files from volumes directories"
+    "--clean",
+    const=True,
+    type=bool,
+    nargs="?",
+    help="Clear all docker configuration files from volumes directories",
 )
 
 
@@ -51,6 +55,7 @@ def clean_config(dirs_to_clean: list):
     for dir in dirs_to_clean:
         path = Path(dir)
         if path.exists():
+            print(f"Deleting files in {path}")
             shutil.rmtree(path)
         os.mkdir(path)
         print(f"Directory '{dir} cleaned")
@@ -151,13 +156,17 @@ if __name__ == "__main__":
         "./volumes/config",
         "./volumes/gg_root",
     ]
-    template_files = ["./templates/config.yaml", "./templates/docker-compose.yaml"]
+    template_files = [
+        "./templates/config.yaml.template",
+        "./templates/docker-compose.yaml.template",
+    ]
     config_values = {}
 
     verify_cwd()
     # if --clean, clear all directories and exit
     if args.clean:
         clean_config(docker_config_directories)
+        sys.exit(0)
 
     # check for contents in certs/ config and /gg_root/, alert and exit
     check_for_config(
@@ -209,10 +218,10 @@ if __name__ == "__main__":
 
     # process template files
     config_template = replace_variables(
-        file="./templates/config.yaml", map=config_values
+        file="./templates/config.yaml.template", map=config_values
     )
     docker_compose_template = replace_variables(
-        file="./templates/docker-compose.yml", map=config_values
+        file="./templates/docker-compose.yml.template", map=config_values
     )
 
     # Write the files!

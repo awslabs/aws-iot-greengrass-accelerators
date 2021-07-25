@@ -143,4 +143,4 @@ cdk.out/
 *.tabl.json
 
 # Development files
-docker-compose-dev.yml
+docker/docker-compose.yml

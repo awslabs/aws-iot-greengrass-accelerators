@@ -104,7 +104,7 @@ export class BaseImplementationStack extends cdk.Stack {
       thingName: greengrassCoreThingName,
       iotPolicyName: greengrassCoreIotPolicyName,
       iotPolicy: myConst.greengrassCoreMinimalIoTPolicy,
-      encryptionAlgorithm: "ECC",
+      encryptionAlgorithm: "RSA",
       policyParameterMapping: {
         region: cdk.Fn.ref("AWS::Region"),
         account: cdk.Fn.ref("AWS::AccountId"),

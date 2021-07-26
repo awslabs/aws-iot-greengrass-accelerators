@@ -6,9 +6,6 @@ version: "3.7"
 services:
   greengrass_accel:
     init: true
-    build:
-      context: .
-      dockerfile: Dockerfile
     container_name: greengrass-accel
     image: public.ecr.aws/aws-iot-greengrass/aws-iot-greengrass-v2:latest
     ports:
@@ -27,7 +24,7 @@ services:
 
       # Default config for bootstrapping install and principals
       - ./volumes/config:/tmp/config/:ro
-      - ./certs:/tmp/certs:ro
+      - ./volumes/certs:/tmp/certs:ro
       # Optional: Use for running container-based components by mapping the
       # docker socket file from the root host (see README for changes needed to
       # AWS IoT Greengrass docker image)

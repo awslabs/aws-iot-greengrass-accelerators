@@ -25,6 +25,18 @@ group.add_argument(
     help="Clear all docker configuration files from volumes directories",
 )
 
+FILE_PATH_WARNING = """
+*************************************************************************
+*** WARNING!!! WARNING!!! WARNING!!! WARNING!!! WARNING!!! WARNING!!! ***
+***                                                                   ***
+*** The current location of the repository has too long of a file     ***
+*** path to successfully launch the docker container. The total       ***
+*** length must be less than 104 characters. Reduce the file path by  ***
+*** the value below, or the Greengrass service will not start.        ***
+***                                                                   ***
+*************************************************************************
+"""
+
 
 def replace(data: dict, match: str, repl):
     """Replace variable with replacement text"""
@@ -37,7 +49,14 @@ def replace(data: dict, match: str, repl):
 
 
 def verify_cwd():
-    """Verify in docker/ directory"""
+    """
+    Verify script is executed from docker/ directory,
+    also, BIG ALERT if target file path to:
+        docker/volumes/gg_root/v2/ipc.socket
+    is greater than 104 characters.
+
+    https://unix.stackexchange.com/questions/367008/why-is-socket-path-length-limited-to-a-hundred-chars
+    """
 
     # check for sibling level directories and ../cdk
     docker_assets_path = Path("./volumes")
@@ -46,6 +65,14 @@ def verify_cwd():
             f"Could not find directory './volumes/, run this script from the 'docker/' directory. 'python3 config_docker.py' "
         )
         sys.exit(1)
+    # Determine current file path length and determine if full path to ipc.socket
+    # From CWD addition characters to ipc.socket 37 characters
+    cwd = Path(".", "volumes/gg_root/ipc.socket")
+    if len(str(cwd.absolute())) > 104:
+        print(FILE_PATH_WARNING)
+        print(
+            f"********** Total current length is {len(str(cwd.absolute()))}, {len(str(cwd.absolute())) - 104} characters too long\n"
+        )
 
 
 def clean_config(dirs_to_clean: list):

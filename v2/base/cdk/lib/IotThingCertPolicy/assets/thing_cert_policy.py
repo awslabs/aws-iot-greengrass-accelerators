@@ -41,13 +41,13 @@ def create_resources(
     c_iot = get_aws_client("iot")
     c_ssm = get_aws_client("ssm")
 
-    response = {}
+    result = {}
 
-    # thing
+    # Create thing
     try:
-        result = c_iot.create_thing(thingName=thing_name)
-        response["ThingArn"] = result["thingArn"]
-        response["ThingName"] = result["thingName"]
+        response = c_iot.create_thing(thingName=thing_name)
+        result["ThingArn"] = response["thingArn"]
+        result["ThingName"] = response["thingName"]
     except ClientError as e:
         logger.error(f"Error creating thing {thing_name}, {e}")
         sys.exit(1)
@@ -91,33 +91,34 @@ def create_resources(
         .sign(key, hashes.SHA256(), default_backend())
     )
     try:
-        result = c_iot.create_certificate_from_csr(
+        response = c_iot.create_certificate_from_csr(
             certificateSigningRequest=str(
                 csr.public_bytes(serialization.Encoding.PEM), "utf-8"
             ),
             setAsActive=True,
         )
-        certificate_pem = result["certificatePem"]
-        response["CertificateArn"] = result["certificateArn"]
+        certificate_pem = response["certificatePem"]
+        result["CertificateArn"] = response["certificateArn"]
     except ClientError as e:
         logger.error(f"Error creating certificate, {e}")
         sys.exit(1)
 
     # policy
     try:
-        c_iot.create_policy(policyName=iot_policy_name, policyDocument=iot_policy)
+        response = c_iot.create_policy(
+            policyName=iot_policy_name, policyDocument=iot_policy
+        )
+        result["IotPolicyArn"] = response["policyArn"]
     except ClientError as e:
         logger.error(f"Error creating policy {iot_policy_name}, {e}")
         sys.exit(1)
 
     # attach cert-pol
     try:
-        c_iot.attach_policy(
-            policyName=iot_policy_name, target=response["CertificateArn"]
-        )
+        c_iot.attach_policy(policyName=iot_policy_name, target=result["CertificateArn"])
     except ClientError as e:
         logger.error(
-            f"Error attaching certificate {response['CertificateArn']} to policy {iot_policy_name}, {e}"
+            f"Error attaching certificate {result['CertificateArn']} to policy {iot_policy_name}, {e}"
         )
         sys.exit(1)
 
@@ -125,11 +126,11 @@ def create_resources(
     try:
         c_iot.attach_thing_principal(
             thingName=thing_name,
-            principal=response["CertificateArn"],
+            principal=result["CertificateArn"],
         )
     except ClientError as e:
         logger.error(
-            f"Error attaching certificate {response['CertificateArn']} to thing {thing_name}, {e}"
+            f"Error attaching certificate {result['CertificateArn']} to thing {thing_name}, {e}"
         )
         sys.exit(1)
 
@@ -138,23 +139,23 @@ def create_resources(
         parameter_private_key = f"/{stack_name}/{thing_name}/private_key"
         parameter_certificate_pem = f"/{stack_name}/{thing_name}/certificate_pem"
         # private key
-        result = c_ssm.put_parameter(
+        response = c_ssm.put_parameter(
             Name=parameter_private_key,
             Description=f"Certificate private key for IoT thing {thing_name}",
             Value=private_key,
             Type="SecureString",
             Tier="Advanced",
         )
-        response["PrivateKeySecretParameter"] = parameter_private_key
+        result["PrivateKeySecretParameter"] = parameter_private_key
         # certificate pem
-        result = c_ssm.put_parameter(
+        response = c_ssm.put_parameter(
             Name=parameter_certificate_pem,
             Description=f"Certificate PEM for IoT thing {thing_name}",
             Value=certificate_pem,
             Type="String",
             Tier="Advanced",
         )
-        response["CertificatePemParameter"] = parameter_certificate_pem
+        result["CertificatePemParameter"] = parameter_certificate_pem
     except ClientError as e:
         logger.error(f"Error creating secure string parameters, {e}")
         sys.exit(1)
@@ -163,21 +164,21 @@ def create_resources(
 
     # Get the IoT-Data endpoint
     try:
-        result = c_iot.describe_endpoint(endpointType="iot:Data-ATS")
-        response["DataAtsEndpointAddress"] = result["endpointAddress"]
+        response = c_iot.describe_endpoint(endpointType="iot:Data-ATS")
+        result["DataAtsEndpointAddress"] = response["endpointAddress"]
     except ClientError as e:
         logger.error(f"Could not obtain iot:Data-ATS endpoint, {e}")
-        response["DataAtsEndpointAddress"] = "stack_error: see log files"
+        result["DataAtsEndpointAddress"] = "stack_error: see log files"
 
     # Get the Credential Provider endpoint
     try:
-        result = c_iot.describe_endpoint(endpointType="iot:CredentialProvider")
-        response["CredentialProviderEndpointAddress"] = result["endpointAddress"]
+        response = c_iot.describe_endpoint(endpointType="iot:CredentialProvider")
+        result["CredentialProviderEndpointAddress"] = response["endpointAddress"]
     except ClientError as e:
         logger.error(f"Could not obtain iot:CredentialProvider endpoint, {e}")
-        response["CredentialProviderEndpointAddress"] = "stack_error: see log files"
+        result["CredentialProviderEndpointAddress"] = "stack_error: see log files"
 
-    return response
+    return result
 
 
 def delete_resources(
@@ -285,6 +286,7 @@ def handler(event, context):
             response_data = {
                 "ThingArn": resp["ThingArn"],
                 "CertificateArn": resp["CertificateArn"],
+                "IotPolicyArn": resp["IotPolicyArn"],
                 "PrivateKeySecretParameter": resp["PrivateKeySecretParameter"],
                 "CertificatePemParameter": resp["CertificatePemParameter"],
                 "DataAtsEndpointAddress": resp["DataAtsEndpointAddress"],

@@ -68,6 +68,7 @@ export interface IotThingCertPolicyProps {
 
 export class IotThingCertPolicy extends cdk.Construct {
   public readonly thingArn: string
+  public readonly iotPolicyArn: string
   public readonly certificateArn: string
   public readonly certificatePemParameter: string
   public readonly privateKeySecretParameter: string
@@ -172,6 +173,7 @@ export class IotThingCertPolicy extends cdk.Construct {
     this.certificatePemParameter = customResource.getAttString("CertificatePemParameter")
     this.privateKeySecretParameter = customResource.getAttString("PrivateKeySecretParameter")
     this.thingArn = customResource.getAttString("ThingArn")
+    this.iotPolicyArn = customResource.getAttString("IotPolicyArn")
     this.certificateArn = customResource.getAttString("CertificateArn")
     this.dataAtsEndpointAddress = customResource.getAttString("DataAtsEndpointAddress")
     this.credentialProviderEndpointAddress = customResource.getAttString("CredentialProviderEndpointAddress")

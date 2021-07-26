@@ -143,13 +143,14 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
 1.  Once the Cloud9 environment starts, follow [these steps](https://docs.aws.amazon.com/cloud9/latest/user-guide/move-environment.html#move-environment-resize) to resize the disk. Create the `resize.sh` file and run `bash resize.sh 40` to extend the disk to 40GiB.
 
-1.  _Pre-requisites_ (only needs be run once and the Cloud9 environment will reboot) - From the Cloud9 IDE, open a new _Terminal_ window and run these commands:
+1.  _Pre-requisites_ (only needs be run once and the Cloud9 environment will reboot) - From the Cloud9 IDE, open a new _Window->New Terminal_ window and run these commands:
 
     ```bash
     # Cloud9 Commands - change as needed for local development environment
     # Install pre-requisites, bootstrap CDK for use in account/region, and reboot
     npm uninstall -g cdk
     npm install -g aws-cdk@latest
+    npm install -g npm
     sudo yum install iptables-services -y
     # Bootstrap CDK for current AWS account and region where Cloud9 runs
     ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
@@ -163,16 +164,15 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     fs.protected_hardlinks = 1
     fs.protected_symlinks = 1
     EOF
-    # Allow access to Cloud9 instance for local Flask app
-    # Add inbound for port 80 to the flask app (80->8082)
-    sudo systemctl enable iptables
-    sudo /sbin/iptables -A PREROUTING -t nat -i eth0 -p tcp --dport 80 -j REDIRECT --to-port 8082
-    sudo service iptables save
-    aws ec2 authorize-security-group-ingress --group-name $(curl -s http://169.254.169.254/latest/meta-data/security-groups) --protocol tcp --port 80 --cidr 0.0.0.0/0
+    # Complete, reboot environment
     sudo reboot
     ```
 
 1.  Build and deploy. Once Cloud9 has restarted, issue these commands. If the terminal window is unresponsive, open a new one.
+
+    > **NOTE:** The first time `cdk deploy` is run, it will take longer as there are Docker images required to build some of the resources. You will see _a lot_ of Docker-related messages in your terminal session as it downloads and builds the initial resources. Subsequent runs will only take a few additional seconds.
+
+    Run each command separately to get an understanding
 
     ```bash
     # After reboot open a new terminal window and issue these commands
@@ -180,7 +180,9 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     cd ~/environment
     # Clone the repository
     git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
-    cd ~/environment/aws-iot-greengrass-accelerators/accelerators/stream_manager/cdk
+    # Change path to accelerator you wish to run. This accelerator, "base",
+    # is shown below
+    cd ~/environment/aws-iot-greengrass-accelerators/v2/base/cdk
 
     # Build and deploy the CDK (CloudFormation stack)
     npm install

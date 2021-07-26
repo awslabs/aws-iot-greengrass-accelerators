@@ -22,17 +22,21 @@ def get_aws_client(name):
 def create_iot_role_alias(role_alias_name, iam_role_arn):
     c_iot = get_aws_client("iot")
 
+    result = {}
+
     # Create IoT Role alias with IAM role
     try:
-        c_iot.create_role_alias(
+        response = c_iot.create_role_alias(
             roleAlias=role_alias_name,
             roleArn=iam_role_arn,
         )
+        response["RoleAliasArn"] = response["roleAliasArn"]
     except ClientError as e:
         logger.warning(
             f"Error calling iot.create_role_alias() for role alias {role_alias_name}, error: {e}"
         )
         sys.exit(1)
+    return response
 
 
 def delete_iot_role_alias(role_alias_name):
@@ -63,7 +67,7 @@ def handler(event, context):
                 role_alias_name=props["IotRoleAliasName"],
                 iam_role_arn=props["IamRoleArn"],
             )
-            response_data = {}
+            response_data = {"RoleAliasArn": response["RoleAliasArn"]}
         elif event["RequestType"] == "Update":
             logger.info("Request UPDATE")
             response_data = {}

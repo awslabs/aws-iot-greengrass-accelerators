@@ -123,9 +123,7 @@ export class IotRoleAlias extends cdk.Construct {
     // class public values
     this.iamRoleArn = iamRole.roleArn
     this.roleAliasName = props.iotRoleAliasName
-    this.roleAliasArn = `arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:rolealias/${
-      props.iotRoleAliasName
-    }`
+    this.roleAliasArn = customResource.getAttString("RoleAliasArn")
   }
 
   // Separate static function to create or return singleton provider

@@ -68,10 +68,10 @@ def verify_cwd():
     # Determine current file path length and determine if full path to ipc.socket
     # From CWD addition characters to ipc.socket 37 characters
     cwd = Path(".", "volumes/gg_root/ipc.socket")
-    if len(str(cwd.absolute())) > 104:
+    if len(str(cwd.absolute())) > 103:
         print(FILE_PATH_WARNING)
         print(
-            f"********** Total current length is {len(str(cwd.absolute()))}, {len(str(cwd.absolute())) - 104} characters too long\n"
+            f"********** Total current length is {len(str(cwd.absolute()))}, {len(str(cwd.absolute())) - 103} characters too long\n"
         )
 
 

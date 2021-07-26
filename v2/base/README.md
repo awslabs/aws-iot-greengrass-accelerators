@@ -58,54 +58,72 @@ This approach uses your local system for installation and running the accelerato
 <details>
 <summary>Click here to show/hide the steps to run locally</summary>
 <br>
-:bulb:These steps assume familiarity with installation of NPM/NPX,  Nodejs packages, Python, and working from the command line interface (CLI).
+
+> :bulb: These steps assume familiarity with installation of NPM/NPX, Nodejs packages, Python, and working from the command line interface (CLI).
 
 1. Install and bootstrap the CDK:
 
    ```bash
    npx install -g aws-cdk
    export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
-   # Set REGION to where the accelerator will be installed
+   # Set REGION to where the bootstrap resources will be deployed
    export CDK_DEPLOY_REGION=us-east-1
    cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/$CDK_DEPLOY_REGION
    ```
 
-1. Clone the repository, change into the `cdk/` directory, then build and deploy the CloudFormation stack:
+1. Clone the repository, change into the `cdk/` directory for the accelerator, then build and deploy the CloudFormation stack:
+
+   > **NOTE:** The first time `cdk deploy` is run, it will take longer as there are Docker images required to build some of the resources. You will see Docker-related messages in your terminal session. Subsequent runs will only take a few additional seconds.
 
    ```bash
    git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
    cd aws-iot-greengrass-accelerators/vs/base_implementation/cdk
-   npx install
-   npx run build
-   # replace PROFILE_NAME with your specific AWS CLI profile that has username and region
+   npm install
+   npm run build
+   # replace PROFILE_NAME with your specific AWS CLI profile that has username and region defined
    cdk --profile PROFILE_NAME deploy
    ```
 
-1. At this point the CloudFormation stack is deployed. Next, run the `deploy_resources.py` script, which will:
+   The result of a successful deployment will look like this:
+
+   ```bash
+    ✅  base-implementation
+
+   Outputs:
+   base-implementation.CertificatePemParameter = /base-implementation/base-implementation-greengrass-core-FAjEi5wg/certificate_pem
+   base-implementation.CredentialProviderEndpointAddress = c301XXXXXsf1qf.credentials.iot.us-west-2.amazonaws.com
+   base-implementation.DataAtsEndpointAddress = a2l4XXXXXfczky-ats.iot.us-west-2.amazonaws.com
+   base-implementation.IotRoleAliasName = base-implementation-GreengrassV2TokenExchangeRole-FAjEi5wg
+   base-implementation.PrivateKeySecretParameter = /base-implementation/base-implementation-greengrass-core-FAjEi5wg/private_key
+   base-implementation.ThingArn = arn:aws:iot:us-west-2:123456789012:thing/base-implementation-greengrass-core-FAjEi5wg
+   Stack ARN:
+   arn:aws:cloudformation:us-west-2:123456789012:stack/base-implementation/bc6f5210-ee18-11eb-a253-060b98b02c23
+   ```
+
+1. At this point the CloudFormation stack is deployed. Next, change to the `docker/` directory and run the configuration script (`python3 config_docker.py` script, which will:
 
    1. Read the local CDK output to determine the CloudFormation stack name
    1. From the CloudFormation stack output, read the values to:
-      1. Create the `config.json` file for Greengrass in the `stream_manager/gg_docker/config` directory
-      1. Create the `certificate.pem` and `private_key.pem` files in the `stream_manager/gg_docker/certs` directory
-   1. And finally upload the `stream_manager/docker_compose_stack/docker-compose.yml` file to the S3 directory referenced by the Greengrass Docker Application Deployment Connector.
+      1. Download and save the X.509 certificate, private key, and Amazon CA1 certificate to the `volumes/certs` directory
+      1. Using the stack outputs, generate and save an initial configuration file to `volumes/config`
 
    ```bash
-   python3 deploy_resources.py -p default
+   cd ../docker
+   # Use the same AWS CLI profile from above
+   python3 docker_config.py --profile PROFILE_NAME
    ```
 
-1. Next, change to the `stream_manager/gg_docker` directory and start Greengrass running as Docker container. If you intend to run Greengrass on a physical device, copy the contents of the `stream_manager/gg_docker/certs` and the `stream_manager/gg_docker/config` directories to your core (e.g., `/greengrass/certs` and `/greengrass/config`).
+1. Next, start the Greengrass core device. If you intend to run Greengrass on a physical device, copy the contents of the `volumes/certs` and the `volumes/config` directories to your physical device and provision and install Greengrass per the documentation.
+
+   > **NOTE:** The first time `docker compose up` is run, it will take longer to startup as Docker will need to download the AWS IoT Greengrass image. Subsequent runs will only take a few additional seconds.
 
    ```bash
-   cd ../gg_docker
-   # Build from the latest published version of Greengrass
-   docker pull amazon/aws-iot-greengrass:1.11.3-amazonlinux-x86-64
-   docker-compose build
-   docker-compose up -d
+   docker-compose up
    ```
 
-At this point, the CloudFormation stack has been deployed and the Greengrass container is running. The CloudFormation stack will also trigger an initial deployment of all resources to the Greengrass Core, so the Lambda functions, Stream Manager, and docker containers are also running.
+At this point, the CloudFormation stack has been deployed and the AWS IoT Greengrass container is running. Continue to the [Investigating the Accelerator](#investigating-the-accelerator) section for your accelerator for additional details.
 
-Greengrass will start to write files into the `gg_docker/log` directory, and the web interface to the Flask application can be locally accessed via http://localhost:8082 (IP address dependent on your local Docker process).
+The `volumes/gg_root` will contain the various Greengrass core device files. Of interest will be the log files located in `volumes/gg_root/logs`.
 
 </details>
 
@@ -115,9 +133,9 @@ Greengrass will start to write files into the `gg_docker/log` directory, and the
 <summary>Click here to show/hide the steps to run via AWS Cloud9</summary>
 <br>
 
-:bulb: All steps below use a Cloud9 IDE in the same account and region where the accelerator will be run. If running locally, ensure you have the AWS CLI installed, and change the AWS named profile from _default_ to one you have created with proper permissions.
+> :bulb: All steps below use a Cloud9 IDE in the same account and region where the accelerator will be run.
 
-Prior to launching the accelerator container locally, the AWS CDK is used to generate a CloudFormation template and deploy it. From Cloud9, follow the steps to create and launch the stack via the CDK.
+Prior to launching the accelerator container locally, the AWS CDK is used to generate a CloudFormation template and deploy it. From the AWS Cloud9 console, follow these steps to create and launch the stack via CDK.
 
 1.  Create a new Cloud9 IDE and make sure that **Amazon Linux 2** and **t3.small** are selected.
 
@@ -125,7 +143,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
 1.  Once the Cloud9 environment starts, follow [these steps](https://docs.aws.amazon.com/cloud9/latest/user-guide/move-environment.html#move-environment-resize) to resize the disk. Create the `resize.sh` file and run `bash resize.sh 40` to extend the disk to 40GiB.
 
-1.  _Pre-requisites_ (only needs be run once and the environment will reboot) - Open a new Terminal window and run these commands:
+1.  _Pre-requisites_ (only needs be run once and the Cloud9 environment will reboot) - From the Cloud9 IDE, open a new _Terminal_ window and run these commands:
 
     ```bash
     # Cloud9 Commands - change as needed for local development environment

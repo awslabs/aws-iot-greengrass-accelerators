@@ -10,7 +10,7 @@ All of the V2 accelerators are designed to deploy as a combination of AWS CloudF
 
 The current V2 accelerators are:
 
-- [Base Implementation](v2/base_implementation)
+- [Base Implementation](v2/base)
   - This repository deploys a single AWS IoT Greengrass core device as an AWS CDK constructed AWS CloudFormation stack. It also creates a single [component](https://docs.aws.amazon.com/greengrass/v2/developerguide/manage-components.html) and [deployment](https://docs.aws.amazon.com/greengrass/v2/developerguide/manage-deployments.html) for testing purposes.
 
 ## Accelerators for AWS IoT Greengrass V1

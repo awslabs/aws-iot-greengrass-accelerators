@@ -41,6 +41,12 @@ export interface IotThingCertPolicyProps {
    * @default - None
    */
   policyParameterMapping?: object
+  /**
+   * Selects RSA or ECC private key and certificate generation.
+   *
+   * @default - RSA
+   */
+  encryptionAlgorithm?: string
 }
 
 /**
@@ -81,6 +87,11 @@ export class IotThingCertPolicy extends cdk.Construct {
 
     const stackName = cdk.Stack.of(this).stackName
     // Validate and derive final values for resources
+    const encryptionAlgorithm = props.encryptionAlgorithm || "RSA"
+    if (!["RSA", "ECC"].includes(encryptionAlgorithm)) {
+      console.error("Invalid value for encyrptionAlgorithm, use either 'RSA' or 'ECC'.")
+      process.exitCode = 1
+    }
 
     // For the AWS Core policy, the template maps replacements from the
     // props.policyParameterMapping along with the following provided variables:
@@ -98,7 +109,8 @@ export class IotThingCertPolicy extends cdk.Construct {
         StackName: stackName,
         ThingName: props.thingName,
         IotPolicy: iotPolicy,
-        IoTPolicyName: props.iotPolicyName
+        IoTPolicyName: props.iotPolicyName,
+        EncryptionAlgorithm: encryptionAlgorithm
       }
     })
 

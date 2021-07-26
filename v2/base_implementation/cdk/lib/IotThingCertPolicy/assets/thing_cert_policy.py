@@ -11,6 +11,7 @@ from botocore.exceptions import ClientError
 from cryptography.hazmat.backends import default_backend
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.primitives.asymmetric import ec
+from cryptography.hazmat.primitives.asymmetric import rsa
 from cryptography import x509
 from cryptography.x509.oid import NameOID
 from cryptography.hazmat.primitives import hashes
@@ -28,7 +29,11 @@ def get_aws_client(name):
 
 
 def create_resources(
-    thing_name: str, iot_policy: str, iot_policy_name: str, stack_name: str
+    thing_name: str,
+    iot_policy: str,
+    iot_policy_name: str,
+    stack_name: str,
+    encryption_algo: str,
 ):
     """Create AWS IoT thing, certificate and attach certificate with policy and thing.
     Returns the Arns for the values and a Parameter Store Arn for the private key
@@ -47,9 +52,19 @@ def create_resources(
         logger.error(f"Error creating thing {thing_name}, {e}")
         sys.exit(1)
 
-    # cert
     # Create certificate and private key
-    key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
+    if encryption_algo == "ECC":
+        key = ec.generate_private_key(curve=ec.SECP256R1(), backend=default_backend())
+    elif encryption_algo == "RSA":
+        key = rsa.generate_private_key(
+            public_exponent=65537, key_size=4096, backend=default_backend()
+        )
+    else:
+        logger.error(
+            f"Should not get here. Encryption algorithm of 'ECC' or 'RSA' expected, received {encryption_algo}. Exiting"
+        )
+        sys.exit(1)
+
     private_key = key.private_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PrivateFormat.TraditionalOpenSSL,
@@ -128,7 +143,7 @@ def create_resources(
             Description=f"Certificate private key for IoT thing {thing_name}",
             Value=private_key,
             Type="SecureString",
-            Tier="Standard",
+            Tier="Advanced",
         )
         response["PrivateKeySecretParameter"] = parameter_private_key
         # certificate pem
@@ -262,6 +277,7 @@ def handler(event, context):
                 thing_name=props["ThingName"],
                 iot_policy=props["IotPolicy"],
                 iot_policy_name=props["IoTPolicyName"],
+                encryption_algo=props["EncryptionAlgorithm"],
                 stack_name=props["StackName"],
             )
 

@@ -4,5 +4,5 @@ Each folder contains an AWS IoT Greengrass accelerator based around common desig
 
 ## Accelerators for AWS IoT Greengrass Version 2
 
-- [Base Implementation](base_implementation)
+- [Base Implementation](base)
   - This repository deploys a single AWS IoT Greengrass core device as an AWS CDK constructed AWS CloudFormation stack. It also creates a single [component](https://docs.aws.amazon.com/greengrass/v2/developerguide/manage-components.html) and [deployment](https://docs.aws.amazon.com/greengrass/v2/developerguide/manage-deployments.html) for component and deployment testing.

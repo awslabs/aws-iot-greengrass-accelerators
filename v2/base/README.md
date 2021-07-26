@@ -1,6 +1,6 @@
 # AWS IoT Greengrass V2 Base Implementation
 
-This accelerator deploys a single instance of an AWS IoT Greengrass core device, an example component, and creates a deployment to the core device. Once completed and the local container started, a fully functional AWS IoT Greengrass environment will be running with developer tools included.
+This accelerator deploys a single instance of an AWS IoT Greengrass core device, an example component, and creates a deployment to the core device via a thing group. Once completed and the local container started, a fully functional AWS IoT Greengrass environment will be running.
 
 # Base Implementation Use Case
 
@@ -9,43 +9,47 @@ This accelerator deploys a single instance of an AWS IoT Greengrass core device,
 # Folder Structure
 
 ```text
-stream_manager/
-├── README.md                          <-- This file!
-├── cdk
-├── docker_compose_stack               <-- Compose stack to be managed by Greengrass
-│   ├── docker-compose.yml
-├── gg_docker                          <-- Creates Greengrass instance as container
-│   ├── Dockerfile-greengrass
-│   ├── certs
-│   ├── config
-│   ├── deployment
-│   ├── docker-compose.yml
-│   └── log
-├── docs
-└── test
+base
+├── README.md             <--- this file
+├── cdk                   <--- builds and deploys CloudFormation to cloud
+│   ├── bin
+│   ├── cdk.json
+│   ├── components
+│   ├── jest.config.js
+│   ├── lib
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── test
+│   └── tsconfig.json
+└── docker                <--- configures and runs Greengrass as a container
+    ├── config_docker.py
+    ├── templates
+    └── volumes
 ```
 
-There are two main components to using the accelerator. The `cdk/` directory contains the CDK assets to create the Greengrass configuration and long-lived Lambda functions as a _Greengrass deployment_.
+There are two main aspects to using the accelerator. First, from the `cdk/` directory is used to build and deploy a complete AWS IoT Greengrass stack in the cloud. Once complete, all resources exist in the cloud and are available for the next step which is configuring and running Greengrass locally.
 
-The `gg_docker/` directory container the assets to create a Docker image and run Greengrass as a container locally. It also has directories to hold the Greengrass configuration and credentials for the Greengrass Core, along with the log files.
+The second step is running commands from the `docker/` directory once the stack has been deployed. First, running `python config_docker.py` will populate the initial configuration file and download the credentials for AWS IoT Greengrass to run. Then, `docker compose up` will start the core device and complete the deployment of resources.
 
 # Deploying the Accelerator
 
-This accelerator is designed to deploy as a combination of AWS CloudFormation stacks in the cloud and as Docker containers on your local system or through [AWS Cloud9](https://aws.amazon.com/cloud9/). This provides a consistent and quick approach to testing or investigating functionality without impacting or leaving behind unneeded artifacts locally. To launch this accelerator as a Docker container, there are a few prerequisites and steps to complete. It is assumed you have basic experience with AWS IoT via the console and CLI.
+> **NOTE:** All accelerators use the same structure and steps to deploy, even if the actual output of the steps differ slightly.
+
+This accelerator is designed to deploy as a combination of AWS CloudFormation stacks in the cloud and run AWS IoT Greengrass as a Docker container on your local system or through [AWS Cloud9](https://aws.amazon.com/cloud9/). This provides a consistent and quick approach to testing or investigating functionality without impacting or leaving behind unneeded artifacts locally, or in the cloud. To launch this accelerator as a Docker container, there are a few prerequisites and steps to complete. It is assumed you have basic experience with AWS IoT via the console and have familiarity with the command line interface (CLI).
 
 ## Prerequisites
 
 The following is a list of prerequisites to deploy the accelerator:
 
-- Ensure you have an AWS user account with permissions to create and manage `iot`, `greengrass`, `lambda`, `cloudwatch`, and other services used by CloudFormation.
-- Install the AWS CLI locally and create a [named profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html) with credentials for the AWS user account. For Cloud9, there is a profile already created named _default_.
-- Install the [AWS Cloud Development Kit](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html) and perform a [bootstrap](https://docs.aws.amazon.com/cdk/latest/guide/troubleshooting.html#troubleshooting_nobucket) in the region you will be working.
-- Verify Docker Desktop for macOS or Microsoft Windows installed, or Docker Engine for Linux. Ensure you have the ability to create or download images locally and run containers.
+1. Ensure you have an AWS user account with permissions to create and manage resources. An Identity and Access Management (IAM) user with the [Administrator role](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_job-functions.html#jf_administrator) meets this requirement.
+1. Install the AWS CLI locally and create a [named profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html) with credentials for the AWS user account. For Cloud9, there is a profile already created named _default_ that will have your accounts permissions.
+1. Install the [AWS Cloud Development Kit](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html) and perform a [bootstrap](https://docs.aws.amazon.com/cdk/latest/guide/troubleshooting.html#troubleshooting_nobucket) in the region you will be deploying the accelerator.
+1. Verify Docker Desktop for macOS or Microsoft Windows installed, or Docker Engine for Linux. Ensure you have the ability to create or download Docker images locally and run containers. The [Docker Compose tool](https://docs.docker.com/compose/) is required, either from Docker Desktop or installed separately.
 
-There are two methods describe below:
+There are two installation and deployment methods outlines below:
 
-- If you are familiar with Nodejs, Python and working with the command line on your local system, select the _Create and Launch the Accelerator Locally_ method.
-- For all others, use the _Step-by-Step: Create and Launch the Accelerator via AWS Cloud9_ method.
+- If you are familiar with Nodejs, Python and working with the command line on your local system, select the [Create and Launch the Accelerator Locally](#create-and-launch-the-accelerator-locally) method.
+- For all others, use the [Step-by-Step: Create and Launch the Accelerator via AWS Cloud9](#step-by-step-create-and-launch-the-accelerator-via-aws-cloud9) method.
 
 ## Create and Launch the Accelerator Locally
 

@@ -23,6 +23,11 @@ The following architecture shows the process flow for deploying the accelerator.
 
 ![Base Implementation Process Steps](docs/arch1.svg)
 
+1. CDK is used locally to create the CloudFormation stack and deploy to the cloud.
+1. The stack creates all the resources for the accelerator. Of note, the _Deployment_ targets the _Thing Group_ where the Greengrass core device resides.
+1. Locally, the `config_docker.py` script is run to populate the _certs_ and _config_ directories from the local CDK stack and CloudFormation output in the cloud.
+1. When the local Docker container is started, it reads the configuration settings and then receives the _Deployment_ from the cloud.
+
 # Folder Structure
 
 ```text

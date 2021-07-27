@@ -1,10 +1,27 @@
 # AWS IoT Greengrass V2 Base Implementation
 
-This accelerator deploys a single instance of an AWS IoT Greengrass core device, an example component, and creates a deployment to the core device via a thing group. Once completed and the local container started, a fully functional AWS IoT Greengrass environment will be running.
+This is the base accelerator that deploys a single instance of an AWS IoT Greengrass core device and all supporting resources for operation, including:
+
+- Thing - Virtual representation of the Greengrass core device (along with certificate and private key)
+- Thing group - The thing is part of this group and the target for the Greengrass deployment
+- IoT Core role alias - Used by the credential provider to vend AWS credentials to Greengrass components
+- IAM role - Referred to by the role alias, contains the inline IAM policy of minimal permissions for the Greengrass core device
+- Greengrass component - An example component (recipe and artifacts) deployable to Greengrass cores. Part of the Greengrass deployment
+- Greengrass deployment - A list of public and private components targeting the members of the thing group
+
+Once this is fully deployed, a fully functional AWS IoT Greengrass environment will be running via a Docker container with the components deployed and running on the Greengrass core device.
+
+All other version 2 accelerators leverage the resources created by this stack, then extend them by creating additional components, a thing group specific to the other accelerators, and a deployment that targets the new thing group.
 
 # Base Implementation Use Case
 
+This accelerator demonstrates the ability to automate the creation and deployment of resources for a complete Greengrass implementation. It is a prerequisite for all other version 2 accelerators, utilizing the same Greengrass core device.
+
 # Design Pattern
+
+The following architecture shows the process flow for deploying the accelerator.
+
+![Base Implementation Process Steps](docs/arch1.svg)
 
 # Folder Structure
 
@@ -193,28 +210,19 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     python3 deploy_resources.py -p default
 
     # Build and start the Greengrass docker container
-    cd ../gg_docker
-    docker pull amazon/aws-iot-greengrass:1.11.3-amazonlinux-x86-64
-    docker-compose build
-    docker-compose up -d
-
-    # Get the IP address for accessing the Flask docker container once it is operational
-    MY_IP=$(curl -s ifconfig.co)
-    echo "This is the URL to access the Flask Container: http://$MY_IP"
-    # Done!
+    cd ../docker
+    docker-compose up
     ```
 
-1.  At this point, the CloudFormation stack has been deployed and the Greengrass container is running. The CloudFormation stack will also trigger an initial deployment of all resources to the Greengrass Core, so the Lambda functions, Stream Manager, and docker containers are also running.
-
-    Greengrass will start to write files into the `gg_docker/log` directory, and the web interface to the Flask application can be accessed via the returned URL on the _This is the URL to access..._ line above.
+1.  At this point, the CloudFormation stack has been deployed and the Greengrass container is running as a fore ground process in the terminal. The CloudFormation stack will also trigger an initial deployment of all resources to the Greengrass Core, so the Lambda functions, Stream Manager, and docker containers are also running.
 
 1.  :exclamation: The Docker containers run as the root process in Cloud9 (and other Linux environments). If you wish to look at log or deployment files locally, it is easiest to launch another terminal tab and set the user to root:
 
     ```bash
     sudo su -
-    cd ~ec2-user/environment/aws-iot-greengrass-accelerators/accelerators/stream_manager/gg_docker/
+    cd /home/ec2-user/environment/aws-iot-greengrass-accelerators/v2/base/docker/gg_root/logs
     # You can now cat|more|less|tail files from here
-    tail -F log/system/runtime.log
+    tail -F greengrass.log
     ...
     ```
 
@@ -222,15 +230,15 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
 ## Investigating the Accelerator
 
-TODO: Information on what, why, and how the accelerator works by subsection.
+As a base accelerator, the main interaction with this accelerator is to ensure it is running correctly, understand the directory structure, and access various log files. You can review the output of the _Hello World_ example component by looking at the contents of the log file in `docker/volumes/logs/ggAccel.example.HelloWorld.log`.
+
+Other accelerators use this stack's resources to build additional Greengrass components and deployments and a thing group. When the Docker container is restarted the Greengrass core device will merge all deployments into a single one.
 
 ## Accelerator Cleanup
 
-TODO: common steps for clean up and then add specifics for accelerator.
-
 To stop and completely remove this accelerator, follow these steps:
 
-1. From the command line, either locally on in Cloud 9, stop the Greengrass container:
+1. From the command line where Greengrass is running (the `docker-compose` command was started), either locally on in Cloud 9, stop the Greengrass container byt entering CTRL+C and then:
 
    ```bash
    docker-compose down
@@ -248,9 +256,7 @@ To stop and completely remove this accelerator, follow these steps:
 
    If there are any errors abut not being able to completely destroy the stack, review the error messages and resolve. In most cases it will be related to assets that may have been modified. Once resolve, run the `cdk destroy` command again, or delete the stack from the CloudFormation console.
 
-   Also, at this point the certificate and private key are no longer valid in the Greengrass `certs/` directory. If you wish to redeploy the stack, clear out all of the `certs/` and `config/` directories,
-
-1. If you created any assets that references or used AWS IoT Analytics or Amazon Kinesis Data Streams such as a Kinesis Analytics Application, delete these also.
+   Also, at this point the certificate and private key are no longer valid in the Greengrass `docker/volumes/certs` directory. If you wish to redeploy the stack, you can run the `python3 config_docker.py --clean` command to remove all configuration and Greengrass files.
 
 1. Review any CloudWatch Logs log groups and delete these if needed.
 

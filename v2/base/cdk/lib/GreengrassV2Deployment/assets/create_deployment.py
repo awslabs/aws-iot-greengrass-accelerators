@@ -111,3 +111,4 @@ def handler(event, context):
         return output
     except Exception as e:
         logger.exception(e)
+        sys.exit(1)

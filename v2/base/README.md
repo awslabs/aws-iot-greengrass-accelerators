@@ -87,10 +87,12 @@ This approach uses your local system for installation and running the accelerato
 
    ```bash
    npx install -g aws-cdk
-   export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+   # replace PROFILE_NAME with your specific AWS CLI profile that has username and region defined
+   export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity --profile PROFILE_NAME --query Account --output text)
    # Set REGION to where the bootstrap resources will be deployed
    export CDK_DEPLOY_REGION=us-east-1
-   cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/$CDK_DEPLOY_REGION
+   # replace PROFILE_NAME with your specific AWS CLI profile that has username and region defined
+   cdk --profile PROFILE_NAME bootstrap aws://$CDK_DEPLOY_ACCOUNT/$CDK_DEPLOY_REGION
    ```
 
 1. Clone the repository, change into the `cdk/` directory for the accelerator, then build and deploy the CloudFormation stack:
@@ -209,17 +211,17 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     # Build and deploy the CDK (CloudFormation stack)
     npm install
     npm run build
-    cdk --profile default deploy
+    cdk deploy
 
     # Acknowledge the creation above, then run
-    python3 deploy_resources.py -p default
+    python3 deploy_resources.py
 
     # Build and start the Greengrass docker container
     cd ../docker
     docker-compose up
     ```
 
-1.  At this point, the CloudFormation stack has been deployed and the Greengrass container is running as a fore ground process in the terminal. The CloudFormation stack will also trigger an initial deployment of all resources to the Greengrass Core, so the Lambda functions, Stream Manager, and docker containers are also running.
+1.  At this point, the CloudFormation stack has been deployed and the Greengrass container is running as a foreground process in the terminal. The CloudFormation stack will also trigger an initial deployment of all resources to the Greengrass Core, so the Lambda functions, Stream Manager, and docker containers are also running.
 
 1.  :exclamation: The Docker containers run as the root process in Cloud9 (and other Linux environments). If you wish to look at log or deployment files locally, it is easiest to launch another terminal tab and set the user to root:
 
@@ -254,7 +256,7 @@ To stop and completely remove this accelerator, follow these steps:
    ```bash
    cd ../cdk
    # For Cloud9
-   cdk --profile default destroy
+   cdk destroy
    # For locally running (replace PROFILE_NAME with one used to create stack)
    cdk --profile PROFILE_NAME destroy
    ```

@@ -7,6 +7,20 @@ import * as logs from "@aws-cdk/aws-logs"
 import * as iam from "@aws-cdk/aws-iam"
 import * as cr from "@aws-cdk/custom-resources"
 import * as lambda from "@aws-cdk/aws-lambda"
+import { CompositeAlarm } from "@aws-cdk/aws-cloudwatch"
+
+/**
+ * @summary A component definition
+ */
+export interface Component {
+  [componentName: string]: {
+    componentVersion: string
+    configurationUpdate?: {
+      merge?: string
+      reset?: string
+    }
+  }
+}
 
 /**
  * @summary The properties for the GreengrassCreateDeployment class.
@@ -30,7 +44,7 @@ export interface GreengrassV2DeploymentProps {
    *
    * @default - None
    */
-  readonly components: any
+  readonly component: Component
   /**
    * Optional IoT job configuration
    * TODO - define interface and logic
@@ -72,6 +86,7 @@ export class GreengrassV2Deployment extends cdk.Construct {
   public readonly iotJobArn: string
 
   private customResourceName = "GreengrassV2DeploymentFunction"
+  private componentList: Component = {}
 
   /**
    *
@@ -85,6 +100,7 @@ export class GreengrassV2Deployment extends cdk.Construct {
     super(scope, id)
 
     const stackName = cdk.Stack.of(this).stackName
+    this.componentList = props.component
 
     // Validate and derive final values for resources
 
@@ -95,7 +111,8 @@ export class GreengrassV2Deployment extends cdk.Construct {
         StackName: stackName,
         TargetArn: props.targetArn,
         DeploymentName: props.deploymentName,
-        Components: props.components,
+        // object of objects { "compA": {..}, "compB": {...} }
+        Components: this.componentList,
         IotJobExecution: props.iotJobConfiguration || {},
         DeploymentPolicies: props.deploymentPolicies || {},
         Tags: props.tags || {}
@@ -129,6 +146,17 @@ export class GreengrassV2Deployment extends cdk.Construct {
     this.deploymentId = customResource.getAttString("DeploymentId")
     this.iotJobId = customResource.getAttString("IotJobId")
     this.iotJobArn = customResource.getAttString("IotJobArn")
+  }
+
+  public addComponent = (component: Component) => {
+    Object.keys(component).forEach((key) => {
+      if (key in this.componentList) {
+        console.error("Duplicate components not allowed. Component ", key, " already part of deployment.")
+        process.exitCode = 1
+      } else {
+        this.componentList[key] = component[key]
+      }
+    })
   }
 
   // Separate static function to create or return singleton provider

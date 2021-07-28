@@ -142,11 +142,12 @@ export class BaseImplementationStack extends cdk.Stack {
     })
 
     // Create the deployment with AWS public and stack components, target the thing group
+    // and add the components/version/updates
     const greengrassDeployment = new GreengrassV2Deployment(this, "GreengrassDeployment", {
       targetArn: deploymentGroup.thingGroupArn,
       deploymentName: `${this.stackName} - Example deployment`,
-      components: {
-        // stack component(s)
+      component: {
+        // accelerator component(s)
         [helloWorldComponent.componentName]: {
           componentVersion: helloWorldComponent.componentVersion,
           configurationUpdate: {
@@ -154,21 +155,25 @@ export class BaseImplementationStack extends cdk.Stack {
               Message: "Welcome from the Greengrass accelerator stack"
             })
           }
-        },
-        // public components
-        "aws.greengrass.Nucleus": {
-          componentVersion: "2.3.0"
-        },
-        "aws.greengrass.Cli": {
-          componentVersion: "2.3.0"
-        },
-        "aws.greengrass.LocalDebugConsole": {
-          componentVersion: "2.2.1",
-          configurationUpdate: {
-            merge: JSON.stringify({
-              httpsEnabled: "httpsEnabled"
-            })
-          }
+        }
+      }
+    })
+    // Add core public components
+    greengrassDeployment.addComponent({
+      "aws.greengrass.Nucleus": {
+        componentVersion: "2.3.0"
+      },
+      "aws.greengrass.Cli": {
+        componentVersion: "2.3.0"
+      }
+    })
+    greengrassDeployment.addComponent({
+      "aws.greengrass.LocalDebugConsole": {
+        componentVersion: "2.2.1",
+        configurationUpdate: {
+          merge: JSON.stringify({
+            httpsEnabled: "false"
+          })
         }
       }
     })

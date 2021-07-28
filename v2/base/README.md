@@ -87,7 +87,8 @@ This approach uses your local system for installation and running the accelerato
 
    ```bash
    npx install -g aws-cdk
-   export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+   # replace PROFILE_NAME with your specific AWS CLI profile that has username and region defined
+   export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity --profile PROFILE_NAME --query Account --output text)
    # Set REGION to where the bootstrap resources will be deployed
    export CDK_DEPLOY_REGION=us-east-1
    cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/$CDK_DEPLOY_REGION

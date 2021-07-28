@@ -256,7 +256,7 @@ To stop and completely remove this accelerator, follow these steps:
    ```bash
    cd ../cdk
    # For Cloud9
-   cdk --profile default destroy
+   cdk destroy
    # For locally running (replace PROFILE_NAME with one used to create stack)
    cdk --profile PROFILE_NAME destroy
    ```

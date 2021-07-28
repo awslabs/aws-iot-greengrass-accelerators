@@ -214,14 +214,14 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     cdk deploy
 
     # Acknowledge the creation above, then run
-    python3 deploy_resources.py -p default
+    python3 deploy_resources.py
 
     # Build and start the Greengrass docker container
     cd ../docker
     docker-compose up
     ```
 
-1.  At this point, the CloudFormation stack has been deployed and the Greengrass container is running as a fore ground process in the terminal. The CloudFormation stack will also trigger an initial deployment of all resources to the Greengrass Core, so the Lambda functions, Stream Manager, and docker containers are also running.
+1.  At this point, the CloudFormation stack has been deployed and the Greengrass container is running as a foreground process in the terminal. The CloudFormation stack will also trigger an initial deployment of all resources to the Greengrass Core, so the Lambda functions, Stream Manager, and docker containers are also running.
 
 1.  :exclamation: The Docker containers run as the root process in Cloud9 (and other Linux environments). If you wish to look at log or deployment files locally, it is easiest to launch another terminal tab and set the user to root:
 

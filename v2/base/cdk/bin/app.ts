@@ -6,7 +6,7 @@ import * as cdk from "@aws-cdk/core"
 import { BaseImplementationStack } from "../lib/BaseImplementationStack"
 
 const app = new cdk.App()
-const name = process.env.STACK_NAME || "base-implementation"
+const name = process.env.STACK_NAME || "gg-accel-base"
 
 new BaseImplementationStack(app, name, {
   env: {

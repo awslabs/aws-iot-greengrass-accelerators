@@ -1,6 +1,6 @@
 {
-  "name": "ggv2-base-implementation",
-  "version": "0.1.0",
+  "name": "ggv2-accelerator-base",
+  "version": "0.5.0",
   "license": "MIT",
   "bin": {
     "cdk": "bin/app.js"

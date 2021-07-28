@@ -25,10 +25,14 @@ export class SsmComponentStack extends cdk.Stack {
 
     // Layered constructs - each constructs derived values can be used for subsequent constructs
 
-    // update iot policy with any needed permissions -- remove policy permissions or just leave?
+    // ** stack create steps ** -- ** stack delete steps **
+    // create new iot policy -- delete policy and any versions
+    // derive thingName from thingArn and pass as policy mapping object
+
+    // attach policy to certificate -- detach certificate from policy
     // add inline policy to iamRole -- remove inline policy by name
     // create thingGroup and add thing to it -- delete group
-    // create components -- delete component
+    // create components -- delete components
     // create deployment -- cancel deployment
 
     // ************ End of CDK Constructs / stack - Supporting functions below ************

@@ -15,15 +15,9 @@ export interface Mapping {
 }
 
 /**
- * @summary The properties for the IotThingCertPolicy class.
+ * @summary The properties for the IotPolicyProps class.
  */
-export interface IotThingCertPolicyProps {
-  /**
-   * Name of AWS IoT thing to create.
-   *
-   * @default - None
-   */
-  thingName: string
+export interface IotPolicyProps {
   /**
    * Name of the AWS IoT Core policy to create.
    *
@@ -44,25 +38,20 @@ export interface IotThingCertPolicyProps {
    *
    * @default - None
    */
-  policyParameterMapping?: Mapping
+  policyParameterMapping?: object
   /**
-   * Selects RSA or ECC private key and certificate generation.
+   * Certificate Arn to which to attach the policy
    *
-   * @default - RSA
+   * @default - None
    */
-  encryptionAlgorithm?: string
+  certificateArn?: string
 }
 
 /**
- * This construct creates an AWS IoT thing, IoT certificate, and IoT policy.
- * It attaches the certificate to the thing and policy, and stores the
- * certificate private key into an AWS Systems Manager Parameter Store
- * string for reference outside of the CloudFormation stack.
+ * This construct creates an IoT policy and optionally attaches it to
+ * an existing IoT certificate principal.
  *
- * Use this construct to create and delete a thing, principal, and policy for
- * testing or other singular uses.
- *
- * @summary Creates and associates an AWS IoT thing, certificate and policy.
+ * @summary Creates an AWS IoT policy and optionally attached it to a certificate.
  *
  */
 
@@ -70,7 +59,7 @@ export interface IotThingCertPolicyProps {
  * @ summary The IotThingCertPolicy class.
  */
 
-export class IotThingCertPolicy extends cdk.Construct {
+export class IotPolicy extends cdk.Construct {
   public readonly thingArn: string
   public readonly iotPolicyArn: string
   public readonly certificateArn: string
@@ -78,7 +67,7 @@ export class IotThingCertPolicy extends cdk.Construct {
   public readonly privateKeySecretParameter: string
   public readonly dataAtsEndpointAddress: string
   public readonly credentialProviderEndpointAddress: string
-  private customResourceName = "IotThingCertPolicyFunction"
+  private customResourceName = "IotPolicyFunction"
 
   /**
    * @summary Constructs a new instance of the IotThingCertPolicy class.
@@ -87,48 +76,29 @@ export class IotThingCertPolicy extends cdk.Construct {
    * @param {IotThingCertPolicyProps} props - user provided props for the construct.
    * @since 1.114.0
    */
-  constructor(scope: cdk.Construct, id: string, props: IotThingCertPolicyProps) {
+  constructor(scope: cdk.Construct, id: string, props: IotPolicyProps) {
     super(scope, id)
 
     const stackName = cdk.Stack.of(this).stackName
     // Validate and derive final values for resources
-    const encryptionAlgorithm = props.encryptionAlgorithm || "RSA"
-    if (!["RSA", "ECC"].includes(encryptionAlgorithm)) {
-      console.error("Invalid value for encryptionAlgorithm, use either 'RSA' or 'ECC'.")
-      process.exitCode = 1
-    }
 
     // For the AWS Core policy, the template maps replacements from the
     // props.policyParameterMapping along with the following provided variables:
-    // thingname  - used as: <% thingname %>
-    let policyParameters = props.policyParameterMapping || {}
-    policyParameters.thingname = props.thingName
-
-    // lodash that creates template then applies the mapping
     var policyTemplate = _.template(props.iotPolicy)
-    var iotPolicy = policyTemplate(policyParameters)
+    var iotPolicy = policyTemplate(props.policyParameterMapping)
 
-    const provider = IotThingCertPolicy.getOrCreateProvider(this, this.customResourceName)
+    const provider = IotPolicy.getOrCreateProvider(this, this.customResourceName)
     const customResource = new cdk.CustomResource(this, this.customResourceName, {
       serviceToken: provider.serviceToken,
       properties: {
         StackName: stackName,
-        ThingName: props.thingName,
         IotPolicy: iotPolicy,
         IoTPolicyName: props.iotPolicyName,
-        EncryptionAlgorithm: encryptionAlgorithm
+        CertificateArn: props.certificateArn
       }
     })
 
     // Custom resource Lambda role permissions
-    // Permissions to act on thing, certificate, and policy
-    provider.onEventHandler.role?.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ["iot:CreateThing", "iot:DeleteThing"],
-        resources: [`arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:thing/${props.thingName}`]
-      })
-    )
-
     // Create and delete specific policy
     provider.onEventHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
@@ -138,50 +108,16 @@ export class IotThingCertPolicy extends cdk.Construct {
         ]
       })
     )
-
-    // Create SSM parameter
-    provider.onEventHandler.role?.addToPrincipalPolicy(
-      new iam.PolicyStatement({
-        actions: ["ssm:DeleteParameters", "ssm:PutParameter"],
-        resources: [
-          `arn:${cdk.Fn.ref("AWS::Partition")}:ssm:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:parameter/${stackName}/${
-            props.thingName
-          }/private_key`,
-          `arn:${cdk.Fn.ref("AWS::Partition")}:ssm:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:parameter/${stackName}/${
-            props.thingName
-          }/certificate_pem`
-        ]
-      })
-    )
-
     // Actions without resource types
     provider.onEventHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: [
-          "iot:AttachPolicy",
-          "iot:AttachThingPrincipal",
-          "iot:CreateCertificateFromCsr",
-          "iot:DeleteCertificate",
-          "iot:DescribeEndpoint",
-          "iot:DetachPolicy",
-          "iot:DetachThingPrincipal",
-          "iot:ListAttachedPolicies",
-          "iot:ListPrincipalThings",
-          "iot:ListThingPrincipals",
-          "iot:UpdateCertificate"
-        ],
+        actions: ["iot:AttachPolicy", "iot:DetachPolicy", "iot:ListAttachedPolicies", "iot:UpdateCertificate"],
         resources: ["*"]
       })
     )
 
     // class public values
-    this.certificatePemParameter = customResource.getAttString("CertificatePemParameter")
-    this.privateKeySecretParameter = customResource.getAttString("PrivateKeySecretParameter")
-    this.thingArn = customResource.getAttString("ThingArn")
     this.iotPolicyArn = customResource.getAttString("IotPolicyArn")
-    this.certificateArn = customResource.getAttString("CertificateArn")
-    this.dataAtsEndpointAddress = customResource.getAttString("DataAtsEndpointAddress")
-    this.credentialProviderEndpointAddress = customResource.getAttString("CredentialProviderEndpointAddress")
   }
 
   // Separate static function to create or return singleton provider

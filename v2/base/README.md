@@ -211,7 +211,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     # Build and deploy the CDK (CloudFormation stack)
     npm install
     npm run build
-    cdk --profile default deploy
+    cdk deploy
 
     # Acknowledge the creation above, then run
     python3 deploy_resources.py -p default

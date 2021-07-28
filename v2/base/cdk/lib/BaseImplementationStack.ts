@@ -22,6 +22,7 @@ export class BaseImplementationStack extends cdk.Stack {
     }
     // suffix to use for all stack resources to make unique
     // In this stack all resources will use the format STACKNAME-RESOURCENAME-RANDOMSUFFIX
+    const stackName = cdk.Stack.of(this).stackName
     const stackRandom: string = makeid(8)
 
     // Layered constructs - each constructs derived values can be used for subsequent constructs
@@ -183,35 +184,33 @@ export class BaseImplementationStack extends cdk.Stack {
       value: greengrassRoleAlias.roleAliasName
     })
     new cdk.CfnOutput(this, "ThingArn", {
-      exportName: "ThingArn",
+      exportName: `${stackName}-ThingArn`,
       value: iotThingCertPol.thingArn
     })
     new cdk.CfnOutput(this, "IotPolicyArn", {
-      exportName: "IotPolicyArn",
       value: iotThingCertPol.iotPolicyArn
     })
     new cdk.CfnOutput(this, "RoleAliasArn", {
-      exportName: "RoleAliasArn",
       value: greengrassRoleAlias.roleAliasArn
     })
     new cdk.CfnOutput(this, "IamRoleArn", {
-      exportName: "IamRoleArn",
+      exportName: `${stackName}-IamRoleArn`,
       value: greengrassRoleAlias.iamRoleArn
     })
+    new cdk.CfnOutput(this, "CertificateArn", {
+      exportName: `${stackName}-CertificateArn`,
+      value: iotThingCertPol.certificateArn
+    })
     new cdk.CfnOutput(this, "CertificatePemParameter", {
-      // exportName: "CertificatePemParameter",
       value: iotThingCertPol.certificatePemParameter
     })
     new cdk.CfnOutput(this, "PrivateKeySecretParameter", {
-      // exportName: "PrivateKeySecretParameter",
       value: iotThingCertPol.privateKeySecretParameter
     })
     new cdk.CfnOutput(this, "DataAtsEndpointAddress", {
-      // exportName: "DataAtsEndpointAddress",
       value: iotThingCertPol.dataAtsEndpointAddress
     })
     new cdk.CfnOutput(this, "CredentialProviderEndpointAddress", {
-      // exportName: "DataAtsEndpointAddress",
       value: iotThingCertPol.credentialProviderEndpointAddress
     })
 

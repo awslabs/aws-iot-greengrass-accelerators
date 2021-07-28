@@ -1,9 +1,9 @@
 import { expect as expectCDK, matchTemplate, MatchStyle, SynthUtils } from "@aws-cdk/assert"
 import * as cdk from "@aws-cdk/core"
-import { BaseImplementationStack } from "../lib/BaseImplementationStack"
+import { SsmComponentStack } from "../lib/SsmComponentStack"
 
 const scope = new cdk.Stack()
-const _stack = new BaseImplementationStack(scope, "mystack", {})
+const _stack = new SsmComponentStack(scope, "mystack", {})
 const stack = SynthUtils.toCloudFormation(scope)
 
 test("create the stack", () => {

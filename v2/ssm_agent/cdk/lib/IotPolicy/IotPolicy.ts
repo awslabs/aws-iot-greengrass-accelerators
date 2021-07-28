@@ -70,11 +70,11 @@ export class IotPolicy extends cdk.Construct {
   private customResourceName = "IotPolicyFunction"
 
   /**
-   * @summary Constructs a new instance of the IotThingCertPolicy class.
+   * @summary Constructs a new instance of the IotPolicy class.
    * @param {cdp.App} scope - represents the scope for all the resources.
    * @param {string} id - this is a scope-unique id.
-   * @param {IotThingCertPolicyProps} props - user provided props for the construct.
-   * @since 1.114.0
+   * @param {IotPolicyProps} props - user provided props for the construct.
+   * @since 1.116.0
    */
   constructor(scope: cdk.Construct, id: string, props: IotPolicyProps) {
     super(scope, id)
@@ -127,15 +127,9 @@ export class IotPolicy extends cdk.Construct {
     const existing = stack.node.tryFindChild(uniqueId) as cr.Provider
 
     if (existing === undefined) {
-      // const createThingFn = new lambda.Function(stack, `${uniqueId}-Provider`, {
-      //   runtime: lambda.Runtime.PYTHON_3_8,
-      //   timeout: cdk.Duration.minutes(1),
-      //   handler: "thing_cert_policy.handler",
-      //   code: lambda.Code.fromAsset(path.join(__dirname, "assets"))
-      // })
-      const createThingFn = new PythonFunction(stack, `${uniqueId}-Provider`, {
-        entry: path.join(__dirname, "assets"),
-        index: "thing_cert_policy.py",
+      const createThingFn = new lambda.Function(stack, `${uniqueId}-Provider`, {
+        handler: "iot_policy.handler",
+        code: lambda.Code.fromAsset(path.join(__dirname, "assets")),
         runtime: lambda.Runtime.PYTHON_3_8,
         timeout: cdk.Duration.minutes(1),
         logRetention: logs.RetentionDays.ONE_MONTH

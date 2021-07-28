@@ -191,12 +191,6 @@ export class IotThingCertPolicy extends cdk.Construct {
     const existing = stack.node.tryFindChild(uniqueId) as cr.Provider
 
     if (existing === undefined) {
-      // const createThingFn = new lambda.Function(stack, `${uniqueId}-Provider`, {
-      //   runtime: lambda.Runtime.PYTHON_3_8,
-      //   timeout: cdk.Duration.minutes(1),
-      //   handler: "thing_cert_policy.handler",
-      //   code: lambda.Code.fromAsset(path.join(__dirname, "assets"))
-      // })
       const createThingFn = new PythonFunction(stack, `${uniqueId}-Provider`, {
         entry: path.join(__dirname, "assets"),
         index: "thing_cert_policy.py",

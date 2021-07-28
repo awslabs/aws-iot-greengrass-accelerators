@@ -91,7 +91,8 @@ This approach uses your local system for installation and running the accelerato
    export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity --profile PROFILE_NAME --query Account --output text)
    # Set REGION to where the bootstrap resources will be deployed
    export CDK_DEPLOY_REGION=us-east-1
-   cdk bootstrap aws://$CDK_DEPLOY_ACCOUNT/$CDK_DEPLOY_REGION
+   # replace PROFILE_NAME with your specific AWS CLI profile that has username and region defined
+   cdk --profile PROFILE_NAME bootstrap aws://$CDK_DEPLOY_ACCOUNT/$CDK_DEPLOY_REGION
    ```
 
 1. Clone the repository, change into the `cdk/` directory for the accelerator, then build and deploy the CloudFormation stack:

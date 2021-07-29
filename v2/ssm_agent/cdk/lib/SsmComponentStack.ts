@@ -1,8 +1,11 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
-import * as path from "path"
 import * as cdk from "@aws-cdk/core"
+import * as iam from "@aws-cdk/aws-iam"
+import { IotPolicy } from "./IotPolicy/IotPolicy"
+import { IotThingGroup } from "../../../base/cdk/lib/IotThingGroup/IotThingGroup"
+import * as myConst from "./Constants"
 
 export class SsmComponentStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
@@ -25,13 +28,53 @@ export class SsmComponentStack extends cdk.Stack {
 
     // Layered constructs - each constructs derived values can be used for subsequent constructs
 
-    // ** stack create steps ** -- ** stack delete steps **
-    // create new iot policy -- delete policy and any versions
-    // derive thingName from thingArn and pass as policy mapping object
+    // Create IoT policy and attach to certificate
+    const ssmAgentPolicyName = fullResourceName({
+      stackName: cdk.Stack.of(this).stackName,
+      baseName: "ssm-agent-component",
+      suffix: stackRandom,
+      resourceRegex: "\\w+=,.@-",
+      maxLength: 128
+    })
+    const iotPolicy = new IotPolicy(this, "SsmIoTPolicy", {
+      iotPolicyName: ssmAgentPolicyName,
+      iotPolicy: myConst.ssmAgentIoTPolicy,
+      certificateArn: certificateArn,
+      policyParameterMapping: {
+        thingname: thingArn.split("/").slice(-1)[0],
+        region: cdk.Fn.ref("AWS::Region"),
+        account: cdk.Fn.ref("AWS::AccountId")
+      }
+    })
+    // Add an inline policy to the IAM role used by the IoT role alias
+    const ssmAgentInlinePolicy = new iam.Policy(this, "SsmAgentPolicy", {
+      policyName: "SsmAgentAccelerator",
+      statements: [
+        new iam.PolicyStatement({
+          effect: iam.Effect.ALLOW,
+          actions: ["ssm:*"],
+          resources: ["*"]
+        })
+      ]
+    })
+    const sourceRole = iam.Role.fromRoleArn(this, "SourceRole", iamRoleArn, {
+      mutable: true
+    })
+    sourceRole.attachInlinePolicy(ssmAgentInlinePolicy)
 
-    // attach policy to certificate -- detach certificate from policy
-    // add inline policy to iamRole -- remove inline policy by name
-    // create thingGroup and add thing to it -- delete group
+    // Define stack-specific name of the IoT thing group
+    const groupName = fullResourceName({
+      stackName: cdk.Stack.of(this).stackName,
+      baseName: "ssm-agent-accelerator",
+      suffix: stackRandom,
+      resourceRegex: "a-zA-Z0-9:_-",
+      maxLength: 128
+    })
+    // Create thing group as deployment target and add the thing
+    const deploymentGroup = new IotThingGroup(this, "DeploymentGroup", {
+      thingGroupName: groupName
+    })
+    deploymentGroup.addThing(thingArn)
     // create components -- delete components
     // create deployment -- cancel deployment
 

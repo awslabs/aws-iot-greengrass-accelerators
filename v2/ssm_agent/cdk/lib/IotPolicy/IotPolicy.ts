@@ -8,7 +8,6 @@ import * as logs from "@aws-cdk/aws-logs"
 import * as iam from "@aws-cdk/aws-iam"
 import * as cr from "@aws-cdk/custom-resources"
 import * as lambda from "@aws-cdk/aws-lambda"
-import { PythonFunction } from "@aws-cdk/aws-lambda-python"
 
 export interface Mapping {
   [keys: string]: string

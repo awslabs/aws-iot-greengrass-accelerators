@@ -1,8 +1,10 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
+import * as path from "path"
 import * as cdk from "@aws-cdk/core"
 import * as iam from "@aws-cdk/aws-iam"
+import * as s3 from "@aws-cdk/aws-s3"
 import { IotPolicy } from "./IotPolicy/IotPolicy"
 import { IotThingGroup } from "../../../base/cdk/lib/IotThingGroup/IotThingGroup"
 import { GreengrassV2Component } from "../../../base/cdk/lib/GreengrassV2Component/GreengrassV2Component"
@@ -26,6 +28,7 @@ export class SsmComponentStack extends cdk.Stack {
     const thingArn = cdk.Fn.importValue(`${parentStack}-ThingArn`)
     const certificateArn = cdk.Fn.importValue(`${parentStack}-CertificateArn`)
     const iamRoleArn = cdk.Fn.importValue(`${parentStack}-IamRoleArn`)
+    const componentBucketArn = cdk.Fn.importValue(`${parentStack}-ComponentBucketArn`)
 
     // Layered constructs - each constructs derived values can be used for subsequent constructs
 
@@ -76,18 +79,23 @@ export class SsmComponentStack extends cdk.Stack {
       thingGroupName: groupName
     })
     deploymentGroup.addThing(thingArn)
+
     // Create component(s) for accelerator
+
+    // Reference the base stack's component bucket
+    const componentBucket = s3.Bucket.fromBucketArn(this, "ComponentBucket", componentBucketArn)
+
     const componentName = "ggAccel.ssm_agent"
     const componentVersion = "1.0.0"
-    // const helloWorldComponent = new GreengrassV2Component(this, "SsmAgentComponent", {
-    //   componentName: componentName,
-    //   componentVersion: componentVersion,
-    //   bucket: componentBucket,
-    //   sourceArtifactPath: path.join(__dirname, "..", "components", componentName, "artifacts", componentName, componentVersion),
-    //   sourceRecipeFile: path.join(__dirname, "..", "components", componentName, `${componentName}-${componentVersion}.yaml`)
-    //   // Optional URI demonstrating user defined key name and path
-    //   // targetArtifactKeyName: `path1/path2/${componentName}-${componentVersion}.zip`
-    // })
+    const helloWorldComponent = new GreengrassV2Component(this, "SsmAgentComponent", {
+      componentName: componentName,
+      componentVersion: componentVersion,
+      bucket: componentBucket,
+      sourceArtifactPath: path.join(__dirname, "..", "components", componentName, "artifacts", componentName, componentVersion),
+      sourceRecipeFile: path.join(__dirname, "..", "components", componentName, `${componentName}-${componentVersion}.yaml`)
+      // Optional URI demonstrating user defined key name and path
+      // targetArtifactKeyName: `path1/path2/${componentName}-${componentVersion}.zip`
+    })
 
     // create deployment -- cancel deployment
 

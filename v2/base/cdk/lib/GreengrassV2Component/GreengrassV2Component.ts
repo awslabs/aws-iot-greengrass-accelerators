@@ -32,7 +32,7 @@ export interface GreengrassV2ComponentProps {
    *
    * @default - None
    */
-  readonly bucket: s3.Bucket
+  readonly bucket: s3.IBucket
   /**
    * Directory path to the artifacts. Should be `../somewhere/artifacts`, and then componentName
    * and componentVersion will be used to complete. Contents will be compressed in ZIP format.

@@ -180,6 +180,10 @@ export class BaseImplementationStack extends cdk.Stack {
     })
 
     // Set stack outputs to be consumed by local processes
+    new cdk.CfnOutput(this, "ComponentBucketArn", {
+      exportName: `${stackName}-ComponentBucketArn`,
+      value: componentBucket.bucketArn
+    })
     new cdk.CfnOutput(this, "IotRoleAliasName", {
       value: greengrassRoleAlias.roleAliasName
     })

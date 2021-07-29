@@ -5,6 +5,7 @@ import * as cdk from "@aws-cdk/core"
 import * as iam from "@aws-cdk/aws-iam"
 import { IotPolicy } from "./IotPolicy/IotPolicy"
 import { IotThingGroup } from "../../../base/cdk/lib/IotThingGroup/IotThingGroup"
+import { GreengrassV2Component } from "../../../base/cdk/lib/GreengrassV2Component/GreengrassV2Component"
 import * as myConst from "./Constants"
 
 export class SsmComponentStack extends cdk.Stack {
@@ -75,7 +76,19 @@ export class SsmComponentStack extends cdk.Stack {
       thingGroupName: groupName
     })
     deploymentGroup.addThing(thingArn)
-    // create components -- delete components
+    // Create component(s) for accelerator
+    const componentName = "ggAccel.ssm_agent"
+    const componentVersion = "1.0.0"
+    // const helloWorldComponent = new GreengrassV2Component(this, "SsmAgentComponent", {
+    //   componentName: componentName,
+    //   componentVersion: componentVersion,
+    //   bucket: componentBucket,
+    //   sourceArtifactPath: path.join(__dirname, "..", "components", componentName, "artifacts", componentName, componentVersion),
+    //   sourceRecipeFile: path.join(__dirname, "..", "components", componentName, `${componentName}-${componentVersion}.yaml`)
+    //   // Optional URI demonstrating user defined key name and path
+    //   // targetArtifactKeyName: `path1/path2/${componentName}-${componentVersion}.zip`
+    // })
+
     // create deployment -- cancel deployment
 
     // ************ End of CDK Constructs / stack - Supporting functions below ************

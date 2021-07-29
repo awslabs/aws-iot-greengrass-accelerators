@@ -87,7 +87,7 @@ export class SsmComponentStack extends cdk.Stack {
 
     const componentName = "ggAccel.ssm_agent"
     const componentVersion = "1.0.0"
-    const helloWorldComponent = new GreengrassV2Component(this, "SsmAgentComponent", {
+    const ssmAgentComponent = new GreengrassV2Component(this, "SsmAgentComponent", {
       componentName: componentName,
       componentVersion: componentVersion,
       bucket: componentBucket,

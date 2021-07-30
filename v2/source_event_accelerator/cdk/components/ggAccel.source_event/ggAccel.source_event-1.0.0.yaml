@@ -1,8 +1,8 @@
 ---
 RecipeFormatVersion: 2020-01-25
-ComponentName: ggAccel.ssm_agent
+ComponentName: ggAccel.source_event
 ComponentVersion: "1.0.0"
-ComponentDescription: Installs and registers AWS Systems Manager agent
+ComponentDescription: Demonstrates processing IPC events similar to AWS Lambda
 ComponentPublisher: Amazon
 ComponentConfiguration:
   DefaultConfiguration:
@@ -12,9 +12,9 @@ Manifests:
       os: linux
     Lifecycle:
       Run: |
-        python3 -u {artifacts:decompressedPath}/ggAccel.ssm_agent-1.0.0/install_ssm.py '{configuration:/Message}'
+        python3 -u {artifacts:decompressedPath}/ggAccel.source_event-1.0.0/handler.py '{configuration:/Message}'
     Artifacts:
       # Contents of component/artifacts/component_name/version will be compressed to component_name-version.zip
       # Variable-based URI: s3://${COMPONENT_BUCKET}/${ARTIFACT_KEY_NAME} is equivalent (must pass in both variables to the CDK construct)
-      - URI: s3://${COMPONENT_BUCKET}/ggAccel.ssm_agent-1.0.0.zip
+      - URI: s3://${COMPONENT_BUCKET}/ggAccel.source_event-1.0.0.zip
         Unarchive: ZIP

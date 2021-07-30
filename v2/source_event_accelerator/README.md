@@ -1,10 +1,10 @@
-# Systems Manager Accelerator
+# Source Event Processing
 
-This accelerator installs and registers the AWS Systems Manager agent onto the Greengrass core device.
+This accelerator demonstrates a framework to subscribe, receive, and process events synchronously and asynchronously similar to AWS Lambda functions.
 
 # Systems Manager Use Case
 
-Provides the ability for AWS Systems Manager to manage the Greengrass core device.
+Provides code sames for dealing with incoming IPC events and processing then in a way similar to AWS Lambda.
 
 # Design Pattern
 
@@ -15,7 +15,7 @@ The following architecture shows the process flow for deploying the accelerator.
 TODO - directory when done.
 
 ```text
-ssm_agent
+source_event_processing
 ├── README.md             <--- this file
 ├── cdk                   <--- builds and deploys CloudFormation to cloud
 │   ├── bin

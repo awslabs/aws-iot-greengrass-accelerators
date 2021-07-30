@@ -1,5 +1,5 @@
 {
-  "name": "ggv2-accelerator-ssm-component",
+  "name": "source-event-accelerator",
   "version": "0.1.0",
   "license": "MIT",
   "bin": {

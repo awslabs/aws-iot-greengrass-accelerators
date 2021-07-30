@@ -10,7 +10,7 @@ import { IotThingGroup } from "../../../base/cdk/lib/IotThingGroup/IotThingGroup
 import { GreengrassV2Component } from "../../../base/cdk/lib/GreengrassV2Component/GreengrassV2Component"
 import * as myConst from "./Constants"
 
-export class SsmComponentStack extends cdk.Stack {
+export class SourceEventStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props)
 
@@ -33,16 +33,16 @@ export class SsmComponentStack extends cdk.Stack {
     // Layered constructs - each constructs derived values can be used for subsequent constructs
 
     // Create IoT policy and attach to certificate
-    const ssmAgentPolicyName = fullResourceName({
+    const sourceEventPolicyName = fullResourceName({
       stackName: cdk.Stack.of(this).stackName,
-      baseName: "ssm-agent-component",
+      baseName: "source-event-accel",
       suffix: stackRandom,
       resourceRegex: "\\w+=,.@-",
       maxLength: 128
     })
-    const iotPolicy = new IotPolicy(this, "SsmIoTPolicy", {
-      iotPolicyName: ssmAgentPolicyName,
-      iotPolicy: myConst.ssmAgentIoTPolicy,
+    const iotPolicy = new IotPolicy(this, "SourceEventPolicy", {
+      iotPolicyName: sourceEventPolicyName,
+      iotPolicy: myConst.sourceEventIoTPolicy,
       certificateArn: certificateArn,
       policyParameterMapping: {
         thingname: thingArn.split("/").slice(-1)[0],
@@ -51,8 +51,8 @@ export class SsmComponentStack extends cdk.Stack {
       }
     })
     // Add an inline policy to the IAM role used by the IoT role alias
-    const ssmAgentInlinePolicy = new iam.Policy(this, "SsmAgentPolicy", {
-      policyName: "SsmAgentAccelerator",
+    const sourceEventInlinePolicy = new iam.Policy(this, "SourceEventPolicy", {
+      policyName: "SourceEventAccelerator",
       statements: [
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
@@ -64,12 +64,12 @@ export class SsmComponentStack extends cdk.Stack {
     const sourceRole = iam.Role.fromRoleArn(this, "SourceRole", iamRoleArn, {
       mutable: true
     })
-    sourceRole.attachInlinePolicy(ssmAgentInlinePolicy)
+    sourceRole.attachInlinePolicy(sourceEventInlinePolicy)
 
     // Define stack-specific name of the IoT thing group
     const groupName = fullResourceName({
       stackName: cdk.Stack.of(this).stackName,
-      baseName: "ssm-agent-accelerator",
+      baseName: "source-event-accelerator",
       suffix: stackRandom,
       resourceRegex: "a-zA-Z0-9:_-",
       maxLength: 128
@@ -85,9 +85,9 @@ export class SsmComponentStack extends cdk.Stack {
     // Reference the base stack's component bucket
     const componentBucket = s3.Bucket.fromBucketArn(this, "ComponentBucket", componentBucketArn)
 
-    const componentName = "ggAccel.ssm_agent"
+    const componentName = "ggAccel.source_event"
     const componentVersion = "1.0.0"
-    const ssmAgentComponent = new GreengrassV2Component(this, "SsmAgentComponent", {
+    const ssmAgentComponent = new GreengrassV2Component(this, "SourceEventComponent", {
       componentName: componentName,
       componentVersion: componentVersion,
       bucket: componentBucket,

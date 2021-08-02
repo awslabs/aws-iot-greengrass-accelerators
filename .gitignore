@@ -144,3 +144,4 @@ cdk.out/
 
 # Development files
 docker-compose.yml
+temp/

@@ -40,13 +40,13 @@ export interface IotThingCertPolicyProps {
   /**
    * An object of parameters and values to be replaced if a Jinja template is
    * provided. For each matching parameter in the policy template, the value
-   * will be used.
+   * will be used. If not provided, only the `<% thingname %>` mapping will be available for the `iotPolicy` template.
    *
    * @default - None
    */
   policyParameterMapping?: Mapping
   /**
-   * Selects RSA or ECC private key and certificate generation.
+   * Selects RSA or ECC private key and certificate generation. If not provided, `RSA` will be used.
    *
    * @default - RSA
    */

@@ -14,11 +14,15 @@
 
 <!--END STABILITY BANNER-->
 
+| **Language**                                                                                   | **Package**          |
+| :--------------------------------------------------------------------------------------------- | -------------------- |
+| ![Typescript Logo](https://docs.aws.amazon.com/cdk/api/latest/img/typescript32.png) Typescript | `IotThingCertPolicy` |
+
 ## Overview
 
 This AWS Solutions Construct implements the creation of an [AWS IoT thing](https://docs.aws.amazon.com/iot/latest/developerguide/iot-thing-management.html), [AWS IoT certificate](https://docs.aws.amazon.com/iot/latest/developerguide/x509-client-certs.html), and [AWS IoT Core policy](https://docs.aws.amazon.com/iot/latest/developerguide/iot-policies.html). After creation of the resources, it also associates the _certificate_ with the _policy_ and also the _thing_. It also stores the certificate's X.509 certificate and private in [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html) parameters.
 
-This construct returns the thing arn, parameter store names, and the IoT data endpoint for use in other constructs or CloudFormation outputs.
+This construct returns the thing arn, parameter store names, IoT data endpoint, and IoT credential provider endpoint for use in other constructs or CloudFormation outputs.
 
 TODO
 
@@ -34,13 +38,14 @@ import * as iam from "@aws-cdk/aws-iam"
 import { IotThingCertPolicy } from "./IotThingCertPolicy/IotThingCertPolicy"
 
 // IoT Core policy template
+// <% thingname %> will be replaced with actual thingname created
 const myPolicyTemplate = `{
   "Version": "2012-10-17",
   "Statement": [
     {
       "Effect": "Allow",
       "Action":["iot:Publish"],
-      "Resource": ["arn:aws:iot:<%= region %>:<%= account %>:topic/<% completePolicyName %>"]
+      "Resource": ["arn:aws:iot:<%= region %>:<%= account %>:topic/<% thingname %>"]
     },
     {
       "Effect": "Allow",
@@ -64,28 +69,38 @@ const myThing = new IotThingCertPolicy(this, "MyThing", {
 ## Initializer
 
 ```text
-new IotRoleAlias(scope: Construct, id: string, props: IotRoleAliasProps);
+new IotThingCertPolicy(scope: Construct, id: string, props: IotThingCertPolicyProps);
 ```
 
 _Parameters_
 
 - scope [`Construct`](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_core.Construct.html)
 - id `string`
-- props [`IotRoleAliasProps`](#pattern-construct-props)
+- props [`IotThingCertPolicyProps`](#pattern-construct-props)
 
 ## Pattern Construct Props
 
-| **Name**         | **Type**                                                                                                     | **Description**                                                                                                      |
-| :--------------- | :----------------------------------------------------------------------------------------------------------- | -------------------------------------------------------------------------------------------------------------------- |
-| iotRoleAliasName | `string`                                                                                                     | Base AWS IoT role alias name.                                                                                        |
-| iamRoleName?     | `string`                                                                                                     | Optional base IAM Role name. Default value set to `roleAliasName`                                                    |
-| iamPolicy        | [`iam.PolicyDocument`](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-iam.PolicyDocument.html) | IAM policy document to apply (inline) to the IAM role.                                                               |
-| iamPolicyName?   | `string`                                                                                                     | Optional name of the default inline policy created on the IAM role. Default value set to `DefaultPolicyForRoleAlias` |
+| **Name**                | **Type**  | **Description**                                                                                                                                                                                                                                                     |
+| :---------------------- | :-------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
+| thingName               | `string`  | Name of the AWS IoT Core policy to create.                                                                                                                                                                                                                          |
+| iotPolicyName           | `string`  | The AWS IoT policy to be created and attached to the certificate. JSON string converted to IoT policy, lodash format for replacement.                                                                                                                               |
+| iotPolicy               | `string`  | An object of parameters and values to be replaced if a Jinja template is provided. For each matching parameter in the policy template, the value will be used.                                                                                                      |
+| policyParameterMapping? | `Mapping` | An object of parameters and values to be replaced if a lodash template is provided. For each matching parameter in the policy template, the value will be used. If not provided, only the `<% thingname %>` mapping will be available for the `iotPolicy` template. |
+| encryptionAlgorithm?    | `string`  | Selects RSA or ECC private key and certificate generation.                                                                                                                                                                                                          | If not provided, `RSA` will be used. |
+| thingName               | `string`  | Name of the AWS IoT Core policy to create.                                                                                                                                                                                                                          |
 
 ## Pattern Properties
 
-| **Name**      | **Type**                                                                                                | **Description**                                                                               |
-| :------------ | :------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| iamRoleArn    | [`iam.Role.roleArn](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-iam.Role.html#rolearn) | Returns an instance of the iam.Role.roleArn created by the construct                          |
-| roleAliasName | `string`                                                                                                | Returns an instance of the roleAlias name creates by the construct for use in other resources |
-| roleAliasArn  | `string`                                                                                                | Returns an instance of the roleAlias Arn creates by the construct for use in other resources  |
+| **Name**                          | **Type** | **Description**                                                                                                                                                                                                  |
+| :-------------------------------- | :------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| certificateArn                    | `string` | Returns a string containing the AWS IoT certificate arn.                                                                                                                                                         |
+| certificatePemParameter           | `string` | Returns a string containing the Systems Manager parameter store name of the things certificate.                                                                                                                  |
+| credentialProviderEndpointAddress | `string` | Returns a string containing the AWS IoT credential provider endpoint. Used to [authorize direct calls to other AWS services](https://docs.aws.amazon.com/iot/latest/developerguide/authorizing-direct-aws.html). |
+| dataAtsEndpointAddress            | `string` | Returns a string containing the AWS IoT Core data endpoint (ATS) for the account and region. Used by the devices to connect to the data plane.                                                                   |
+| iotPolicyArn                      | `string` | Returns a string of the AWS IoT policy attached to the certificate principal and thing.                                                                                                                          |
+| privateKeySecretParameter         | `string` | Returns a string containing the Systems Manager parameter store name of the things private key as a `SECURE_STRING` value.                                                                                       |
+| thingArn                          | `string` | Returns a string of the AWS IoT thing arn.                                                                                                                                                                       |
+
+## CDK Deployment
+
+This construct uses the experimental [`@aws-cdk/aws-lambda-python`](https://docs.aws.amazon.com/cdk/api/latest/docs/aws-lambda-python-readme.html) module in order to pre-install Python package dependencies. This requires the installation and use of Docker locally to operate.

@@ -78,8 +78,8 @@ _Parameters_
 
 ## Pattern Properties
 
-| **Name**      | **Type**                                                                                                | **Description**                                                                               |
-| :------------ | :------------------------------------------------------------------------------------------------------ | --------------------------------------------------------------------------------------------- |
-| iamRoleArn    | [`iam.Role.roleArn](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-iam.Role.html#rolearn) | Returns an instance of the iam.Role.roleArn created by the construct                          |
-| roleAliasName | `string`                                                                                                | Returns an instance of the roleAlias name creates by the construct for use in other resources |
-| roleAliasArn  | `string`                                                                                                | Returns an instance of the roleAlias Arn creates by the construct for use in other resources  |
+| **Name**      | **Type**                                                                                                 | **Description**                                                                               |
+| :------------ | :------------------------------------------------------------------------------------------------------- | --------------------------------------------------------------------------------------------- |
+| iamRoleArn    | [`iam.Role.roleArn`](https://docs.aws.amazon.com/cdk/api/latest/docs/@aws-cdk_aws-iam.Role.html#rolearn) | Returns an instance of the iam.Role.roleArn created by the construct                          |
+| roleAliasName | `string`                                                                                                 | Returns an instance of the roleAlias name creates by the construct for use in other resources |
+| roleAliasArn  | `string`                                                                                                 | Returns an instance of the roleAlias Arn creates by the construct for use in other resources  |

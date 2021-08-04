@@ -91,15 +91,15 @@ _Parameters_
 
 ## Pattern Properties
 
-| **Name**                          | **Type** | **Description**                                                                                                                                                                                                  |
-| :-------------------------------- | :------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| certificateArn                    | `string` | Returns a string containing the AWS IoT certificate arn.                                                                                                                                                         |
-| certificatePemParameter           | `string` | Returns a string containing the Systems Manager parameter store name of the things certificate.                                                                                                                  |
-| credentialProviderEndpointAddress | `string` | Returns a string containing the AWS IoT credential provider endpoint. Used to [authorize direct calls to other AWS services](https://docs.aws.amazon.com/iot/latest/developerguide/authorizing-direct-aws.html). |
-| dataAtsEndpointAddress            | `string` | Returns a string containing the AWS IoT Core data endpoint (ATS) for the account and region. Used by the devices to connect to the data plane.                                                                   |
-| iotPolicyArn                      | `string` | Returns a string of the AWS IoT policy attached to the certificate principal and thing.                                                                                                                          |
-| privateKeySecretParameter         | `string` | Returns a string containing the Systems Manager parameter store name of the things private key as a `SECURE_STRING` value.                                                                                       |
-| thingArn                          | `string` | Returns a string of the AWS IoT thing arn.                                                                                                                                                                       |
+| **Name**                          | **Type** | **Description**                                                                                                                                                                                                     |
+| :-------------------------------- | :------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| certificateArn                    | `string` | Returns an instance containing the AWS IoT certificate arn.                                                                                                                                                         |
+| certificatePemParameter           | `string` | Returns an instance containing the Systems Manager parameter store name of the things certificate.                                                                                                                  |
+| credentialProviderEndpointAddress | `string` | Returns an instance containing the AWS IoT credential provider endpoint. Used to [authorize direct calls to other AWS services](https://docs.aws.amazon.com/iot/latest/developerguide/authorizing-direct-aws.html). |
+| dataAtsEndpointAddress            | `string` | Returns an instance containing the AWS IoT Core data endpoint (ATS) for the account and region. Used by the devices to connect to the data plane.                                                                   |
+| iotPolicyArn                      | `string` | Returns an instance of the AWS IoT policy attached to the certificate principal and thing.                                                                                                                          |
+| privateKeySecretParameter         | `string` | Returns an instance containing the Systems Manager parameter store name of the things private key as a `SECURE_STRING` value.                                                                                       |
+| thingArn                          | `string` | Returns an instance of the AWS IoT thing arn.                                                                                                                                                                       |
 
 ## CDK Deployment
 

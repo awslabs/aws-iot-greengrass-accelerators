@@ -213,11 +213,11 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
     npm run build
     cdk deploy
 
-    # Acknowledge the creation above, then run
-    python3 deploy_resources.py
-
-    # Build and start the Greengrass docker container
+    # Acknowledge the creation above, then change to docker and configure initial parameters
     cd ../docker
+    python3 config_docker.py
+
+    # Build and start the Greengrass docker container. First time will take longer to build and deploy resources
     docker-compose up
     ```
 
@@ -227,7 +227,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
     ```bash
     sudo su -
-    cd /home/ec2-user/environment/aws-iot-greengrass-accelerators/v2/base/docker/gg_root/logs
+    cd /home/ec2-user/environment/aws-iot-greengrass-accelerators/v2/base/docker/volumes/gg_root/logs
     # You can now cat|more|less|tail files from here
     tail -F greengrass.log
     ...
@@ -237,7 +237,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
 ## Investigating the Accelerator
 
-As a base accelerator, the main interaction with this accelerator is to ensure it is running correctly, understand the directory structure, and access various log files. You can review the output of the _Hello World_ example component by looking at the contents of the log file in `docker/volumes/logs/ggAccel.example.HelloWorld.log`.
+As a base accelerator, the main interaction with this accelerator is to ensure it is running correctly, understand the directory structure, and access various log files. You can review the output of the _Hello World_ example component by looking at the contents of the log file in `docker/volumes/gg_root/logs/ggAccel.example.HelloWorld.log`.
 
 Other accelerators use this stack's resources to build additional Greengrass components and deployments and a thing group. When the Docker container is restarted the Greengrass core device will merge all deployments into a single one.
 
@@ -273,14 +273,31 @@ That's it! Fully deployed, ran, and cleaned up!
 
 ## Frequently Asked Questions
 
-### Question name
+### How can I use this accelerator beyond the "Hello World" example component?
 
-Supporting details or answer
+By creating a single core device, thing group, and deployment, you can create additional components external to the accelerator and then revise the Greengrass deployment that targets the thing group. This could be for cloud deployment testing or to investigate operationally how Greengrass handles deployment updates.
 
-#### Resolution (optional)
+### How can I view the log file `/tmp/Greengrass_HelloWorld.log` referred to in the "Hello World" application code?
 
-Steps to resolve issue
+The full container file system can be accessed by executing a shell within the running container. To do so, with the container running via `docker compose up`, open a new terminal window locally or in Cloud9 and run these commands:
+
+```shell
+# Verify container name (default: greengrass-accel)
+docker ps
+CONTAINER ID   IMAGE          COMMAND                  CREATED      STATUS          PORTS                                       NAMES
+fd53c272f65d   dafe85b8555c   "/greengrass-entrypo…"   2 days ago   Up 11 minutes   0.0.0.0:8883->8883/tcp, :::8883->8883/tcp   greengrass-accel
+
+# Execute shell within the container ("bash-4.2#" is the shell in the container)
+docker exec -it greengrass-accel /bin/bash
+bash-4.2# cd /tmp
+bash-4.2# cat Greengrass_HelloWorld.log
+Hello, Welcome from the Greengrass accelerator stack! Current time: 2021-08-03 00:49:59.275648.
+Hello, Welcome from the Greengrass accelerator stack! Current time: 2021-08-05 13:33:53.487968.
+# Exit command will exit from the container back to your local terminal
+bash-4.2# exit
+exit
+```
 
 ## Implementation Notes
 
-Technical details on how the different accelerator components run.
+The _Hello World_ component is a minimal python script to demonstrate component creation and deployment. In a normal operation, it will run once upon deployment or core device startup and create a log file in `/tmp` along with entries in the log file folder.

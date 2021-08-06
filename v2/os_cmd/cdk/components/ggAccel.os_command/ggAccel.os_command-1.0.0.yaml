@@ -1,0 +1,36 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+---
+RecipeFormatVersion: 2020-01-25
+ComponentName: ggAccel.os_command
+ComponentVersion: "1.0.0"
+ComponentDescription: Listens for operating system command, executes, and returns output to topic
+ComponentPublisher: Amazon
+ComponentConfiguration:
+  DefaultConfiguration:
+    request_topic: "accelerator/os_command/request"
+    response_topic: "accelerator/os_command/response"
+    accessControl:
+      aws.greengrass.ipc.mqttproxy:
+        ggAccel.os_command:mqttproxy:1:
+          policyDescription: Allows access to publish/subscribe to all IoT Core topics.
+          operations:
+            - aws.greengrass#SubscribeToIoTCore
+            - aws.greengrass#PublishToIoTCore
+          resources:
+            - "*"
+Manifests:
+  - Platform:
+      os: linux
+    Lifecycle:
+      Install: |-
+        python3 -m pip install --user  -r {artifacts:decompressedPath}/requirements.txt
+      Run:
+        Script: |-
+          echo "Starting command processor"
+          python3 -u {artifacts:decompressedPath}/app.py --request-topic {configuration:/request_topic} --response-topic {configuration:/response_topic}
+    Artifacts:
+      # Contents of component/artifacts/component_name/version will be compressed to component_name-version.zip
+      # Variable-based URI: s3://${COMPONENT_BUCKET}/${ARTIFACT_KEY_NAME} is equivalent (must pass in both variables to the CDK construct)
+      - URI: s3://${COMPONENT_BUCKET}/ggAccel.os_command-1.0.0.zip
+        Unarchive: ZIP

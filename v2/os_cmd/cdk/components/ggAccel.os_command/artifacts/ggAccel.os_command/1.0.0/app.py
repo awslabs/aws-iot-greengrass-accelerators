@@ -106,6 +106,7 @@ def handler(topic, message):
         resp["return_code"] = output.returncode
     except subprocess.TimeoutExpired:
         resp["response"] = MSG_TIMEOUT
+        resp["return_code"] = 255
         logger.error(f"Comand took too long for message: {message}")
 
     # Publish response

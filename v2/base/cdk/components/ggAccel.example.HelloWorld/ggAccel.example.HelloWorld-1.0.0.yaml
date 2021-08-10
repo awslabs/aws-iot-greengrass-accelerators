@@ -27,5 +27,5 @@ Manifests:
       # published components. The following URI uses replacement variables to achieve this (please see the
       # construct definition for what needs to be passed).
       # NB: Variables are not used in other portions of the Manifest to allow for local development and testing
-      - URI: s3://COMPONENT_BUCKET/COMPONENT_NAME/COMPONENT_VERSION/ARTIFACT_KEY_NAME
+      - URI: s3://COMPONENT_BUCKET/COMPONENT_NAME/COMPONENT_VERSION/ggAccel.example.HelloWorld.zip
         Unarchive: ZIP

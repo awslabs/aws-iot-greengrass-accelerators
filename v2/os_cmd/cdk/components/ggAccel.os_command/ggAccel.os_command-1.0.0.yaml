@@ -14,8 +14,8 @@ ComponentDescription: Listens for operating system command, executes, and return
 ComponentPublisher: Amazon
 ComponentConfiguration:
   DefaultConfiguration:
-    request_topic: "{iot:thingName}/os_command/request"
-    response_topic: "{iot:thingName}/os_command/response"
+    request_topic: "os_command/request"
+    response_topic: "os_command/response"
     accessControl:
       aws.greengrass.ipc.mqttproxy:
         ggAccel.os_command:mqttproxy:1:
@@ -34,12 +34,12 @@ Manifests:
       Run:
         Script: |-
           echo "Starting command processor"
-          python3 -u {artifacts:decompressedPath}/ggAccel.os_command/app.py --request-topic {configuration:/request_topic} --response-topic {configuration:/response_topic}
+          python3 -u {artifacts:decompressedPath}/ggAccel.os_command/app.py --request-topic {iot:thingName}/{configuration:/request_topic} --response-topic {iot:thingName}/{configuration:/response_topic}
     Artifacts:
       # Artifact sources will be compressed as a zip file and named as ComponentName.zip in an S3 bucket with
       # the prefix/name of ComponentName/ComponentVersion/ComponentName.zip to match the style used by AWS
       # published components. The following URI uses replacement variables to achieve this (please see the
       # construct definition for what needs to be passed).
       # NB: Variables are not used in other portions of the Manifest to allow for local development and testing
-      - URI: s3://COMPONENT_BUCKET/COMPONENT_NAME/COMPONENT_VERSION/ARTIFACT_KEY_NAME
+      - URI: s3://COMPONENT_BUCKET/COMPONENT_NAME/COMPONENT_VERSION/ggAccel.os_command.zip
         Unarchive: ZIP

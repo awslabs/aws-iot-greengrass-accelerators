@@ -7,23 +7,23 @@ Listen for incoming command requests and publish the results onto another topic
 Command message structure (JSON):
 {
     "command": "ls -l /tmp",
-    "message_id": "12345ABC",
+    "txid": "12345ABC",
     "format": "json|text",
     "timeout": 10
 }
 - `command` - full string to pass to shell interpreter
-- `message_id` - unique id to track status of message, returned as part of response.
+- `txid` - unique id to track status of message, returned as part of response.
   Note: New commands cannot use the id of any in-flight operations that have not completed.
 - `format` - Optional, default json. Format of response message. JSON is serialized string,
   text is key value formatted with response as everything after the RESPONSE: line.
-- `timeout` - Optiional, default is 10 seconds. Amount of time for the command to complete.
+- `timeout` - Optional, default is 10 seconds. Amount of time for the command to complete.
 
 - Total payload size must be less than 128KiB in size, including request topic.
 - Command will run as default ggc_user unless changed in the recipe file
 
 Response message structure (JSON):
 {
-    "message_id": "12345ABC",
+    "txid": "12345ABC",
     "return_code": 0,
     "response": "total 17688\n-rw-r--r--   1 ggc_user  staff     8939 Apr 30 16:37 README.md\n"
 }
@@ -41,12 +41,12 @@ import json
 import subprocess
 from greengrassipcsdk import iotcore
 
-# response_template = {"message_id": None, "return_code": None, "response": None}
+# response_template = {"txid": None, "return_code": None, "response": None}
 
 TIMEOUT = 10
 RESPONSE_FORMAT = "json"
 MSG_INVALID_JSON = "Request message was not a valid JSON obect"
-MSG_MISSING_ATTRIBUTE = "The attributes 'message_id' and 'command' missing from request"
+MSG_MISSING_ATTRIBUTE = "The attributes 'txid' and 'command' missing from request"
 MSG_TIMEOUT = f"Command timed out, limit of {TIMEOUT} seconds"
 
 logging.basicConfig(level=logging.INFO)
@@ -82,7 +82,7 @@ def handler(topic, message: json) -> None:
     try:
         command = json.loads(message.decode("utf-8"))
         # Verify required keys are provided
-        if not all(k in command for k in ("message_id", "command")):
+        if not all(k in command for k in ("txid", "command")):
             resp["response"] = MSG_MISSING_ATTRIBUTE
             resp["return_code"] = 255
             client = iotcore.Client()
@@ -96,7 +96,7 @@ def handler(topic, message: json) -> None:
         # check for and update optional settings
         for k in command:
             if k.lower() == "timeout" and isinstance(command[k], (int, float)):
-                operation_timeout = command[k].lower()
+                operation_timeout = command[k]
             elif k.lower() == "format" and (
                 any(format in command[k] for format in ["json", "text"])
             ):
@@ -128,7 +128,7 @@ def handler(topic, message: json) -> None:
             resp["response"] = output.stdout.decode("utf-8")
         else:
             resp["response"] = output.stderr.decode("utf-8")
-        resp["message_id"] = command["message_id"]
+        resp["txid"] = command["txid"]
         resp["return_code"] = output.returncode
     except subprocess.TimeoutExpired:
         resp["response"] = MSG_TIMEOUT
@@ -141,7 +141,7 @@ def handler(topic, message: json) -> None:
         command_response = bytes(json.dumps(resp), encoding="utf-8")
     elif response_format == "text":
         command_response = bytes(
-            f"MESSAGE_ID: {command['message_id']}\nRETURN_CODE: {resp['return_code']}\nRESPONSE:\n{resp['response']}",
+            f"TX_ID: {command['txid']}\nRETURN_CODE: {resp['return_code']}\nRESPONSE:\n{resp['response']}",
             encoding="utf-8",
         )
     client.publish(

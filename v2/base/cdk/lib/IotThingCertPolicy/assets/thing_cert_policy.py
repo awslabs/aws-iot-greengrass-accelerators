@@ -234,7 +234,7 @@ def delete_resources(
             c_iot.detach_thing_principal(thingName=thing, principal=certificate_arn)
         response = c_iot.list_attached_policies(target=certificate_arn)
         for policy in response["policies"]:
-            c_iot.detach_policy(policyName=policy, target=certificate_arn)
+            c_iot.detach_policy(policyName=policy["policyName"], target=certificate_arn)
     except ClientError as e:
         logger.error(
             f"Unable to list or detach things or policies from certificate {certificate_arn}, {e}"

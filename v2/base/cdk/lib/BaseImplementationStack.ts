@@ -130,7 +130,8 @@ export class BaseImplementationStack extends cdk.Stack {
     // Greengrass component process
 
     // Create Hello World component
-    // uses same component file name and path as AWS published components
+    // uses same component file name and path as AWS published components,
+    // see the recipe file for more details
     const componentName = "ggAccel.example.HelloWorld"
     const componentVersion = "1.0.0"
     const helloWorldComponent = new GreengrassV2Component(this, "HelloWorldComponent", {

@@ -10,14 +10,14 @@ export const osCommandIoTPolicy = `{
       "Effect": "Allow",
       "Action": ["iot:Receive", "iot:Publish"],
       "Resource": [
-        "arn:aws:iot:<%= region %>:<%= account %>:topic/accelerator/os_command/*"
+        "arn:aws:iot:<%= region %>:<%= account %>:topic/<%= thingname %>/os_command/*"
       ]
     },
     {
       "Effect": "Allow",
       "Action": ["iot:Subscribe"],
       "Resource": [
-        "arn:aws:iot:<%= region %>:<%= account %>:topicfilter/accelerator/os_command/*"
+        "arn:aws:iot:<%= region %>:<%= account %>:topicfilter/<%= thingname %>/os_command/*"
       ]
     }
   ]

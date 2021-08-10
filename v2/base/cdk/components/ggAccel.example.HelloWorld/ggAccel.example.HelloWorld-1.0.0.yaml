@@ -1,5 +1,6 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
+
 # Template recipe file
 # Derived COMPONENT_NAME, COMPONENT_VERSION, COMPONENT_BUCKET,
 # and ARTIFACT_KEY_NAME are replaced with values from

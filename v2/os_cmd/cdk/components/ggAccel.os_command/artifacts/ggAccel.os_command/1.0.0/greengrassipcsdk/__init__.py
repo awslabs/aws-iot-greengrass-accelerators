@@ -22,6 +22,7 @@ from threading import Timer
 
 from awsiot.greengrasscoreipc import connect
 
+
 class BaseClient:
     def __init__(self, ipc_client=None, timeout=10):
         if ipc_client == None:
@@ -30,22 +31,17 @@ class BaseClient:
         self._timeout = timeout
 
     def _sync_error_handler(self, error: Exception) -> None:
-        """Internal handler that raises an error thrown by the subscriber handler
-        """
+        """Internal handler that raises an error thrown by the subscriber handler"""
         raise error
 
     def _dummy_loop(self):
-            self._timer = Timer(interval=10, function=_dummy_loop)
-            self._timer.start()
+        self._timer = Timer(interval=10, function=self._dummy_loop)
+        self._timer.start()
 
     def start_loop(self):
-        """Start a waiting loop for the subscription
-        """
-        self._timer = Timer(interval=10, function=_dummy_loop)
+        """Start a waiting loop for the subscription"""
+        self._timer = Timer(interval=10, function=self._dummy_loop)
         self._timer.start()
 
     def stop_loop(self):
         self._timer.cancel()
-
-
-

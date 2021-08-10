@@ -7,8 +7,17 @@ Listen for incoming command requests and publish the results onto another topic
 Command message structure (JSON):
 {
     "command": "ls -l /tmp",
-    "message_id": "12345ABC"
+    "message_id": "12345ABC",
+    "format": "json|text",
+    "timeout": 10
 }
+- `command` - full string to pass to shell interpreter
+- `message_id` - unique id to track status of message, returned as part of response.
+  Note: New commands cannot use the id of any in-flight operations that have not completed.
+- `format` - Optional, default json. Format of response message. JSON is serialized string,
+  text is key value formatted with response as everything after the RESPONSE: line.
+- `timeout` - Optiional, default is 10 seconds. Amount of time for the command to complete.
+
 - Total payload size must be less than 128KiB in size, including request topic.
 - Command will run as default ggc_user unless changed in the recipe file
 
@@ -32,9 +41,10 @@ import json
 import subprocess
 from greengrassipcsdk import iotcore
 
-response_template = {"message_id": None, "return_code": None, "response": None}
+# response_template = {"message_id": None, "return_code": None, "response": None}
 
 TIMEOUT = 10
+RESPONSE_FORMAT = "json"
 MSG_INVALID_JSON = "Request message was not a valid JSON obect"
 MSG_MISSING_ATTRIBUTE = "The attributes 'message_id' and 'command' missing from request"
 MSG_TIMEOUT = f"Command timed out, limit of {TIMEOUT} seconds"
@@ -43,7 +53,7 @@ logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger()
 
 # Register SIGTERM for shutdown of container
-def signal_handler(signal, frame):
+def signal_handler(signal, frame) -> None:
     logger.info(f"Received {signal}, exiting")
     sys.exit(0)
 
@@ -56,23 +66,26 @@ parser.add_argument("--request-topic", required=True)
 parser.add_argument("--response-topic", required=True)
 args = parser.parse_args()
 
-client = iotcore.Client()
-
 
 # Main process to receive and deliver messages to event handlers
 
 
-def handler(topic, message):
-    """receive and process JSON command"""
+def handler(topic, message: json) -> None:
+    """Main function to receive and process commands"""
 
-    resp = response_template
+    resp = {}
+    operation_timeout = TIMEOUT
+    response_format = RESPONSE_FORMAT
+    logger.info(f"Processing message received on topic {topic}")
 
     # validate message and attributes
     try:
         command = json.loads(message.decode("utf-8"))
+        # Verify required keys are provided
         if not all(k in command for k in ("message_id", "command")):
             resp["response"] = MSG_MISSING_ATTRIBUTE
             resp["return_code"] = 255
+            client = iotcore.Client()
             client.publish(
                 args.response_topic,
                 bytes(json.dumps(resp), encoding="utf-8"),
@@ -80,9 +93,18 @@ def handler(topic, message):
             )
             logger.error(f"{MSG_MISSING_ATTRIBUTE} for message: {message}")
             return
+        # check for and update optional settings
+        for k in command:
+            if k.lower() == "timeout" and isinstance(command[k], (int, float)):
+                operation_timeout = command[k].lower()
+            elif k.lower() == "format" and (
+                any(format in command[k] for format in ["json", "text"])
+            ):
+                response_format = command[k].lower()
     except json.JSONDecodeError as e:
         resp["response"] = MSG_INVALID_JSON
         resp["return_code"] = 255
+        client = iotcore.Client()
         client.publish(
             args.response_topic,
             bytes(json.dumps(resp), encoding="utf-8"),
@@ -94,9 +116,13 @@ def handler(topic, message):
         raise e
 
     # Run command and process results
+    client = iotcore.Client(timeout=operation_timeout)
     try:
         output = subprocess.run(
-            command["command"], timeout=TIMEOUT, capture_output=True, shell=True
+            command["command"],
+            timeout=operation_timeout,
+            capture_output=True,
+            shell=True,
         )
         if output.returncode == 0:
             resp["response"] = output.stdout.decode("utf-8")
@@ -106,19 +132,36 @@ def handler(topic, message):
         resp["return_code"] = output.returncode
     except subprocess.TimeoutExpired:
         resp["response"] = MSG_TIMEOUT
-        resp["return_code"] = 255
-        logger.error(f"Comand took too long for message: {message}")
+        logger.error(
+            f"Comand took longer than {operation_timeout} seconds for message: {message}"
+        )
 
     # Publish response
+    if response_format == "json":
+        command_response = bytes(json.dumps(resp), encoding="utf-8")
+    elif response_format == "text":
+        command_response = bytes(
+            f"MESSAGE_ID: {command['message_id']}\nRETURN_CODE: {resp['return_code']}\nRESPONSE:\n{resp['response']}",
+            encoding="utf-8",
+        )
     client.publish(
         args.response_topic,
-        bytes(json.dumps(resp), encoding="utf-8"),
+        command_response,
         iotcore.QOS.AT_MOST_ONCE,
     )
 
 
-client.subscribe(args.request_topic, iotcore.QOS.AT_MOST_ONCE, handler)
+def main() -> None:
+    """Code to execute from script"""
 
-while True:
-    # Keep app open and running
-    time.sleep(1)
+    logger.info(f"Arguments: {args}")
+    client = iotcore.Client()
+    client.subscribe(args.request_topic, iotcore.QOS.AT_MOST_ONCE, handler)
+
+    while True:
+        # Keep app open and running
+        time.sleep(1)
+
+
+if __name__ == "__main__":
+    main()

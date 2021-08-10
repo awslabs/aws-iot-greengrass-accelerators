@@ -36,6 +36,9 @@ export class OsCommandStack extends cdk.Stack {
     const iamRoleArn = cdk.Fn.importValue(`${parentStack}-IamRoleArn`)
     const componentBucketArn = cdk.Fn.importValue(`${parentStack}-ComponentBucketArn`)
 
+    // Local variables
+    const thingName = thingArn.split("/").slice(-1)[0]
+
     // Layered constructs - each constructs derived values can be used for subsequent constructs
 
     // Create IoT policy and attach to certificate
@@ -51,7 +54,7 @@ export class OsCommandStack extends cdk.Stack {
       iotPolicy: myConst.osCommandIoTPolicy,
       certificateArn: certificateArn,
       policyParameterMapping: {
-        thingname: thingArn.split("/").slice(-1)[0],
+        thingname: thingName,
         region: cdk.Fn.ref("AWS::Region"),
         account: cdk.Fn.ref("AWS::AccountId")
       }
@@ -91,16 +94,19 @@ export class OsCommandStack extends cdk.Stack {
     // Reference the base stack's component bucket
     const componentBucket = s3.Bucket.fromBucketArn(this, "ComponentBucket", componentBucketArn)
 
+    // Create OS Command component
+    // uses same component file name and path as AWS published components,
+    // see the source recipe file for more details
     const componentName = "ggAccel.os_command"
     const componentVersion = "1.0.0"
     const osCommandComponent = new GreengrassV2Component(this, "OsCommandComponent", {
       componentName: componentName,
       componentVersion: componentVersion,
       bucket: componentBucket,
+      artifactZipPrefix: `${componentName}/${componentVersion}/`,
+      targetArtifactKeyName: `${componentName}.zip`,
       sourceArtifactPath: path.join(__dirname, "..", "components", componentName, "artifacts", componentName, componentVersion),
       sourceRecipeFile: path.join(__dirname, "..", "components", componentName, `${componentName}-${componentVersion}.yaml`)
-      // Optional URI demonstrating user defined key name and path
-      // targetArtifactKeyName: `path1/path2/${componentName}-${componentVersion}.zip`
     })
 
     // create deployment -- cancel deployment
@@ -119,6 +125,15 @@ export class OsCommandStack extends cdk.Stack {
         }
       }
     })
+
+    // Set stack outputs to be consumed by local processes
+    new cdk.CfnOutput(this, "RequestTopic", {
+      value: `${thingName}/os_cmd/request`
+    })
+    new cdk.CfnOutput(this, "ResponseTopic", {
+      value: `${thingName}/os_cmd/response`
+    })
+
     // ************ End of CDK Constructs / stack - Supporting functions below ************
 
     function makeid(length: number) {

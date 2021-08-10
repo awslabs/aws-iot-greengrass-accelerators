@@ -131,7 +131,7 @@ export class BaseImplementationStack extends cdk.Stack {
 
     // Create Hello World component
     // uses same component file name and path as AWS published components,
-    // see the recipe file for more details
+    // see the source recipe file for more details
     const componentName = "ggAccel.example.HelloWorld"
     const componentVersion = "1.0.0"
     const helloWorldComponent = new GreengrassV2Component(this, "HelloWorldComponent", {
@@ -164,15 +164,15 @@ export class BaseImplementationStack extends cdk.Stack {
     // Add core public components
     greengrassDeployment.addComponent({
       "aws.greengrass.Nucleus": {
-        componentVersion: "2.3.0"
+        componentVersion: "2.4.0"
       },
       "aws.greengrass.Cli": {
-        componentVersion: "2.3.0"
+        componentVersion: "2.4.0"
       }
     })
     greengrassDeployment.addComponent({
       "aws.greengrass.LocalDebugConsole": {
-        componentVersion: "2.2.1",
+        componentVersion: "2.2.2",
         configurationUpdate: {
           merge: JSON.stringify({
             httpsEnabled: "false"

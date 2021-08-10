@@ -130,16 +130,17 @@ export class BaseImplementationStack extends cdk.Stack {
     // Greengrass component process
 
     // Create Hello World component
+    // uses same component file name and path as AWS published components
     const componentName = "ggAccel.example.HelloWorld"
     const componentVersion = "1.0.0"
     const helloWorldComponent = new GreengrassV2Component(this, "HelloWorldComponent", {
       componentName: componentName,
       componentVersion: componentVersion,
       bucket: componentBucket,
+      artifactZipPrefix: `${componentName}/${componentVersion}/`,
+      targetArtifactKeyName: `${componentName}.zip`,
       sourceArtifactPath: path.join(__dirname, "..", "components", componentName, "artifacts", componentName, componentVersion),
       sourceRecipeFile: path.join(__dirname, "..", "components", componentName, `${componentName}-${componentVersion}.yaml`)
-      // Optional URI demonstrating user defined key name and path
-      // targetArtifactKeyName: `path1/path2/${componentName}-${componentVersion}.zip`
     })
 
     // Create the deployment with AWS public and stack components, target the thing group

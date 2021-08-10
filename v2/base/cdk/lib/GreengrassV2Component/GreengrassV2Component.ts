@@ -28,7 +28,7 @@ export interface GreengrassV2ComponentProps {
    */
   readonly componentVersion: string
   /**
-   * S3 Bucket  to upload component artifacts
+   * S3 Bucket to upload component artifacts.
    *
    * @default - None
    */
@@ -47,18 +47,18 @@ export interface GreengrassV2ComponentProps {
    */
   readonly artifactZipPrefix?: string
   /**
-   * Full path to the base recipe file. It will be processed to replace ${COMPONENT_BUCKET} with
+   * Full path to the base recipe file. It will be processed to replace `COMPONENT_BUCKET` with
    * actual value.
    * @default - None
    */
   readonly sourceRecipeFile: string
   /**
-   * Optional S3 object key to be for the compressed artifacts. The recipe variable ${ARTIFACT_KEY_NAME}
+   * Optional S3 object key to be for the compressed artifacts. The recipe variable ARTIFACT_KEY_NAME
    * found in the recipe file will be replaced with the provided value, leading `/` removed if provided.
    * Otherwise the value in the recipe file URI must match what is provided.
    *
    * A value of `path1/path2/component-version.zip` would be represented as:
-   * `"URI"L "s3:/bucket_name/path1/path2/component-version.zip"`
+   * `"URI": "s3:/bucket_name/path1/path2/component-version.zip"`
    *
    * @default - ${componentName}-${componentVersion}.zip
    */
@@ -94,11 +94,16 @@ export class GreengrassV2Component extends cdk.Construct {
     const stackName = cdk.Stack.of(this).stackName
 
     // Validate and derive final values for resources
-    const componentPrefixPath = props.artifactZipPrefix || ""
-    const targetArtifactKeyName = props.targetArtifactKeyName || ""
+    // Set prefix path to nothing by default, otherwise path with trailing /
+    var componentPrefixPath = props.artifactZipPrefix || ""
+    if (componentPrefixPath !== "") {
+      componentPrefixPath += componentPrefixPath.endsWith("/") ? "" : "/"
+    }
+    const targetArtifactKeyName = props.targetArtifactKeyName || `${this.componentName}-${this.componentVersion}.zip`
     targetArtifactKeyName.replace(/^\//, "")
 
-    // create zip file of artifacts (component-version.zip)
+    // create zip file of artifacts in CDK source bucket as has values
+    // will replace as targetArtifactKeyName is user's component bucket
     const componentZipAsset = new assets.Asset(this, "ComponentZipAsset", {
       path: props.sourceArtifactPath
     })

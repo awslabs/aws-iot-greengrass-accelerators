@@ -1,5 +1,10 @@
 # Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 # SPDX-License-Identifier: MIT-0
+# Template recipe file
+# Derived COMPONENT_NAME, COMPONENT_VERSION, COMPONENT_BUCKET,
+# and ARTIFACT_KEY_NAME are replaced with values from
+# GreengrassV2Component construct.
+# NOTE: This file is not fully compliance until processed.
 ---
 RecipeFormatVersion: 2020-01-25
 ComponentName: ggAccel.example.HelloWorld
@@ -14,9 +19,12 @@ Manifests:
       os: linux
     Lifecycle:
       Run: |
-        python3 -u {artifacts:decompressedPath}/ggAccel.example.HelloWorld-1.0.0/hello_world.py '{configuration:/Message}'
+        python3 -u {artifacts:decompressedPath}/ggAccel.example.HelloWorld/hello_world.py '{configuration:/Message}'
     Artifacts:
-      # Contents of component/artifacts/component_name/version will be compressed to component_name-version.zip
-      # Variable-based URI: s3://${COMPONENT_BUCKET}/${ARTIFACT_KEY_NAME} is equivalent (must pass in both variables to the CDK construct)
-      - URI: s3://${COMPONENT_BUCKET}/ggAccel.example.HelloWorld-1.0.0.zip
+      # Artifact sources will be compressed as a zip file and named as ComponentName.zip in an S3 bucket with
+      # the prefix/name of ComponentName/ComponentVersion/ComponentName.zip to match the style used by AWS
+      # published components. The following URI uses replacement variables to achieve this (please see the
+      # construct definition for what needs to be passed).
+      # NB: Variables are not used in other portions of the Manifest to allow for local development and testing
+      - URI: s3://COMPONENT_BUCKET/COMPONENT_NAME/COMPONENT_VERSION/ARTIFACT_KEY_NAME
         Unarchive: ZIP

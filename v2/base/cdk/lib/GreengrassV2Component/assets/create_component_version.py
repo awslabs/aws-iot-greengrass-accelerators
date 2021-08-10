@@ -46,6 +46,7 @@ def create_resources(
     recipeFile: str,
     component_name: str,
     component_version: str,
+    component_prefix_path: str,
     artifact_file_keyname: str,
 ):
     """
@@ -61,7 +62,7 @@ def create_resources(
     # Read artifact file from CDK asset staging bucket, place in target bucket
     # /tmp instead of tempfile as Lambda provides that, components will be unique
     # if function is used for multiple component resources
-    artifact_file = str(Path("/tmp", f"{component_name}-{component_version}.zip"))
+    artifact_file = str(Path("/tmp", artifact_file_keyname))
     c_s3.download_file(
         Bucket=source_bucket,
         Key=componentZip,
@@ -81,17 +82,20 @@ def create_resources(
         sys.exit(1)
 
     # Optionally replace variable placeholders with provided values
-    recipe = replace(recipe, "${COMPONENT_BUCKET}", target_bucket)
-    recipe = replace(recipe, "${ARTIFACT_KEY_NAME}", artifact_file_keyname)
+    recipe = replace(recipe, "COMPONENT_NAME", component_name)
+    recipe = replace(recipe, "COMPONENT_VERSION", component_version)
+    recipe = replace(recipe, "COMPONENT_BUCKET", target_bucket)
+    recipe = replace(recipe, "ARTIFACT_KEY_NAME", artifact_file_keyname)
     logger.info(f"Output recipe file is {json.dumps(recipe, indent=2)}")
 
-    # upload will be to artifact_file_keyname or constructed file name of:
-    # component_name-version.zip if a key name was not provided
-    if artifact_file_keyname:
-        upload_file_name = artifact_file_keyname
-    else:
-        upload_file_name = f"{component_name}-{component_version}.zip"
-    c_s3.upload_file(Filename=artifact_file, Bucket=target_bucket, Key=upload_file_name)
+    # upload will be constructed file name of:
+    # component_prefix_path + artifact_file_keyname
+    # ex: path1/path2/foo.zip
+    c_s3.upload_file(
+        Filename=artifact_file,
+        Bucket=target_bucket,
+        Key=f"{component_prefix_path}{artifact_file_keyname}",
+    )
 
     # create component version name=version
     try:
@@ -156,6 +160,7 @@ def handler(event, context):
                 recipeFile=props["RecipeFileAsset"],
                 component_name=props["ComponentName"],
                 component_version=props["ComponentVersion"],
+                component_prefix_path=props["ComponentPrefixPath"],
                 artifact_file_keyname=props["TargetArtifactKeyName"],
             )
             # set response data (PascalCase key) back to construct

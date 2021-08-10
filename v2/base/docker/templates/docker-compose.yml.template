@@ -7,7 +7,7 @@ services:
   greengrass_accel:
     init: true
     container_name: greengrass-accel
-    image: public.ecr.aws/aws-iot-greengrass/aws-iot-greengrass-v2:2.4.0
+    image: public.ecr.aws/aws-iot-greengrass/aws-iot-greengrass-v2:2.4.0-0
     ports:
       # MQTT port for broker
       - "8883:8883"

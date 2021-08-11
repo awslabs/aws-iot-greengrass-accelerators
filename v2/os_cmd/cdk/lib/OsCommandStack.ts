@@ -32,12 +32,10 @@ export class OsCommandStack extends cdk.Stack {
 
     // Load parameters from parent stack
     const thingArn = cdk.Fn.importValue(`${parentStack}-ThingArn`)
+    const thingName = cdk.Fn.importValue(`${parentStack}-ThingName`)
     const certificateArn = cdk.Fn.importValue(`${parentStack}-CertificateArn`)
     const iamRoleArn = cdk.Fn.importValue(`${parentStack}-IamRoleArn`)
     const componentBucketArn = cdk.Fn.importValue(`${parentStack}-ComponentBucketArn`)
-
-    // Local variables
-    const thingName = thingArn.split("/").slice(-1)[0]
 
     // Layered constructs - each constructs derived values can be used for subsequent constructs
 
@@ -128,10 +126,10 @@ export class OsCommandStack extends cdk.Stack {
 
     // Set stack outputs to be consumed by local processes
     new cdk.CfnOutput(this, "RequestTopic", {
-      value: `${thingName}/os_cmd/request`
+      value: `${thingName}/os_command/request`
     })
     new cdk.CfnOutput(this, "ResponseTopic", {
-      value: `${thingName}/os_cmd/response`
+      value: `${thingName}/os_command/response`
     })
 
     // ************ End of CDK Constructs / stack - Supporting functions below ************

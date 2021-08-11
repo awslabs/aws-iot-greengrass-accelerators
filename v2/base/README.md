@@ -101,7 +101,7 @@ This approach uses your local system for installation and running the accelerato
 
    ```bash
    git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
-   cd aws-iot-greengrass-accelerators/vs/base_implementation/cdk
+   cd aws-iot-greengrass-accelerators/v2/base/cdk
    npm install
    npm run build
    # replace PROFILE_NAME with your specific AWS CLI profile that has username and region defined

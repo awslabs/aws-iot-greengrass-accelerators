@@ -193,6 +193,10 @@ export class BaseImplementationStack extends cdk.Stack {
       exportName: `${stackName}-ThingArn`,
       value: iotThingCertPol.thingArn
     })
+    new cdk.CfnOutput(this, "ThingName", {
+      exportName: `${stackName}-ThingName`,
+      value: greengrassCoreThingName
+    })
     new cdk.CfnOutput(this, "IotPolicyArn", {
       value: iotThingCertPol.iotPolicyArn
     })

@@ -1,6 +1,6 @@
-# AWS IoT Greengrass V2 Operating System (OS) Command Component
+# AWS IoT Greengrass V2 Operating System Command Component
 
-This component extends the the capabilities of the [base](../base) accelerator stack by adding a new thing group, Greengrass component, and Greengrass deployment for the existing core. The functionality the `ggAccel.os_command` component provides is the ability to publish an operating system command via an MQTT message to a topic on AWS IoT Core, have it execute on the Greengrass core device, and return the commands output to a different MQTT topic. By publishing the command on topic and subscribing to the response on another topic, you can remotely issue commands and receive results via the cloud.
+This component, Operating System Command (OS Command), extends the capabilities of the [base](../base) accelerator stack by adding a new thing group, Greengrass component, and Greengrass deployment for the existing Greengrass core. The functionality of the `ggAccel.os_command` component provides the ability to publish an operating system command via an MQTT message to a topic on AWS IoT Core, have it execute on the Greengrass core device, and return the commands output to a different MQTT topic. By publishing the command on topic and subscribing to the response on another topic, you can remotely issue commands and receive results via the cloud.
 
 This is deployed as a [nested stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-nested-stacks.html) where the root stack is the base implementation accelerator. This stack creates the following resources:
 
@@ -23,10 +23,10 @@ The following architecture shows the deployment of this accelerator (aligned to 
 
 ![Base Implementation Process Steps](docs/arch1.svg)
 
-1. The CDK stack creates a new thing group, adds the thing-core, and deploys the `os_cmd` component. The two thing group component lists are merges and sent to the Greengrass core.
+1. The CDK stack creates a new thing group (`os-cmd-group`), adds the existing `thing-core`, and deploys the `os_cmd` component. The two thing group deployments are merged and sent to the Greengrass core.
 1. The component starts and subscribes to a topic for incoming commands.
-1. When a command is issued by a person or application it is sent to the component and run as a terminal command.
-1. When the command has completed the component publishes the result back to the Cloud for the person or application to use.
+1. When a command `uptime` is issued by a person or application it is sent to the component and run as a terminal command.
+1. When the command has completed the component publishes the result, `15:00 up 13 days...` back to the AWS Cloud for the person or application to use.
 
 # Folder Structure
 
@@ -45,7 +45,7 @@ os_cmd
 │   └── tsconfig.json
 ```
 
-As a nested stack, this uses CDK to deploy. As it uses CDK constructs from the `base` stack via relative paths, do not move this directory without first updating the paths in `lib/OsCommandStack.ts` first.
+As a nested stack, this uses CDK to build and deploy the resources. As it uses CDK constructs from the `base` stack via relative paths, do not move this directory without first updating the paths in `lib/OsCommandStack.ts` first.
 
 If using Docker, continue to use the `base/docker` directory for starting and stopping the container.
 
@@ -61,19 +61,11 @@ This accelerator is designed to deploy as a combination of AWS CloudFormation st
 
 The following is a list of prerequisites to deploy the accelerator:
 
-1. Ensure you have an AWS user account with permissions to create and manage resources. An Identity and Access Management (IAM) user with the [Administrator role](https://docs.aws.amazon.com/IAM/latest/UserGuide/access_policies_job-functions.html#jf_administrator) meets this requirement.
-1. Install the AWS CLI locally and create a [named profile](https://docs.aws.amazon.com/cli/latest/userguide/cli-configure-profiles.html) with credentials for the AWS user account. For Cloud9, there is a profile already created named _default_ that will have your accounts permissions.
-1. Install the [AWS Cloud Development Kit](https://docs.aws.amazon.com/cdk/latest/guide/getting_started.html) and perform a [bootstrap](https://docs.aws.amazon.com/cdk/latest/guide/troubleshooting.html#troubleshooting_nobucket) in the region you will be deploying the accelerator.
-1. Verify Docker Desktop for macOS or Microsoft Windows installed, or Docker Engine for Linux. Ensure you have the ability to create or download Docker images locally and run containers. The [Docker Compose tool](https://docs.docker.com/compose/) is required, either from Docker Desktop or installed separately.
-
-There are two installation and deployment methods outlines below:
-
-- If you are familiar with Nodejs, Python and working with the command line on your local system, select the [Create and Launch the Accelerator Locally](#create-and-launch-the-accelerator-locally) method.
-- For all others, use the [Step-by-Step: Create and Launch the Accelerator via AWS Cloud9](#step-by-step-create-and-launch-the-accelerator-via-aws-cloud9) method.
+1. The base implementation stack must be deployed. It is also recommended to configure and test the base implementation before deploying this stack.
 
 ## Create and Launch the Accelerator Locally
 
-This approach uses your local system for installation and running the accelerator. It requires certain pre-requisites to be installed. If you like to run from a consistent environment, see the next section for deploying using AWS Cloud9.
+This approach uses your local system for installation and running the accelerator, but the same commands can be used if testing from AWS Cloud9.
 
 1. Change into the `v2/os_cmd/cdk/` directory for the accelerator, then build and deploy the CloudFormation stack:
 
@@ -83,7 +75,8 @@ This approach uses your local system for installation and running the accelerato
    cd aws-iot-greengrass-accelerators/v2/os_cmd/cdk
    npm install
    npm run build
-   # replace PROFILE_NAME with your specific AWS CLI profile that has username and region defined. Also note that the base stack name must be provided
+   # replace PROFILE_NAME with your specific AWS CLI profile that has username and region defined.
+   # Also note that the base stack name must be provided.
    cdk --profile PROFILE_NAME deploy --context baseStack="gg-accel-base"
    ```
 
@@ -91,7 +84,7 @@ This approach uses your local system for installation and running the accelerato
 
    ```bash
    ✅  gg-accel-os-command
-
+   
    Outputs:
    gg-accel-os-command.RequestTopic = gg-accel-base-greengrass-core-1BFfAdXT/os_cmd/request
    gg-accel-os-command.ResponseTopic = gg-accel-base-greengrass-core-1BFfAdXT/os_cmd/response
@@ -99,9 +92,7 @@ This approach uses your local system for installation and running the accelerato
    arn:aws:cloudformation:us-west-2:123456789012:stack/gg-accel-os-command/82df9e50-fa21-11eb-ba37-02268e8a52f9
    ```
 
-1. At this point the CloudFormation stack is deployed and if the Greengrass core is running, it will have received the new deployment. Copy the _Reqeust_ and _Response_ topics
-
-1. At this point the CloudFormation stack is deployed. Next, change to the `docker/` directory and run the configuration script (`python3 config_docker.py` script, which will:
+At this point the CloudFormation stack is deployed and if the Greengrass core is running, it will have received the new deployment. Copy the _Request_ and _Response_ topics for use when sending and receiving MQTT messages.
 
 ## Investigating the Accelerator
 

@@ -11,6 +11,10 @@ This is deployed as a [nested stack](https://docs.aws.amazon.com/AWSCloudFormati
 
 Once this is fully deployed, the Greengrass core device will receive and deploy the component immediately or when next started.
 
+
+
+> **NOTE:** This accelerator is intended for educational use only and should not be used as the basis for production workloads without fully reviewing the component and it's artifacts.
+
 # OS Command Use Case
 
 This accelerator demonstrates the capability for a local Python application to receive commands from the Cloud, run them locally, and then publish back the results to another topic in the Cloud. It demonstrates Cloud command and control capability to a remote device, the ability for a local application to interact with IPC topics, execute commands locally, and response to successful or unsuccessful commands.
@@ -86,8 +90,8 @@ This approach uses your local system for installation and running the accelerato
    ✅  gg-accel-os-command
    
    Outputs:
-   gg-accel-os-command.RequestTopic = gg-accel-base-greengrass-core-1BFfAdXT/os_cmd/request
-   gg-accel-os-command.ResponseTopic = gg-accel-base-greengrass-core-1BFfAdXT/os_cmd/response
+   gg-accel-os-command.RequestTopic = gg-accel-base-greengrass-core-1BFfAdXT/os_command/request
+   gg-accel-os-command.ResponseTopic = gg-accel-base-greengrass-core-1BFfAdXT/os_command/response
    Stack ARN:
    arn:aws:cloudformation:us-west-2:123456789012:stack/gg-accel-os-command/82df9e50-fa21-11eb-ba37-02268e8a52f9
    ```
@@ -96,9 +100,130 @@ At this point the CloudFormation stack is deployed and if the Greengrass core is
 
 ## Investigating the Accelerator
 
-As a base accelerator, the main interaction with this accelerator is to ensure it is running correctly, understand the directory structure, and access various log files. You can review the output of the _Hello World_ example component by looking at the contents of the log file in `docker/volumes/gg_root/logs/ggAccel.example.HelloWorld.log`.
+Once deployed, you can use either Test client from the AWS IoT Core console or via an MQTT client where you can publish and subscribe to topics. The examples below use the Test client.
 
-Other accelerators use this stack's resources to build additional Greengrass components and deployments and a thing group. When the Docker container is restarted the Greengrass core device will merge all deployments into a single one.
+First, create a *subscription* to the `core-name/os_command/response` topic from the previous section. This subscription will allow us to receive the *response* from an issues command. Next, select the publish tab and paste in`.../os_command/request. Finally, enter a command and select Publish.
+
+![](docs/test_client.png)
+
+
+
+With all of this setup, you can send commands to the component and receive the response. Here are a couple commands (message payloads) to monitor how the component deals with different attributes and format such as invalid JSON.
+
+### General command
+
+This command will return the current working directory of the component.
+
+**Message payload**
+
+```json
+{
+  "txid": "12345",
+  "command": "pwd"
+}
+```
+
+**Command response**
+
+```json
+{
+  "response": "/greengrass/v2/work/ggAccel.os_command\n",
+  "txid": "12345",
+  "return_code": 0
+}
+```
+
+
+
+### Long response command (JSON)
+
+This command will return the contents of a directory listing in `/etc` as a serialized JSON string.
+
+**Message payload**
+
+```json
+{
+  "txid": "12345",
+  "command": "ls -ltr /etc"
+}
+```
+
+**Command response**
+
+```json
+{
+  "response": "total 1128\n-rw-r--r-- 1 root root 670293 Jun  7  2013 services\n-rw-r--r-- 1 root root    233 Jun  7  2013 printcap\n...CONTENT_SHORTENED---------- 1 root root    314 Aug 16 19:49 gshadow\n",
+  "txid": "12345",
+  "return_code": 0
+}
+```
+
+
+
+### Long response command (TEXT)
+
+This command will return the contents of a directory listing in `/etc` in human readable output.
+
+**Message payload**
+
+```json
+{
+  "txid": "12345",
+  "command": "ls -ltr /etc",
+  "format": "text"
+}
+```
+
+**Command response**
+
+```text
+TX_ID: 12345
+RETURN_CODE: 0
+RESPONSE:
+total 1128
+-rw-r--r-- 1 root root 670293 Jun  7  2013 services
+-rw-r--r-- 1 root root    233 Jun  7  2013 printcap
+-rw-r--r-- 1 root root      0 Jun  7  2013 motd
+...CONTENT_SHORTENED
+---------- 1 root root    314 Aug 16 19:49 gshadow
+```
+
+### Invalid command
+
+This command will return an error for missing attributes.
+
+**Message payload**
+
+```json
+{
+  "message": "Hello from AWS IoT Core"
+}
+```
+
+**Command response**
+
+```json
+{
+  "response": "The attributes 'txid' and 'command' missing from request",
+  "return_code": 255
+}
+```
+
+
+
+As you run there and other commands, review the log file output. Also, the main Python code located here:
+
+````
+aws-iot-greengrass-accelerators/v2/base/cdk/components/ggAccel.example.HelloWorld/artifacts/ggAccel.example.HelloWorld/1.0.0/hello_world.py
+````
+
+Has additional details on the `format` and `timeout` attributes.
+
+By investigating the component's recipe file, artifacts, and and the commands that create and publish the component via the CDK, you should now have a better understanding of:
+
+- Command and control from AWS IoT Core to a running component on Greengrass
+- How the component can interact with local system resources
+- Using language dependencies either at the operation system level or within the artifact folder to develop feature rich components
 
 ## Accelerator Cleanup
 
@@ -110,53 +235,32 @@ To stop and completely remove this accelerator, follow these steps:
    docker-compose down
    ```
 
-1. With the container stopped, change to the CDK directory and issue the command to _destroy_ the CloudFormation stack:
+1. With the container stopped, change to the component's CDK directory and issue the command to _destroy_ the CloudFormation stack:
 
    ```bash
-   cd ../cdk
+   cd aws-iot-greengrass-accelerators/v2/os_cmd/cdk
    # For Cloud9
-   cdk destroy
+   cdk destroy --context baseStack="gg-accel-base"
    # For locally running (replace PROFILE_NAME with one used to create stack)
-   cdk --profile PROFILE_NAME destroy
+   # Change baseStack if the parent stacks' default name was not used
+   cdk destroy --profile PROFILE_NAME --context baseStack="gg-accel-base"
    ```
 
-   If there are any errors abut not being able to completely destroy the stack, review the error messages and resolve. In most cases it will be related to assets that may have been modified. Once resolve, run the `cdk destroy` command again, or delete the stack from the CloudFormation console.
+   > **NOTE:** This will only destroy the `os_cmd` component resources and not the base stack. Also, since the component has already been deployed to the Greengrass core, it will continue to run unless it is locally delete via the `greengrass-cli`, or the Greengrass configuration is reset.
 
-   Also, at this point the certificate and private key are no longer valid in the Greengrass `docker/volumes/certs` directory. If you wish to redeploy the stack, you can run the `python3 config_docker.py --clean` command to remove all configuration and Greengrass files.
+   At this point, all `os_cmd` resources have been deleted.
 
 1. Review any CloudWatch Logs log groups and delete these if needed.
 
-1. Finally, change out of the GitHub repository and fully delete the directory.
 
-That's it! Fully deployed, ran, and cleaned up!
+All traces of the component including the thing group and additional AWS IoT Core policy permissions have been removed from the Greengrass core implementation.
 
 ## Frequently Asked Questions
 
-### How can I use this accelerator beyond the "Hello World" example component?
+### Should I use this code for my production workloads?
 
-By creating a single core device, thing group, and deployment, you can create additional components external to the accelerator and then revise the Greengrass deployment that targets the thing group. This could be for cloud deployment testing or to investigate operationally how Greengrass handles deployment updates.
-
-### How can I view the log file `/tmp/Greengrass_HelloWorld.log` referred to in the "Hello World" application code?
-
-The full container file system can be accessed by executing a shell within the running container. To do so, with the container running via `docker compose up`, open a new terminal window locally or in Cloud9 and run these commands:
-
-```shell
-# Verify container name (default: greengrass-accel)
-docker ps
-CONTAINER ID   IMAGE          COMMAND                  CREATED      STATUS          PORTS                                       NAMES
-fd53c272f65d   dafe85b8555c   "/greengrass-entrypo…"   2 days ago   Up 11 minutes   0.0.0.0:8883->8883/tcp, :::8883->8883/tcp   greengrass-accel
-
-# Execute shell within the container ("bash-4.2#" is the shell in the container)
-docker exec -it greengrass-accel /bin/bash
-bash-4.2# cd /tmp
-bash-4.2# cat Greengrass_HelloWorld.log
-Hello, Welcome from the Greengrass accelerator stack! Current time: 2021-08-03 00:49:59.275648.
-Hello, Welcome from the Greengrass accelerator stack! Current time: 2021-08-05 13:33:53.487968.
-# Exit command will exit from the container back to your local terminal
-bash-4.2# exit
-exit
-```
+In its current form, no. This component is not suitable for production workloads and intended to demonstrate the capabilities of command and control and system interaction in a simple manner. To be production-ready would require additional validation of commands from the cloud and though the subprocess communication.
 
 ## Implementation Notes
 
-The _Hello World_ component is a minimal python script to demonstrate component creation and deployment. In a normal operation, it will run once upon deployment or core device startup and create a log file in `/tmp` along with entries in the log file folder.
+The OS Command component is a Python based script that uses the IPC mechanism of the Nucleus to subscribe and publish to set topics in AWS IoT Core. It is a long running process that will process each individual message separately.

@@ -17,6 +17,7 @@
     "@types/jest": "^26.0.10",
     "@types/lodash": "^4.14.171",
     "@types/node": "16.3.1",
+    "@types/seedrandom": "^3.0.1",
     "aws-cdk": "1.118.0",
     "jest": "^26.4.2",
     "ts-jest": "^26.2.0",
@@ -31,6 +32,7 @@
     "@aws-cdk/aws-s3": "1.118.0",
     "@aws-cdk/core": "1.118.0",
     "@aws-cdk/custom-resources": "1.118.0",
+    "seedrandom": "^3.0.5",
     "source-map-support": "^0.5.16"
   },
   "prettier": {

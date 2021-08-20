@@ -215,7 +215,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
     # Acknowledge the creation above, then change to docker and configure initial parameters
     cd ../docker
-    python3 config_docker.py
+    python3 config_docker.py --profile default
 
     # Build and start the Greengrass docker container. First time will take longer to build and deploy resources
     docker-compose up

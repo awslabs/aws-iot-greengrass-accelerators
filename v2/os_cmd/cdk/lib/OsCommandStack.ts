@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT-0
 
 import * as path from "path"
+import * as seedrandom from "seedrandom"
 import * as cdk from "@aws-cdk/core"
 import * as iam from "@aws-cdk/aws-iam"
 import * as s3 from "@aws-cdk/aws-s3"
@@ -28,7 +29,8 @@ export class OsCommandStack extends cdk.Stack {
 
     // suffix to use for all stack resources to make unique
     // In this stack all resources will use the format STACKNAME-RESOURCENAME-RANDOMSUFFIX
-    const stackRandom: string = makeid(8)
+    const stackRandom: string = makeid(8, parentStack)
+    console.log("random is ", stackRandom)
 
     // Load parameters from parent stack
     const thingArn = cdk.Fn.importValue(`${parentStack}-ThingArn`)
@@ -134,11 +136,12 @@ export class OsCommandStack extends cdk.Stack {
 
     // ************ End of CDK Constructs / stack - Supporting functions below ************
 
-    function makeid(length: number) {
+    function makeid(length: number, seed: string) {
       // Generate a n-length random value for each resource
       var result = ""
       var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
       var charactersLength = characters.length
+      seedrandom(seed, { global: true })
       for (var i = 0; i < length; i++) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength))
       }

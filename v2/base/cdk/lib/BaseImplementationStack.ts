@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: MIT-0
 
 import * as path from "path"
+import * as seedrandom from "seedrandom"
 import * as cdk from "@aws-cdk/core"
 import * as iam from "@aws-cdk/aws-iam"
 import * as s3 from "@aws-cdk/aws-s3"
@@ -16,15 +17,15 @@ export class BaseImplementationStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props)
 
-    if (cdk.Stack.of(this).stackName.length > 20) {
+    const stackName = cdk.Stack.of(this).stackName
+    if (stackName.length > 20) {
       console.error("Stack name must be less than 20 characters in length")
       process.exitCode = 1
     }
     // suffix to use for all stack resources to make unique
     // In this stack all resources will use the format STACKNAME-RESOURCENAME-RANDOMSUFFIX
-    const stackName = cdk.Stack.of(this).stackName
-    const stackRandom: string = makeid(8)
 
+    const stackRandom: string = makeid(8, stackName)
     // Layered constructs - each constructs derived values can be used for subsequent constructs
 
     // create S3 bucket for artifacts - greengrass-component-artifacts-stackRandom-AccountId-Region
@@ -65,14 +66,14 @@ export class BaseImplementationStack extends cdk.Stack {
 
     // Define stack-specific names for IoT role alias
     const roleAliasName = fullResourceName({
-      stackName: cdk.Stack.of(this).stackName,
+      stackName: stackName,
       baseName: "GreengrassV2TokenExchangeRole",
       suffix: stackRandom,
       resourceRegex: "\\w=,@-",
       maxLength: 128
     })
     const iamRoleName = fullResourceName({
-      stackName: cdk.Stack.of(this).stackName,
+      stackName: stackName,
       baseName: "RoleForIoTRoleAlias",
       suffix: stackRandom,
       resourceRegex: "\\w+=,.@-",
@@ -87,14 +88,14 @@ export class BaseImplementationStack extends cdk.Stack {
 
     // Define stack-specific names for the IoT thing name and policy
     const greengrassCoreThingName = fullResourceName({
-      stackName: cdk.Stack.of(this).stackName,
+      stackName: stackName,
       baseName: "greengrass-core",
       suffix: stackRandom,
       resourceRegex: "a-zA-Z0-9:_-",
       maxLength: 128
     })
     const greengrassCoreIotPolicyName = fullResourceName({
-      stackName: cdk.Stack.of(this).stackName,
+      stackName: stackName,
       baseName: "greengrass-minimal-policy",
       suffix: stackRandom,
       resourceRegex: "\\w+=,.@-",
@@ -115,7 +116,7 @@ export class BaseImplementationStack extends cdk.Stack {
 
     // Define stack-specific name of the IoT thing group
     const groupName = fullResourceName({
-      stackName: cdk.Stack.of(this).stackName,
+      stackName: stackName,
       baseName: "greengrass-deployment-group",
       suffix: stackRandom,
       resourceRegex: "a-zA-Z0-9:_-",
@@ -226,11 +227,12 @@ export class BaseImplementationStack extends cdk.Stack {
 
     // ************ End of CDK Constructs / stack - Supporting functions below ************
 
-    function makeid(length: number) {
+    function makeid(length: number, seed: string) {
       // Generate a n-length random value for each resource
       var result = ""
       var characters = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789"
       var charactersLength = characters.length
+      seedrandom(seed, { global: true })
       for (var i = 0; i < length; i++) {
         result += characters.charAt(Math.floor(Math.random() * charactersLength))
       }

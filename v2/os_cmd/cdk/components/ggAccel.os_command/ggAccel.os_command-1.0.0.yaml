@@ -1,0 +1,46 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+# Template recipe file
+# Derived COMPONENT_NAME, COMPONENT_VERSION, COMPONENT_BUCKET,
+# and ARTIFACT_KEY_NAME variables during CDK construct creation.
+# These values are replaced with values passed to the GreengrassV2Component construct.
+# NOTE: This file is not fully compliance until processed.
+---
+RecipeFormatVersion: 2020-01-25
+ComponentName: ggAccel.os_command
+ComponentVersion: "1.0.0"
+ComponentDescription: Listens for operating system command, executes, and returns output to topic
+ComponentPublisher: Amazon
+ComponentConfiguration:
+  DefaultConfiguration:
+    request_topic: "os_command/request"
+    response_topic: "os_command/response"
+    accessControl:
+      aws.greengrass.ipc.mqttproxy:
+        ggAccel.os_command:mqttproxy:1:
+          policyDescription: Allows access to publish/subscribe to all IoT Core topics.
+          operations:
+            # Scoped down access to IoT Core topics handled by IoT policy associated with core's principal
+            - aws.greengrass#SubscribeToIoTCore
+            - aws.greengrass#PublishToIoTCore
+          resources:
+            - "*"
+Manifests:
+  - Platform:
+      os: linux
+    Lifecycle:
+      Install: |-
+        python3 -m pip install --user  -r {artifacts:decompressedPath}/ggAccel.os_command/requirements.txt
+      Run:
+        Script: |-
+          echo "Starting command processor"
+          python3 -u {artifacts:decompressedPath}/ggAccel.os_command/app.py --request-topic {iot:thingName}/{configuration:/request_topic} --response-topic {iot:thingName}/{configuration:/response_topic}
+    Artifacts:
+      # Artifact sources will be compressed as a zip file and named as ComponentName.zip in an S3 bucket with
+      # the prefix/name of ComponentName/ComponentVersion/ComponentName.zip to match the style used by AWS
+      # published components. The following URI uses replacement variables to achieve this (please see the
+      # construct definition for what needs to be passed).
+      # NB: Variables are not used in other portions of the Manifest to allow for local development and testing
+      - URI: s3://COMPONENT_BUCKET/COMPONENT_NAME/COMPONENT_VERSION/ggAccel.os_command.zip
+        Unarchive: ZIP

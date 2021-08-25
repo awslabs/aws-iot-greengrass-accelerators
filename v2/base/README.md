@@ -56,6 +56,8 @@ The second step is running commands from the `docker/` directory once the stack 
 # Deploying the Accelerator
 
 > **NOTE:** All accelerators use the same structure and steps to deploy, even if the actual output of the steps differ slightly.
+>
+> :exclamation: Although not recommended, this stack can be deployed more than once--but requires changing the stack name and modifying the resources deployed. Please see the _Frequently Asked Questions_ section for more details.
 
 This accelerator is designed to deploy as a combination of AWS CloudFormation stacks in the cloud and run AWS IoT Greengrass as a Docker container on your local system or through [AWS Cloud9](https://aws.amazon.com/cloud9/). This provides a consistent and quick approach to testing or investigating functionality without impacting or leaving behind unneeded artifacts locally, or in the cloud. To launch this accelerator as a Docker container, there are a few prerequisites and steps to complete. It is assumed you have basic experience with AWS IoT via the console and have familiarity with the command line interface (CLI).
 
@@ -101,7 +103,7 @@ This approach uses your local system for installation and running the accelerato
 
    ```bash
    git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
-   cd aws-iot-greengrass-accelerators/vs/base_implementation/cdk
+   cd aws-iot-greengrass-accelerators/v2/base/cdk
    npm install
    npm run build
    # replace PROFILE_NAME with your specific AWS CLI profile that has username and region defined
@@ -215,7 +217,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
     # Acknowledge the creation above, then change to docker and configure initial parameters
     cd ../docker
-    python3 config_docker.py
+    python3 config_docker.py --profile default
 
     # Build and start the Greengrass docker container. First time will take longer to build and deploy resources
     docker-compose up
@@ -297,6 +299,20 @@ Hello, Welcome from the Greengrass accelerator stack! Current time: 2021-08-05 1
 bash-4.2# exit
 exit
 ```
+
+### How can I deploy the base stack more than once?
+
+It is not recommended to deploy a second stack as-is without making changes first. Although most resources have unique names, the Greengrass component, `ggAccel.example.HelloWorld` is not unique across deployments of the stack. If a second instance of the base accelerator is required, follow these steps:
+
+1. Clone the repository and run the new deployment from that directory structure. Doing this will keep the deployed stack details separate and not require passing in the stack name for any other CDK commands.
+1. In the `lib/BaseImplementationStack.ts` file, remove the creation of the `helloWorldComponent` component, and adjust the `greengrassDeployment` construct. Failing to do so will result in the stack failing due to duplicate components.
+1. By default, the AWS CloudFormation stack name of `gg-accel-base` is used. Deploy the copied stack with a unique stack name by setting the environment variable `STACK_NAME` to a new name to use for the stack.
+
+   ```shell
+   $ STACK_NAME="gg-accel-base2" cdk deploy --profile PROFILE_NAME
+   ```
+
+Once completed, the new stack will be available. To destroy the stack, pass in the same `STACK_NAME` value and run the command `STACK_NAME="gg-accel-base2" cdk destroy --profile PROFILE_NAME`
 
 ## Implementation Notes
 

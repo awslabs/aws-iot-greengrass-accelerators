@@ -9,6 +9,9 @@ docker-compose.yml
 .vscode/settings.json
 .vscode/launch.json
 
+# Intellij Folder
+.idea
+
 # SAM/CloudFormation build artifacts
 *-output.yaml
 tmp/*

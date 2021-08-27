@@ -100,7 +100,7 @@ At this point the CloudFormation stack is deployed and if the Greengrass core is
 
 ## Investigating the Accelerator
 
-Once deployed, you can use either Test client from the AWS IoT Core console or via an MQTT client where you can publish and subscribe to topics. The examples below use the Test client.
+Once deployed, you can use either Test client from the AWS IoT Core console or via an MQTT client where you can publish and subscribe to topics. The examples below uses the Test client.
 
 First, create a *subscription* to the `core-name/os_command/response` topic from the previous section. This subscription will allow us to receive the *response* from an issues command. Next, select the publish tab and paste in`.../os_command/request. Finally, enter a command and select Publish.
 

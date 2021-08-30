@@ -1,27 +1,29 @@
-# AWS IoT Greengrass V2 Operating System Command Component
+# AWS IoT Greengrass V2 Extract, Transform, and Load Simplified Deployment
 
-This component, Operating System Command (OS Command), extends the capabilities of the [base](../base) accelerator stack by adding a new thing group, Greengrass component, and Greengrass deployment for the existing Greengrass core. The functionality of the `ggAccel.os_command` component provides the ability to publish an operating system command via an MQTT message to a topic on AWS IoT Core, have it execute on the Greengrass core device, and return the commands output to a different MQTT topic. By publishing the command on topic and subscribing to the response on another topic, you can remotely issue commands and receive results via the cloud.
+This deployment, Extract, Transform, and Load Simplified (ETL Simple), extends the capabilities of the [base](../base) accelerator stack by adding a new thing group, three Greengrass components, and Greengrass deployment for the existing Greengrass core.
+
+The three components are called `ggAccel.etl_simple.extract` (Extract Component), `ggAccel.etl_simple.transform` (Transform Component), and `ggAccel.etl_simple.load` (Load Component). The Extract component reads example OBD II messages from the file `events1.txt` and publishes them to a local topic. The Transform component reads from that topic, transforms the message into human-readable JSON messages and publishes them locally using [Interprocess Communication](https://docs.aws.amazon.com/greengrass/v2/developerguide/interprocess-communication.html). The Load Process reads from that topic and publishes the messages to AWS IoT Core.
 
 This is deployed as a [nested stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-nested-stacks.html) where the root stack is the base implementation accelerator. This stack creates the following resources:
 
 - Thing group - A group specific to this accelerator, the existing thing is added and targeted for the new component
 - IoT policy - An AWS IoT policy attached to the existing certificate extending the ability to publish and subscribe on the topics used by the component
-- Greengrass component - The application logic (recipe and artifacts) deployable to Greengrass cores. Part of the Greengrass deployment.
-- Greengrass deployment - The Greengrass component targeted for the new Thing group.
+- Three Greengrass component - The application logic (recipe and artifacts) for each component deployable to Greengrass cores. Part of the Greengrass deployment.
+- Greengrass deployment - The Greengrass components targeted for the new Thing group.
 
-Once this is fully deployed, the Greengrass core device will receive and deploy the component immediately or when next started.
-
-
+Once this is fully deployed, the Greengrass core device will receive and deploy the components immediately or when next started.
 
 > **NOTE:** This accelerator is intended for educational use only and should not be used as the basis for production workloads without fully reviewing the component and it's artifacts.
 
-# OS Command Use Case
+# Extract, Transform, and Load Use Case
 
-This accelerator demonstrates the capability for a local Python application to receive commands from the Cloud, run them locally, and then publish back the results to another topic in the Cloud. It demonstrates Cloud command and control capability to a remote device, the ability for a local application to interact with IPC topics, execute commands locally, and response to successful or unsuccessful commands.
+Imagine we want to collect from a vehicle multiple times per-second, transform and compute into a friendly formation, and when connected, send the messages in the cloud. As the vehicle travels into areas without Internet coverage, we want to ensure the local data collection continues and messages are ultimately stored in the cloud once coverage is restored.
 
-In practical operation, it can be used to query the status of host operating system, download and upgrade software, or any other activities normally performed from the host operating systems command line interface (CLI). It can also be used as an example for performing command and control operations originating from the cloud and taking local action.
+In this simplified example, the `events1.txt` file contains the messages and acts, together with the Extract Component, as OBD-II data source. The content of every messages is transformed from the 8-bye OBD-II values (example: 1562433539.743263 7E8 0341055600000000)into a readable JSON formatted message.
 
-# Design Pattern
+Finally, individual records are to AWS IoT Core via MQTT.
+
+# Design Pattern - TODO
 
 The following architecture shows the deployment of this accelerator (aligned to the base implementation).
 
@@ -35,7 +37,7 @@ The following architecture shows the deployment of this accelerator (aligned to 
 # Folder Structure
 
 ```text
-os_cmd
+etl_simple
 ├── README.md             <--- this file
 ├── cdk                   <--- builds and deploys CloudFormation to cloud
 │   ├── bin
@@ -49,7 +51,7 @@ os_cmd
 │   └── tsconfig.json
 ```
 
-As a nested stack, this uses CDK to build and deploy the resources. As it uses CDK constructs from the `base` stack via relative paths, do not move this directory without first updating the paths in `lib/OsCommandStack.ts` first.
+As a nested stack, this uses CDK to build and deploy the resources. As it uses CDK constructs from the `base` stack via relative paths, do not move this directory without first updating the paths in `lib/EtlSimpleStack.ts`.
 
 If using Docker, continue to use the `base/docker` directory for starting and stopping the container.
 
@@ -67,16 +69,16 @@ The following is a list of prerequisites to deploy the accelerator:
 
 1. The base implementation stack must be deployed. It is also recommended to configure and test the base implementation before deploying this stack.
 
-## Create and Launch the Accelerator Locally
+## Create and Launch the Accelerator
 
 This approach uses your local system for installation and running the accelerator, but the same commands can be used if testing from AWS Cloud9.
 
-1. Change into the `v2/os_cmd/cdk/` directory for the accelerator, then build and deploy the CloudFormation stack:
+1. Change into the `v2/etl_simple/cdk/` directory for the accelerator, then build and deploy the CloudFormation stack:
 
    > **NOTE:** The first time `cdk deploy` is run, it will take longer as there are Docker images required to build some of the resources. You will see Docker-related messages in your terminal session. Subsequent runs will only take a few additional seconds.
 
    ```bash
-   cd aws-iot-greengrass-accelerators/v2/os_cmd/cdk
+   cd aws-iot-greengrass-accelerators/v2/etl_simple/cdk
    npm install
    npm run build
    # replace PROFILE_NAME with your specific AWS CLI profile that has username and region defined.
@@ -84,146 +86,27 @@ This approach uses your local system for installation and running the accelerato
    cdk --profile PROFILE_NAME deploy --context baseStack="gg-accel-base"
    ```
 
-   The result of a successful deployment will look like this:
+   The result of a successful deployment will look similar to this:
 
    ```bash
-   ✅  gg-accel-os-command
+   ✅  gg-accel-etl-simple
    
    Outputs:
-   gg-accel-os-command.RequestTopic = gg-accel-base-greengrass-core-1BFfAdXT/os_command/request
-   gg-accel-os-command.ResponseTopic = gg-accel-base-greengrass-core-1BFfAdXT/os_command/response
+   gg-accel-etl-simple.CloudPublishTopic = gg-accel-base-greengrass-core-kzH8xKQc/etl_simple/load
    Stack ARN:
-   arn:aws:cloudformation:us-west-2:123456789012:stack/gg-accel-os-command/82df9e50-fa21-11eb-ba37-02268e8a52f9
+   arn:aws:cloudformation:eu-central-1:594598670825:stack/gg-accel-etl-simple/870a6f50-09a3-11ec-a262-0ad1fb9d7ee6
    ```
 
-At this point the CloudFormation stack is deployed and if the Greengrass core is running, it will have received the new deployment. Copy the _Request_ and _Response_ topics for use when sending and receiving MQTT messages.
+At this point the CloudFormation stack is deployed and if the Greengrass core is running, it will have received the new deployment. Copy the _CloudPublishTopic_ topic for use when processing the MQTT messages in the Cloud.
 
 ## Investigating the Accelerator
 
 Once deployed, you can use either Test client from the AWS IoT Core console or via an MQTT client where you can publish and subscribe to topics. The examples below use the Test client.
 
-First, create a *subscription* to the `core-name/os_command/response` topic from the previous section. This subscription will allow us to receive the *response* from an issues command. Next, select the publish tab and paste in`.../os_command/request. Finally, enter a command and select Publish.
+Create a *subscription* to the `core-name/etl_simple/load` topic from the previous section. This subscription will allow us to receive the *transformed message* from the locally running processes.
 
 ![](docs/test_client.png)
 
-
-
-With all of this setup, you can send commands to the component and receive the response. Here are a couple commands (message payloads) to monitor how the component deals with different attributes and format such as invalid JSON.
-
-### General command
-
-This command will return the current working directory of the component.
-
-**Message payload**
-
-```json
-{
-  "txid": "12345",
-  "command": "pwd"
-}
-```
-
-**Command response**
-
-```json
-{
-  "response": "/greengrass/v2/work/ggAccel.os_command\n",
-  "txid": "12345",
-  "return_code": 0
-}
-```
-
-
-
-### Long response command (JSON)
-
-This command will return the contents of a directory listing in `/etc` as a serialized JSON string.
-
-**Message payload**
-
-```json
-{
-  "txid": "12345",
-  "command": "ls -ltr /etc"
-}
-```
-
-**Command response**
-
-```json
-{
-  "response": "total 1128\n-rw-r--r-- 1 root root 670293 Jun  7  2013 services\n-rw-r--r-- 1 root root    233 Jun  7  2013 printcap\n...CONTENT_SHORTENED---------- 1 root root    314 Aug 16 19:49 gshadow\n",
-  "txid": "12345",
-  "return_code": 0
-}
-```
-
-
-
-### Long response command (TEXT)
-
-This command will return the contents of a directory listing in `/etc` in human readable output.
-
-**Message payload**
-
-```json
-{
-  "txid": "12345",
-  "command": "ls -ltr /etc",
-  "format": "text"
-}
-```
-
-**Command response**
-
-```text
-TX_ID: 12345
-RETURN_CODE: 0
-RESPONSE:
-total 1128
--rw-r--r-- 1 root root 670293 Jun  7  2013 services
--rw-r--r-- 1 root root    233 Jun  7  2013 printcap
--rw-r--r-- 1 root root      0 Jun  7  2013 motd
-...CONTENT_SHORTENED
----------- 1 root root    314 Aug 16 19:49 gshadow
-```
-
-### Invalid command
-
-This command will return an error for missing attributes.
-
-**Message payload**
-
-```json
-{
-  "message": "Hello from AWS IoT Core"
-}
-```
-
-**Command response**
-
-```json
-{
-  "response": "The attributes 'txid' and 'command' missing from request",
-  "return_code": 255
-}
-```
-
-
-
-As you run there and other commands, review the log file output. Also, the main Python code located here:
-
-````
-aws-iot-greengrass-accelerators/v2/base/cdk/components/ggAccel.example.HelloWorld/artifacts/ggAccel.example.HelloWorld/1.0.0/hello_world.py
-````
-
-Has additional details on the `format` and `timeout` attributes.
-
-By investigating the component's recipe file, artifacts, and and the commands that create and publish the component via the CDK, you should now have a better understanding of:
-
-- Command and control from AWS IoT Core to a running component on Greengrass
-- How the component can interact with local system resources
-- Using language dependencies either at the operation system level or within the artifact folder to develop feature rich components
 
 ## Accelerator Cleanup
 
@@ -238,7 +121,7 @@ To stop and completely remove this accelerator, follow these steps:
 1. With the container stopped, change to the component's CDK directory and issue the command to _destroy_ the CloudFormation stack:
 
    ```bash
-   cd aws-iot-greengrass-accelerators/v2/os_cmd/cdk
+   cd aws-iot-greengrass-accelerators/v2/etl_simple/cdk
    # For Cloud9
    cdk destroy --context baseStack="gg-accel-base"
    # For locally running (replace PROFILE_NAME with one used to create stack)
@@ -246,9 +129,9 @@ To stop and completely remove this accelerator, follow these steps:
    cdk destroy --profile PROFILE_NAME --context baseStack="gg-accel-base"
    ```
 
-   > **NOTE:** This will only destroy the `os_cmd` component resources and not the base stack. Also, since the component has already been deployed to the Greengrass core, it will continue to run unless it is locally delete via the `greengrass-cli`, or the Greengrass configuration is reset.
+   > **NOTE:** This will only destroy the `etl_simple` component resources and not the base stack. Also, since the component has already been deployed to the Greengrass core, it will continue to run unless it is locally delete via the `greengrass-cli`, or the Greengrass configuration is reset.
 
-   At this point, all `os_cmd` resources have been deleted.
+   At this point, all `etl_simple` resources have been deleted.
 
 1. Review any CloudWatch Logs log groups and delete these if needed.
 
@@ -263,4 +146,4 @@ In its current form, no. This component is not suitable for production workloads
 
 ## Implementation Notes
 
-The OS Command component is a Python based script that uses the IPC mechanism of the Nucleus to subscribe and publish to set topics in AWS IoT Core. It is a long running process that will process each individual message separately.
+The ETL Simple components are Python based scripts that uses the IPC mechanism of the Nucleus to subscribe and publish to set topics locally and in AWS IoT Core. They are long running process that will process each individual message separately.

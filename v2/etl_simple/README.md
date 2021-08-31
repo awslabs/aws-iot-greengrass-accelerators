@@ -23,16 +23,16 @@ In this simplified example, the `events1.txt` file contains the messages and act
 
 Finally, individual records are to AWS IoT Core via MQTT.
 
-# Design Pattern - TODO
+# Design Pattern
 
 The following architecture shows the deployment of this accelerator (aligned to the base implementation).
 
-![Base Implementation Process Steps](docs/arch1.svg)
+![Base Implementation Process Steps](docs/etl-architecture.svg)
 
-1. The CDK stack creates a new thing group (`os-cmd-group`), adds the existing `thing-core`, and deploys the `os_cmd` component. The two thing group deployments are merged and sent to the Greengrass core.
-1. The component starts and subscribes to a topic for incoming commands.
-1. When a command `uptime` is issued by a person or application it is sent to the component and run as a terminal command.
-1. When the command has completed the component publishes the result, `15:00 up 13 days...` back to the AWS Cloud for the person or application to use.
+1. The CDK stack creates a new thing group (`etl-simple-group`), adds the existing `thing-core`, and creates a deployment containing the `ggAccel.etl.extract`, `ggAccel.etl.transform` and `ggAccel.etl.load` components. The two thing group deployments are merged and sent to the Greengrass core. Then the components start.
+1. The Extract component reads the data from the file `events1.txt` publishes the data to the topic `core-name/etl_simple/extract`.
+1. The Transform components subscribes to the topic `core-name/etl_simple/extract` and transforms each arriving message from 8-bye OBD-II values into JSON formatted messages. Those then are published to the local topic `core-name/etl_simple/transform.
+1. The Load process publishes to the topic `core-name/etl_simple/transform `and publishes those messages to the topic `core-name/etl_simple/load` over MQTT in AWS IoT Core.
 
 # Folder Structure
 

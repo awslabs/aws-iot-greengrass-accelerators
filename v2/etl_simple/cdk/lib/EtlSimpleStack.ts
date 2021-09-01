@@ -6,7 +6,7 @@ import * as seedrandom from "seedrandom"
 import * as cdk from "@aws-cdk/core"
 import * as iam from "@aws-cdk/aws-iam"
 import * as s3 from "@aws-cdk/aws-s3"
-import { IotPolicy } from "../../../os_cmd/cdk/lib/IotPolicy/IotPolicy"
+import { IotPolicy } from "./IotPolicy/IotPolicy"
 import { IotThingGroup } from "../../../base/cdk/lib/IotThingGroup/IotThingGroup"
 import { GreengrassV2Component } from "../../../base/cdk/lib/GreengrassV2Component/GreengrassV2Component"
 import { GreengrassV2Deployment } from "../../../base/cdk/lib/GreengrassV2Deployment/GreengrassV2Deployment"
@@ -30,7 +30,6 @@ export class EtlSimpleStack extends cdk.Stack {
     // suffix to use for all stack resources to make unique
     // In this stack all resources will use the format STACKNAME-RESOURCENAME-RANDOMSUFFIX
     const stackRandom: string = makeid(8, parentStack)
-    console.log("random is ", stackRandom)
 
     // Load parameters from parent stack
     const thingArn = cdk.Fn.importValue(`${parentStack}-ThingArn`)

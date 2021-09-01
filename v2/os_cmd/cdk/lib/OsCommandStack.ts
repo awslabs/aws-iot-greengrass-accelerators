@@ -30,7 +30,6 @@ export class OsCommandStack extends cdk.Stack {
     // suffix to use for all stack resources to make unique
     // In this stack all resources will use the format STACKNAME-RESOURCENAME-RANDOMSUFFIX
     const stackRandom: string = makeid(8, parentStack)
-    console.log("random is ", stackRandom)
 
     // Load parameters from parent stack
     const thingArn = cdk.Fn.importValue(`${parentStack}-ThingArn`)

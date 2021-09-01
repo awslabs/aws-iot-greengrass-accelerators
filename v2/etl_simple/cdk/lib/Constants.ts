@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
+// In its current form, this code is not fit for production workloads.
+
 // IoT policy for source event interaction
 // NOTE - minimal policy from base accelerator provides Connect access
 export const etlSimpleIoTPolicy = `{

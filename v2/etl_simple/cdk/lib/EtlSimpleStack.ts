@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
+// In its current form, this code is not fit for production workloads.
+
 import * as path from "path"
 import * as seedrandom from "seedrandom"
 import * as cdk from "@aws-cdk/core"

@@ -27,7 +27,7 @@ TIMEOUT = 10
 parser = argparse.ArgumentParser()
 parser.add_argument("--request-topic", required=True)
 parser.add_argument("--result-topic", required=True)
-parser.add_argument("--log-level", required=True)
+parser.add_argument("--log-level", choices={'critical', 'error', 'warning', 'info', 'debug'}, default='info')
 args = parser.parse_args()
 
 logger = logging.getLogger()
@@ -35,12 +35,11 @@ logger = logging.getLogger()
 levels = {
     'critical': logging.CRITICAL,
     'error': logging.ERROR,
-    'warn': logging.WARNING,
     'warning': logging.WARNING,
     'info': logging.INFO,
     'debug': logging.DEBUG
 }
-level = levels.get(args.log_level.lower())
+level = levels.get(args.log_level)
 logging.basicConfig(level=level)
 
 ipc_client = awsiot.greengrasscoreipc.connect()

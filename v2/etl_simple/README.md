@@ -4,7 +4,7 @@ The AWS IoT Greengrass accelerators (accelerators) demonstrate common design pat
 
 This deployment, Extract, Transform, and Load Simplified (ETL Simple), extends the capabilities of the [base](../base) accelerator stack for AWS IoT Greengrass V2 by adding a new thing group, three AWS IoT Greengrass components, and AWS IoT Greengrass deployment for the existing AWS IoT Greengrass core.
 
-The three components are called `ggAccel.etl_simple.extract` (Extract Component), `ggAccel.etl_simple.transform` (Transform Component), and `ggAccel.etl_simple.load` (Load Component). The Extract component reads example OBD II messages from the file `events1.txt` and publishes them to a local topic. The Transform component reads from that topic, transforms the message into human-readable JSON messages and publishes them locally using [Interprocess Communication](https://docs.aws.amazon.com/greengrass/v2/developerguide/interprocess-communication.html). The Load Process reads from that topic and publishes the messages to AWS IoT Core.
+The three components are called `ggAccel.etl_simple.extract` (Extract Component), `ggAccel.etl_simple.transform` (Transform Component), and `ggAccel.etl_simple.load` (Load Component). The Extract component reads example OBD II messages from the file `events1.txt` and publishes them to a local topic. The Transform component reads from that topic, transforms the message into human-readable JSON messages and publishes them locally using [Interprocess Communication](https://docs.aws.amazon.com/greengrass/v2/developerguide/interprocess-communication.html). The Load Process reads from that topic and publishes every twentieth message to AWS IoT Core.
 
 This is deployed as a [nested stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-nested-stacks.html) where the root stack is the base implementation accelerator. This stack creates the following resources:
 
@@ -34,7 +34,7 @@ The following architecture shows the deployment of this accelerator (aligned to 
 1. The CDK stack creates a new thing group (`etl-simple-group`), adds the existing `thing-core`, and creates a deployment containing the `ggAccel.etl.extract`, `ggAccel.etl.transform` and `ggAccel.etl.load` components. The two thing group deployments are merged and sent to the AWS IoT Greengrass core. Then the components start.
 1. The Extract component reads the data from the file `events1.txt` publishes the data to the topic `core-name/etl_simple/extract`.
 1. The Transform components subscribes to the topic `core-name/etl_simple/extract` and transforms each arriving message from 8-bye OBD-II values into JSON formatted messages. Those then are published to the local topic `core-name/etl_simple/transform.
-1. The Load process publishes to the topic `core-name/etl_simple/transform `and publishes those messages to the topic `core-name/etl_simple/load` over MQTT in AWS IoT Core.
+1. The Load process subsribes to the topic `core-name/etl_simple/transform `and publishes every twentieth message to the topic `core-name/etl_simple/load` over MQTT in AWS IoT Core.
 
 # Folder Structure
 

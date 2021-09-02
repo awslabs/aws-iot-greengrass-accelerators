@@ -24,15 +24,26 @@ import transformation_list as transforms
 
 TIMEOUT = 10
 
-logging.basicConfig(level=logging.INFO)
-logger = logging.getLogger()
-
-ipc_client = awsiot.greengrasscoreipc.connect()
-
 parser = argparse.ArgumentParser()
 parser.add_argument("--request-topic", required=True)
 parser.add_argument("--result-topic", required=True)
+parser.add_argument("--log-level", required=True)
 args = parser.parse_args()
+
+logger = logging.getLogger()
+
+levels = {
+    'critical': logging.CRITICAL,
+    'error': logging.ERROR,
+    'warn': logging.WARNING,
+    'warning': logging.WARNING,
+    'info': logging.INFO,
+    'debug': logging.DEBUG
+}
+level = levels.get(args.log_level.lower())
+logging.basicConfig(level=level)
+
+ipc_client = awsiot.greengrasscoreipc.connect()
 
 class StreamHandler(client.SubscribeToTopicStreamHandler):
     def __init__(self):
@@ -69,7 +80,7 @@ def send_obd2_json(message_json):
     request.publish_message = publish_message
     operation = ipc_client.new_publish_to_topic()
     operation.activate(request)
-    print(message_json_string)
+    logger.debug(message_json_string)
     # future = operation.get_response()
     
 def setup_subscribtion():

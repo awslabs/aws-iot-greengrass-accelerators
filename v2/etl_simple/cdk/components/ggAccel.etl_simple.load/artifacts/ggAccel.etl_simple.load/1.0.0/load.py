@@ -19,6 +19,7 @@ from awsiot.greengrasscoreipc.model import (
 )
 
 TIMEOUT = 10
+SEND_EVERY_X_MESSAGES = 20
 qos = QOS.AT_LEAST_ONCE
 
 logging.basicConfig(level=logging.INFO)
@@ -29,6 +30,7 @@ parser.add_argument("--request-topic", required=True)
 parser.add_argument("--publish-topic", required=True)
 args = parser.parse_args()
 
+number_of_messages = 0
 ipc_client = awsiot.greengrasscoreipc.connect()
                     
 class StreamHandler(client.SubscribeToTopicStreamHandler):
@@ -36,10 +38,14 @@ class StreamHandler(client.SubscribeToTopicStreamHandler):
         super().__init__()
 
     def on_stream_event(self, event: SubscriptionResponseMessage) -> None:
+        global number_of_messages
         try:
             message_string = str(event.binary_message.message, "utf-8")
+            number_of_messages += 1
 
-            send_obd2_json_to_cloud(message_string)
+            if number_of_messages >= SEND_EVERY_X_MESSAGES:
+                number_of_messages = 0
+                send_obd2_json_to_cloud(message_string)
             
         except:
             traceback.print_exc()

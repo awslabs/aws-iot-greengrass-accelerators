@@ -32,7 +32,7 @@
       },
       "Lifecycle": {
         "Install": "pip3 install -r {artifacts:decompressedPath}/ggAccel.etl_simple.transform/requirements.txt",
-        "Run": "python3 -u {artifacts:decompressedPath}/ggAccel.etl_simple.transform/transform.py --request-topic '{iot:thingName}/{configuration:/topic_trans_sub}' --result-topic '{iot:thingName}/{configuration:/topic_trans_pub}'\n"
+        "Run": "python3 -u {artifacts:decompressedPath}/ggAccel.etl_simple.transform/transform.py --log-level DEBUG --request-topic '{iot:thingName}/{configuration:/topic_trans_sub}' --result-topic '{iot:thingName}/{configuration:/topic_trans_pub}'\n"
       },
       "Artifacts": [{
         "URI": "s3://COMPONENT_BUCKET/COMPONENT_NAME/COMPONENT_VERSION/ggAccel.etl_simple.transform.zip",

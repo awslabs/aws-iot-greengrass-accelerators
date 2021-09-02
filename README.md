@@ -14,6 +14,8 @@ The current V2 accelerators are:
   - This accelerator deploys a single AWS IoT Greengrass core device as an AWS CDK constructed AWS CloudFormation stack, with all required AWS IoT, IAM, and AWS IoT Greengrass resources. It also creates a single _Hello World_ [component](https://docs.aws.amazon.com/greengrass/v2/developerguide/manage-components.html) and [deployment](https://docs.aws.amazon.com/greengrass/v2/developerguide/manage-deployments.html) for testing purposes.
 - [Operating System Command Execution](v2/os_cmd)
   - This accelerator deploys additional functionality on to the _Base Implementation_ stack to demonstrate sending an operating system command as an MQTT message from AWS IoT Core, running the command locally, and publishing back the command output to another MQTT topic in the cloud.
+- [Extract, Transform, and Load  - Simple Implementation](v2/etl_simple)
+  - This accelerator deploys additional functionality on to the _Base Implementation_ stack to demonstrate how to extract, transform, and load (ETL) data from a local device to the cloud. This accelerator breaks the three steps into discrete processes, decoupled by using [Interprocess Communcation](https://docs.aws.amazon.com/greengrass/v2/developerguide/interprocess-communication.html). 
 
 ## Accelerators for AWS IoT Greengrass V1
 

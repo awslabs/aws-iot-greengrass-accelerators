@@ -1,0 +1,44 @@
+{
+  "RecipeFormatVersion": "2020-01-25",
+  "ComponentName": "ggAccel.etl_simple.transform",
+  "ComponentVersion": "1.0.0",
+  "ComponentType": "aws.greengrass.generic",
+  "ComponentDescription": "ETl Accelerator Transform Function.",
+  "ComponentPublisher": "Amazon",
+  "ComponentConfiguration": {
+    "DefaultConfiguration": {
+      "topic_trans_sub": "etl_simple/extract",
+      "topic_trans_pub": "etl_simple/transform",
+      "accessControl": {
+        "aws.greengrass.ipc.pubsub": {
+          "ggAccel.etl_simple.transform:pubsub:1": {
+            "policyDescription": "Allows access to subscribe and publish to all local topics.",
+            "operations": [
+              "aws.greengrass#PublishToTopic",
+              "aws.greengrass#SubscribeToTopic"
+            ],
+            "resources": [
+              "*"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "Manifests": [
+    {
+      "Platform": {
+        "os": "linux"
+      },
+      "Lifecycle": {
+        "Install": "pip3 install -r {artifacts:decompressedPath}/ggAccel.etl_simple.transform/requirements.txt",
+        "Run": "python3 -u {artifacts:decompressedPath}/ggAccel.etl_simple.transform/transform.py --request-topic '{iot:thingName}/{configuration:/topic_trans_sub}' --result-topic '{iot:thingName}/{configuration:/topic_trans_pub}'\n"
+      },
+      "Artifacts": [{
+        "URI": "s3://COMPONENT_BUCKET/COMPONENT_NAME/COMPONENT_VERSION/ggAccel.etl_simple.transform.zip",
+        "Unarchive": "ZIP"
+      }]
+    }
+  ],
+  "Lifecycle": {}
+}

@@ -1,0 +1,45 @@
+{
+  "name": "etl-simple-accelerator",
+  "version": "0.1.0",
+  "license": "MIT",
+  "bin": {
+    "cdk": "bin/app.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc -w",
+    "test": "jest",
+    "cdk": "cdk"
+  },
+  "devDependencies": {
+    "@aws-cdk/assert": "1.118.0",
+    "@types/archiver": "^5.1.1",
+    "@types/jest": "^27.0.1",
+    "@types/lodash": "^4.14.171",
+    "@types/node": "16.4.13",
+    "@types/seedrandom": "^3.0.1",
+    "aws-cdk": "1.118.0",
+    "jest": "^27.0.5",
+    "ts-jest": "^27.0.5",
+    "ts-node": "^10.0.0",
+    "typescript": "~4.3.5"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-iam": "1.118.0",
+    "@aws-cdk/aws-lambda": "1.118.0",
+    "@aws-cdk/aws-lambda-python": "1.118.0",
+    "@aws-cdk/aws-logs": "1.118.0",
+    "@aws-cdk/aws-s3": "1.118.0",
+    "@aws-cdk/core": "1.118.0",
+    "@aws-cdk/custom-resources": "1.118.0",
+    "seedrandom": "^3.0.5",
+    "path": "^0.12.7",
+    "source-map-support": "^0.5.16"
+  },
+  "prettier": {
+    "tabWidth": 2,
+    "semi": false,
+    "printWidth": 150,
+    "trailingComma": "none"
+  }
+}

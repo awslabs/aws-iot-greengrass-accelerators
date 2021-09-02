@@ -1,0 +1,54 @@
+{
+  "RecipeFormatVersion": "2020-01-25",
+  "ComponentName": "ggAccel.etl_simple.load",
+  "ComponentVersion": "1.0.0",
+  "ComponentType": "aws.greengrass.generic",
+  "ComponentDescription": "ETl Accelerator Load Function.",
+  "ComponentPublisher": "Amazon",
+  "ComponentConfiguration": {
+    "DefaultConfiguration": {
+      "topic_load_sub": "etl_simple/transform",
+      "topic_load_pub": "etl_simple/load",
+      "accessControl": {
+        "aws.greengrass.ipc.pubsub": {
+          "ggAccel.etl_simple.load:pubsub:1": {
+            "policyDescription": "Allows access to subscribe to all local topics and publish to the Cloud.",
+            "operations": [
+              "aws.greengrass#SubscribeToTopic"
+            ],
+            "resources": [
+              "*"
+            ]
+          }
+        },
+        "aws.greengrass.ipc.mqttproxy": {
+          "ggAccel.etl_simple.load:pubsub:mqttproxy:1": {
+            "policyDescription": "Allows access to publish to all topics in the Cloud.",
+            "operations": [
+              "aws.greengrass#PublishToIoTCore"
+            ],
+            "resources": [
+              "*"
+            ]
+          }
+        }
+      }
+    }
+  },
+  "Manifests": [
+    {
+      "Platform": {
+        "os": "linux"
+      },
+      "Lifecycle": {
+        "Install": "pip3 install -r {artifacts:decompressedPath}/ggAccel.etl_simple.load/requirements.txt",
+        "Run": "python3 -u {artifacts:decompressedPath}/ggAccel.etl_simple.load/load.py --request-topic '{iot:thingName}/{configuration:/topic_load_sub}' --publish-topic '{iot:thingName}/{configuration:/topic_load_pub}'\n"
+      },
+      "Artifacts": [{
+        "URI": "s3://COMPONENT_BUCKET/COMPONENT_NAME/COMPONENT_VERSION/ggAccel.etl_simple.load.zip",
+        "Unarchive": "ZIP"
+      }]
+    }
+  ],
+  "Lifecycle": {}
+}

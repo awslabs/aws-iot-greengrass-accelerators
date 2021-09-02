@@ -1,0 +1,3 @@
+awsiotsdk
+numpy
+python-can

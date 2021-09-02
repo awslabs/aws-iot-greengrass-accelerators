@@ -1,6 +1,8 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
+// In its current form, this code is not fit for production workloads.
+
 import * as path from "path"
 import * as seedrandom from "seedrandom"
 import * as cdk from "@aws-cdk/core"
@@ -13,7 +15,7 @@ import { GreengrassV2Deployment } from "../../../base/cdk/lib/GreengrassV2Deploy
 
 import * as myConst from "./Constants"
 
-export class OsCommandStack extends cdk.Stack {
+export class EtlSimpleStack extends cdk.Stack {
   constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props)
 
@@ -41,16 +43,16 @@ export class OsCommandStack extends cdk.Stack {
     // Layered constructs - each constructs derived values can be used for subsequent constructs
 
     // Create IoT policy and attach to certificate
-    const osCommandPolicyName = fullResourceName({
+    const etlSimplePolicyName = fullResourceName({
       stackName: cdk.Stack.of(this).stackName,
-      baseName: "gg-accel-os-command",
+      baseName: "gg-accel-etl-simple",
       suffix: stackRandom,
       resourceRegex: "\\w+=,.@-",
       maxLength: 128
     })
-    const iotPolicy = new IotPolicy(this, "OsCommandIotPolicy", {
-      iotPolicyName: osCommandPolicyName,
-      iotPolicy: myConst.osCommandIoTPolicy,
+    const iotPolicy = new IotPolicy(this, "EtlSimpleIotPolicy", {
+      iotPolicyName: etlSimplePolicyName,
+      iotPolicy: myConst.etlSimpleIoTPolicy,
       certificateArn: certificateArn,
       policyParameterMapping: {
         thingname: thingName,
@@ -59,8 +61,8 @@ export class OsCommandStack extends cdk.Stack {
       }
     })
     // Add an inline policy to the IAM role used by the IoT role alias
-    const osCommandInlinePolicy = new iam.Policy(this, "OsCommandPolicy", {
-      policyName: "OsCommandAccelerator",
+    const etlSimpleInlinePolicy = new iam.Policy(this, "EtlSimplePolicy", {
+      policyName: "EtlSimpleAccelerator",
       statements: [
         new iam.PolicyStatement({
           effect: iam.Effect.ALLOW,
@@ -72,18 +74,18 @@ export class OsCommandStack extends cdk.Stack {
     const sourceRole = iam.Role.fromRoleArn(this, "BaseRole", iamRoleArn, {
       mutable: true
     })
-    sourceRole.attachInlinePolicy(osCommandInlinePolicy)
+    sourceRole.attachInlinePolicy(etlSimpleInlinePolicy)
 
     // Define stack-specific name of the IoT thing group
     const groupName = fullResourceName({
       stackName: cdk.Stack.of(this).stackName,
-      baseName: "deployment-group",
+      baseName: "deployment-group-etl",
       suffix: stackRandom,
       resourceRegex: "a-zA-Z0-9:_-",
       maxLength: 128
     })
     // Create thing group as deployment target and add the thing
-    const deploymentGroup = new IotThingGroup(this, "DeploymentGroup", {
+    const deploymentGroup = new IotThingGroup(this, "DeploymentGroupEtl", {
       thingGroupName: groupName
     })
     deploymentGroup.addThing(thingArn)
@@ -93,44 +95,66 @@ export class OsCommandStack extends cdk.Stack {
     // Reference the base stack's component bucket
     const componentBucket = s3.Bucket.fromBucketArn(this, "ComponentBucket", componentBucketArn)
 
-    // Create OS Command component
+    // Create ETL Simple components
     // uses same component file name and path as AWS published components,
     // see the source recipe file for more details
-    const componentName = "ggAccel.os_command"
-    const componentVersion = "1.0.0"
-    const osCommandComponent = new GreengrassV2Component(this, "OsCommandComponent", {
-      componentName: componentName,
-      componentVersion: componentVersion,
+    const etlSimpleExtractComponentName = "ggAccel.etl_simple.extract"
+    const etlSimpleExtractComponentVersion = "1.0.0"
+    const etlSimpleExtractComponent = new GreengrassV2Component(this, "EtlSimpleExtractComponent", {
+      componentName: etlSimpleExtractComponentName,
+      componentVersion: etlSimpleExtractComponentVersion,
       bucket: componentBucket,
-      artifactZipPrefix: `${componentName}/${componentVersion}/`,
-      targetArtifactKeyName: `${componentName}.zip`,
-      sourceArtifactPath: path.join(__dirname, "..", "components", componentName, "artifacts", componentName, componentVersion),
-      sourceRecipeFile: path.join(__dirname, "..", "components", componentName, `${componentName}-${componentVersion}.yaml`)
+      artifactZipPrefix: `${etlSimpleExtractComponentName}/${etlSimpleExtractComponentVersion}/`,
+      targetArtifactKeyName: `${etlSimpleExtractComponentName}.zip`,
+      sourceArtifactPath: path.join(__dirname, "..", "components", etlSimpleExtractComponentName, "artifacts", etlSimpleExtractComponentName, etlSimpleExtractComponentVersion),
+      sourceRecipeFile: path.join(__dirname, "..", "components", etlSimpleExtractComponentName, `${etlSimpleExtractComponentName}-${etlSimpleExtractComponentVersion}.json`)
+    })
+    
+    const etlSimpleTransformComponentName = "ggAccel.etl_simple.transform"
+    const etlSimpleTransformComponentVersion = "1.0.0"
+    const etlSimpleTransformComponent = new GreengrassV2Component(this, "EtlSimpleTransformComponent", {
+      componentName: etlSimpleTransformComponentName,
+      componentVersion: etlSimpleTransformComponentVersion,
+      bucket: componentBucket,
+      artifactZipPrefix: `${etlSimpleTransformComponentName}/${etlSimpleTransformComponentVersion}/`,
+      targetArtifactKeyName: `${etlSimpleTransformComponentName}.zip`,
+      sourceArtifactPath: path.join(__dirname, "..", "components", etlSimpleTransformComponentName, "artifacts", etlSimpleTransformComponentName, etlSimpleTransformComponentVersion),
+      sourceRecipeFile: path.join(__dirname, "..", "components", etlSimpleTransformComponentName, `${etlSimpleTransformComponentName}-${etlSimpleTransformComponentVersion}.json`)
+    })
+    
+    const etlSimpleLoadComponentName = "ggAccel.etl_simple.load"
+    const etlSimpleLoadComponentVersion = "1.0.0"
+    const etlSimpleLoadComponent = new GreengrassV2Component(this, "EtlSimpleLoadComponent", {
+      componentName: etlSimpleLoadComponentName,
+      componentVersion: etlSimpleLoadComponentVersion,
+      bucket: componentBucket,
+      artifactZipPrefix: `${etlSimpleLoadComponentName}/${etlSimpleLoadComponentVersion}/`,
+      targetArtifactKeyName: `${etlSimpleLoadComponentName}.zip`,
+      sourceArtifactPath: path.join(__dirname, "..", "components", etlSimpleLoadComponentName, "artifacts", etlSimpleLoadComponentName, etlSimpleLoadComponentVersion),
+      sourceRecipeFile: path.join(__dirname, "..", "components", etlSimpleLoadComponentName, `${etlSimpleLoadComponentName}-${etlSimpleLoadComponentVersion}.json`)
     })
 
     // create deployment -- cancel deployment
-    const greengrassDeployment = new GreengrassV2Deployment(this, "OsCommandGreengrassDeployment", {
+    const greengrassDeployment = new GreengrassV2Deployment(this, "EtlSimpleDeployment", {
       targetArn: deploymentGroup.thingGroupArn,
-      deploymentName: `${this.stackName} - operating system command deployment`,
+      deploymentName: `${this.stackName} - extract transform load deployment`,
       component: {
         // accelerator component(s)
-        [osCommandComponent.componentName]: {
-          componentVersion: osCommandComponent.componentVersion
-          // configurationUpdate: {
-          //   merge: JSON.stringify({
-          //     Message: "Welcome from the Greengrass accelerator stack"
-          //   })
-          // }
+        [etlSimpleExtractComponent.componentName]: {
+          componentVersion: etlSimpleExtractComponent.componentVersion
+        },
+        [etlSimpleTransformComponent.componentName]: {
+          componentVersion: etlSimpleTransformComponent.componentVersion
+        },
+        [etlSimpleLoadComponent.componentName]: {
+          componentVersion: etlSimpleLoadComponent.componentVersion
         }
       }
     })
 
     // Set stack outputs to be consumed by local processes
-    new cdk.CfnOutput(this, "RequestTopic", {
-      value: `${thingName}/os_command/request`
-    })
-    new cdk.CfnOutput(this, "ResponseTopic", {
-      value: `${thingName}/os_command/response`
+    new cdk.CfnOutput(this, "CloudPublishTopic", {
+      value: `${thingName}/etl_simple/load`
     })
 
     // ************ End of CDK Constructs / stack - Supporting functions below ************

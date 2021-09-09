@@ -1,0 +1,24 @@
+---
+# Copy and place this file into docker-volumes/greengrassv2-config-ro
+# Search and modify all instances of "REPLACE" in this file
+system:
+  # certificate must already be created and attached to thing and valid AWS IoT policy
+  # Place certificate, private key, and rootCA file into docker-volumes/greengrassv2-certs-ro
+  certificateFilePath: "/tmp/certs/REPLACE_CERTIFICATE.pem"
+  privateKeyPath: "/tmp/certs/REPLACE_PRIVATE_KEY.pem"
+  rootCaPath: "/tmp/certs/REPLACE_RootCA1.pem"
+  rootpath: "/greengrass/v2"
+  # Thing must already exist in AWS IoT and be configured for the certificate above
+  thingName: "REPLACE_NAME_OF_THING"
+services:
+  aws.greengrass.Nucleus:
+    componentType: "NUCLEUS"
+    version: "2.2.0"
+    configuration:
+      # IoT resources must exist in the specified region (e.g. us-west-2)
+      awsRegion: "REPLACE_REGION"
+      # AWS IoT Role Alias must exist and have a valid Amazon IAM role assigned
+      iotRoleAlias: "REPLACE_ROLE_ALIAS_NAME"
+      # Obtain iotData and iotCred endpoints from "describe-endpoints" for the awsRegion
+      iotDataEndpoint: "REPLACE-ats.iot.REPLACE_REGION.amazonaws.com"
+      iotCredEndpoint: "REPLACE.credentials.iot.REPLACE_REGION.amazonaws.com"

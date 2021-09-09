@@ -1,0 +1,53 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+version: "3.7"
+
+services:
+  greengrass_dev:
+    init: true
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: aws-iot-greengrass-dev
+    image: x86_64/aws-iot-greengrass-dev:2.4.0
+    ports:
+      # MQTT port for broker
+      - "8883:8883"
+      # Optional ports (uncomment if needed)
+      # # Debugging for JMX
+      # - "9999:9999"
+
+    volumes:
+      # Docker managed and persisted volumes
+      # Contains current state of Greengrass. Clear when testing fresh deployment
+      - greengrassv2-root:/greengrass/v2
+
+      # Mapping to local filesystem volumes (NOTE: file permissions dependent upon host OS)
+      # Default config for bootstrapping install
+      - ./volumes/config:/tmp/config/:ro
+      - ./volumes/certs:/tmp/certs:ro
+      # Used to hold VSCode remote and extensions - delete contents between development efforts
+      - ./volumes/dev-root-vscode:/root
+      # Component development - delete contents between development efforts
+      - ./volumes/dev-components:/opt/component_development
+      # Optional: Use if developing container-based components
+      #           Expose host docker socket
+      - /var/run/docker.sock:/var/run/docker.sock
+      # Optional: Project-specific volumes
+
+    environment:
+      # These values used for first time run of Greengrass
+      GGC_ROOT_PATH: "/greengrass/v2"
+      PROVISION: "false"
+      COMPONENT_DEFAULT_USER: "ggc_user:ggc_group"
+      DEPLOY_DEV_TOOLS: "true"
+      INIT_CONFIG: "/tmp/config/config.yaml"
+      AWS_REGION: "REPLACE_REGION"
+
+volumes:
+  # Docker created and managed volumes
+  # Contains entire contents of $GG_ROOT
+  # as persisted Docker volume. Delete via "docker volume list"
+  # and "docker volume rm [volume_name]"
+  greengrassv2-root:

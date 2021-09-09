@@ -25,8 +25,8 @@ services:
 
       # Mapping to local filesystem volumes (NOTE: file permissions dependent upon host OS)
       # Default config for bootstrapping install
-      - ./volumes/greengrassv2-config-ro:/tmp/config/:ro
-      - ./volumes/greengrassv2-certs-ro:/tmp/certs:ro
+      - ./volumes/config:/tmp/config/:ro
+      - ./volumes/certs:/tmp/certs:ro
       # Used to hold VSCode remote and extensions - delete contents between development efforts
       - ./volumes/dev-root-vscode:/root
       # Component development - delete contents between development efforts

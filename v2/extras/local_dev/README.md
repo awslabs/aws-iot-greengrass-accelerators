@@ -41,7 +41,7 @@ With the exception of the `greengrassv2-root` Docker volume, all other volume ma
 
 Prior to the initial setup, make sure that you have created all the AWS IoT Core and AWS Identity and Access Management (IAM) resources needed for Greengrass. You can do this using the _base implementation_ process to create the AWS CloudFormation stack and the use the `config_docker.py` to download certificate and generate the `config.yaml` file.
 
-> **Note:** All directory paths are relative to `v2/`
+> **Note:** All directory paths are relative to `v2/`. If using the _base implementation_, stop after the `config_docker.py` step. We will use the docker-compose.yml from here and not the one created in that directory.
 
 Copy the contents of `base/docker/volumes/certs` to `extras/local_dev/volumes/certs`. Also copy the contents of `base/docker/volumes/config` to `extras/local_dev/volumes/config`.
 

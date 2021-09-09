@@ -55,7 +55,7 @@ RUN ./modify-sudoers.sh
 ############## BEGIN DEVELOPEMENT ADDITIONS
 # Install development packages
 RUN yum update -y && yum -y install https://dl.fedoraproject.org/pub/epel/epel-release-latest-7.noarch.rpm && \
-    yum -y install net-tools iputils less yum-utils && \
+    yum -y install net-tools iputils less yum-utils zip && \
     amazon-linux-extras enable docker && yum install -y docker && \
     rm -rf /var/cache/yum && \
     curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "/tmp/awscliv2.zip" && unzip -d /tmp -q /tmp/awscliv2.zip && \

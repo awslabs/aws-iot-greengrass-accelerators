@@ -1,6 +1,6 @@
 # AWS IoT Greengrass Development Using Docker
 
-AWS IoT Greengrass (Greengrass) version 2 changes the way component development takes place by focusing on developing locally and then publishing components to the cloud. This approach is the opposite of Greengrass version 1 where edge logic was developed as AWS Lambda functions in the cloud and then deployed to local devices. This lengthened the development process by requiring code to be updated in the cloud Lambda resource, versioned, and then a new Greengrass deployment made before results could be seen.
+AWS IoT Greengrass (Greengrass) version 2 changes the way component development takes place by focusing on developing locally and then publishing components to the cloud. This approach differs from Greengrass version 1 where edge logic was developed as AWS Lambda functions in the cloud and then deployed to local devices. This lengthened the development process by requiring code to be updated in the cloud Lambda resource, versioned, and then a new Greengrass deployment made before results could be seen.
 
 With Greengrass version 2, code can be modified on-device, and then using a local command line interface (CLI) quickly deployed without any cloud intervention.
 
@@ -11,6 +11,8 @@ By tightly integrating a _local_ development approach with robust tools such as 
 - Develop offline without Internet access, or through advanced configurations simulate connected and disconnected states
 - All component files including recipes and artifacts can be accessed within the Greengrass container _and_ from your development system allowing for management by code repositories
 - VS Code extensions can run within the container environment to enhance the development experience
+
+> **_NOTE:_** This document describes using VS Code and Docker Desktop. Other IDE's and container management applications can be substituted for your specific use-cases.
 
 ## Development Environment Overview
 
@@ -129,7 +131,7 @@ If this is brand new Greengrass core device, there are no deployments waiting fo
    }
    ```
 
-   Then select **Confirm**. The `httpsEnabled` key will allow for non-HTTPS connections. If you don't update, an untrusted certificate will be presented. Depending upon your browser, follow instructions to allow for untrusted certificates for HTTPS _and_ websocket connections. Personally I set `httpsEnabled` to `false`.
+   Then select **Confirm**. The `httpsEnabled` key will allow for non-HTTPS connections. If you don't update, an untrusted certificate will be presented. Depending upon your browser, follow instructions to allow for untrusted certificates for HTTPS _and_ websocket connections.
 
 1. Complete the rest of the deployment steps. If the Greengrass core device was targeted or it is a member of the thing group for the deployment, this will start the process. From the VS Code container window, monitor the status in the `logs/greengrass.log` file. After a few minutes, all the components should be downloaded, installed, and running. You should lines similar to this for a successful deployment (this was from a thing group deployment):
 
@@ -166,11 +168,11 @@ That's it! You now have a running Greengrass container with public components de
 
 ## Locally Developing the First Component
 
-1. With Greengrass running, temporarily close the VS Code container window, leaving just the VS Code window to this repository. To demonstrate the development process, copy the directory `examples/com.example.HelloWorld` to `docker-volumes/dev-components`:
+1. With Greengrass running, temporarily close the VS Code container window, leaving just the VS Code window to this repository. To demonstrate the development process, copy the directory `examples/com.example.HelloWorld` to `volumes/dev-components`:
 
    ![Copy folder from examples to dev-components](docs/component-copy.png)
 
-1. The _local host_ directory of `docker-volumes/dev-components` is mapped into the container as the directory `/opt/component_development`. Open a new VS Code container window (Attach to running container), and command pallette (CMD+SHIFT+P or CTRL+SHIFT+P) run the \*_Workspace: Add Folder to Workspace..._, then navigate and select `/opt/component_development`.
+1. The _local host_ directory of `volumes/dev-components` is mapped into the container as the directory `/opt/component_development`. Open a new VS Code container window (Attach to running container), and command pallette (CMD+SHIFT+P or CTRL+SHIFT+P) run the \*_Workspace: Add Folder to Workspace..._, then navigate and select `/opt/component_development`.
 1. The window will refresh with the additional directory and look like this:
 
    ![Component showing in VS Code container window](docs/vscode-server-component.png)
@@ -200,7 +202,7 @@ This is one approach to local development, deployment, and testing. The benefit 
    1. Review execution, log files, etc.
    1. Remove the component using the `greengrass-cli`
 1. When coding is complete, the awscli can be used to package and publish the component to the cloud
-1. Periodically commit the code from the VS Code window on the development machine from the `/docker-volumes/dev-components` directory.
+1. Periodically commit the code from the VS Code window on the development machine from the `volumes/dev-components` directory.
 
 Once changes have been made to the workspace such as adding directories above, these settings may or may not be saved between sessions. Please refer to the [container configuration files](https://code.visualstudio.com/docs/remote/attach-container#_attached-container-configuration-files) section of the VS Code documentation for configuration options.
 
@@ -243,8 +245,8 @@ To remove a development environment, follow these steps:
    $ docker image rm x86_64/aws-iot-greengrass-dev:2.4.0
    ```
 
-1. Save the initial configuration file and certificates if needed from `docker-volumes/greengrassv2-certs-ro` and `docker-volumes/greengrassv2-config-ro`
-1. Ensure code in `docker-volumes/dev-components` has been saved outside the directory
+1. Save the initial configuration file and certificates if needed from `volumes/greengrassv2-certs-ro` and `volumes/greengrassv2-config-ro`, otherwise delete
+1. Ensure code in `volumes/dev-components` has been saved outside the directory
 1. If deployed from the _base implementation_, delete the CloudFormation stack
 1. Delete the repository `ggv2-dev`
 1. If the cloud resources are not needed, delete the AWS IoT thing, certificate, AWS IoT policy, and AWS IoT role alias (and associated IAM role)

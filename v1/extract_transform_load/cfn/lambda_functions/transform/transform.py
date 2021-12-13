@@ -11,7 +11,9 @@ import time
 import logging
 
 import redis
-from redistimeseries.client import Client as RedisTimeSeries
+
+# redistimeseries now part of redis-py >=4.0.0
+# from redistimeseries.client import Client as RedisTimeSeries
 
 # Formulas to perform transforms on messages
 import transformation_list as transforms
@@ -21,7 +23,8 @@ log = logging.getLogger()
 
 # Setup Redis and events of interest to track
 r = redis.Redis(host="localhost", port=6379, db=0)
-rts = RedisTimeSeries()
+# Create TimeSeries object
+rts = r.ts()
 if not r.exists("vehicle_speed"):
     rts.create("vehicle_speed", retention_msecs=300000, labels={"Time": "Series"})
 if not r.exists("throttle_position"):
@@ -142,9 +145,6 @@ while True:
     #     r.rpush("load_queue", json.dumps(converted_message))
     #     msg_time_last_sent[converted_message["Pid"]] = time.time()
     #     total_events += 1
-
-
-
 
     # Report on function status
     if (total_events % 100 == 0) and total_events > 0:

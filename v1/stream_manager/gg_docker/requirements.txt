@@ -1,7 +1,7 @@
 # Common AWS SDKs for use by Lambda functions
-greengrasssdk
-boto3
+greengrasssdk==1.6.0
+boto3==1.20.23
 # Support calling docker-compose command
-docker-compose
+docker-compose==1.25.4
 # Other packages used by Lambda
-flask
+flask==2.0.2

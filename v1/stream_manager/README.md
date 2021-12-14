@@ -48,14 +48,14 @@ stream_manager/
 ├── README.md                          <-- This file!
 ├── cdk
 ├── docker_compose_stack               <-- Compose stack to be managed by Greengrass
-│   ├── docker-compose.yml
+│   ├── docker-compose.yml
 ├── gg_docker                          <-- Creates Greengrass instance as container
-│   ├── Dockerfile-greengrass
-│   ├── certs
-│   ├── config
-│   ├── deployment
-│   ├── docker-compose.yml
-│   └── log
+│   ├── Dockerfile-greengrass
+│   ├── certs
+│   ├── config
+│   ├── deployment
+│   ├── docker-compose.yml
+│   └── log
 ├── docs
 └── test
 ```
@@ -129,7 +129,7 @@ There are two methods describe below:
    ```bash
    cd ../gg_docker
    # Build from the latest published version of Greengrass
-   docker pull amazon/aws-iot-greengrass:1.11.3-amazonlinux-x86-64
+   docker pull amazon/aws-iot-greengrass:1.11.5-1-amazonlinux-x86-64
    docker-compose build
    docker-compose up -d
    ```

@@ -187,15 +187,15 @@ At this point, all resources have been created and an initial AWS IoT Greengrass
 
 ### Configure and Launch the Docker Container
 
-With the stack deployed, we use one output from the CloudFormation stack, the _GreengrassConfig_ value, along with the certificate and private key to complete the `config.json` so that Greengrass in the Docker container can connect and authenticate.
+With the stack deployed, we use one of the _Outputs_ from the CloudFormation stack, the _GreengrassConfig_ value, along with the certificate and private key to complete the `config.json` so that Greengrass in the Docker container can connect and authenticate.
 
 1. Change to the the `docker/` directory.
 
-1. Copy over the certificate and private key files to the `certs` directory. Copy the full file names to a temporary text file for modifying the `config.json` file.
+1. Copy over the certificate and private key files to the `certs` directory. Copy the filenames to a temporary text file for modifying the `config.json` file.
 
-1. Download to `certs` directory the [Amazon Root CA1](https://www.amazontrust.com/repository/AmazonRootCA1.pem) root certificate authority file used to verify the AWS IoT Core and AWS IoT Greengrass endpoints. If the link opens with the contents in your browser, use alt-click and _Save As…_ instead and save as `certs/AmazonRootCA1.pem`.
+1. Download to the `certs` directory the [Amazon Root CA1](https://www.amazontrust.com/repository/AmazonRootCA1.pem) root certificate authority file used to verify the AWS IoT Core and AWS IoT Greengrass endpoints. If the link opens with the contents in your browser, use alt-click and _Save As…_ instead and save as `certs/AmazonRootCA1.pem`.
 
-1. Change to the to `docker/config` directory and create a new file named `config.json`. From the CloudFormation console, select the stack and output tab. Copy the entire contents of the _GreengrassConfig_ value, including the opening and close braces. Use your favorite JSON formatting tool to "prettify" the content. If you are using Linux or macOS with `jq` installed, the following will query and format the `config.json` content for you:
+1. Change to the to `docker/config` directory and create a new file named `config.json`. From the CloudFormation console, select the stack and output tab. Copy the entire contents of the _GreengrassConfig_ value, including the opening and close braces. Use your favorite JSON formatting tool to "prettify" the content. If you are using Linux or macOS with `jq` installed, the following will query the CloudFormation stack, download the JSON, and format the `config.json` content for you:
 
    ```bash
    $ aws --region $REGION cloudformation describe-stacks --stack greengrass-etl-accelerator | jq '.Stacks | to_entries | .[].value.Outputs | .[].OutputValue | fromjson'
@@ -222,10 +222,10 @@ At this point, the Docker configuration has the details needed to start the cont
 
 ```bash
 # Make sure the latest Greengrass version is built
-$ docker pull amazon/aws-iot-greengrass:1.11.3-amazonlinux-x86-64
+$ docker pull amazon/aws-iot-greengrass:1.15.5-1-amazonlinux-x86-64
 $ docker-compose --build up
 Building greengrass
-Step 1/10 : FROM amazon/aws-iot-greengrass:1.11.3-amazonlinux-x86-64
+Step 1/10 : FROM amazon/aws-iot-greengrass:1.15.5-1-amazonlinux-x86-64
 ...
 Successfully tagged x86_64/greengrass-accelerator-etl:latest
 Creating etl-greengrass ... done

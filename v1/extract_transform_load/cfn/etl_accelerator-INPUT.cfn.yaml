@@ -31,7 +31,7 @@ Resources:
     Type: AWS::Greengrass::CoreDefinition
     Properties:
       # use CoreName + "_Core" as "thingName"
-      Name: !Join ["_", [!Ref CoreName, "Core"] ]
+      Name: !Join ["_", [!Ref CoreName, "Core"]]
   GreengrassCoreDefinitionVersion:
     # Example of using GreengrassCoreDefinition referring to this
     # "Version" resource
@@ -39,20 +39,20 @@ Resources:
     Properties:
       CoreDefinitionId: !Ref GreengrassCoreDefinition
       Cores:
-        - Id: !Join ["_", [!Ref CoreName, "Core"] ]
+        - Id: !Join ["_", [!Ref CoreName, "Core"]]
           ThingArn: !Join
-                      - ":"
-                      - - "arn:aws:iot"
-                        - !Ref AWS::Region
-                        - !Ref AWS::AccountId
-                        - !Join
-                          - "/"
-                          - - "thing"
-                            - !Join ["_", [!Ref CoreName, "Core"] ]
+            - ":"
+            - - "arn:aws:iot"
+              - !Ref AWS::Region
+              - !Ref AWS::AccountId
+              - !Join
+                - "/"
+                - - "thing"
+                  - !Join ["_", [!Ref CoreName, "Core"]]
           CertificateArn: !Ref CertificateArn
           SyncShadow: "false"
   LoggerDefinition:
-    Type: 'AWS::Greengrass::LoggerDefinition'
+    Type: "AWS::Greengrass::LoggerDefinition"
     Properties:
       Name: ETLLoggerDefinition
       InitialVersion:
@@ -61,14 +61,14 @@ Resources:
             Type: FileSystem
             Component: GreengrassSystem
             Level: INFO
-            Space: '128'
+            Space: "128"
           - Id: LambdaLogLocal
             Type: FileSystem
             Component: Lambda
             Level: INFO
-            Space: '128'
+            Space: "128"
   FunctionDefinition:
-    Type: 'AWS::Greengrass::FunctionDefinition'
+    Type: "AWS::Greengrass::FunctionDefinition"
     Properties:
       Name: FunctionDefinition
       InitialVersion:
@@ -76,39 +76,39 @@ Resources:
           Execution:
             IsolationMode: NoContainer
         Functions:
-          - Id: !Join ["_", [!Ref CoreName, "extract"] ]
+          - Id: !Join ["_", [!Ref CoreName, "extract"]]
             FunctionArn: !Ref ExtractFunction.Version
             FunctionConfiguration:
-              Pinned: 'true'
+              Pinned: "true"
               Executable: extract.py
-              Timeout: '300'
+              Timeout: "300"
               EncodingType: binary
               Environment:
                 Variables:
                   CORE_NAME: !Ref CoreName
-          - Id: !Join ["_", [!Ref CoreName, "transform"] ]
+          - Id: !Join ["_", [!Ref CoreName, "transform"]]
             FunctionArn: !Ref TransformFunction.Version
             FunctionConfiguration:
-              Pinned: 'true'
+              Pinned: "true"
               Executable: transform.py
-              Timeout: '300'
+              Timeout: "300"
               EncodingType: binary
               Environment:
                 Variables:
                   CORE_NAME: !Ref CoreName
-          - Id: !Join ["_", [!Ref CoreName, "load"] ]
+          - Id: !Join ["_", [!Ref CoreName, "load"]]
             FunctionArn: !Ref LoadFunction.Version
             FunctionConfiguration:
-              Pinned: 'true'
+              Pinned: "true"
               Executable: load.py
-              Timeout: '300'
+              Timeout: "300"
               EncodingType: binary
               Environment:
                 Variables:
                   CORE_NAME: !Ref CoreName
                   DELIVERY_STREAM: !Ref FirehoseDeliveryStream
   SubscriptionDefinition:
-    Type: 'AWS::Greengrass::SubscriptionDefinition'
+    Type: "AWS::Greengrass::SubscriptionDefinition"
     Properties:
       Name: SubscriptionDefinition
       InitialVersion:
@@ -117,17 +117,17 @@ Resources:
           - Id: Subscription1
             Source: !Ref LoadFunction.Version
             Subject: !Join
-                        - "/"
-                        - - !Ref CoreName
-                          - "telemetry"
-            Target: 'cloud'
+              - "/"
+              - - !Ref CoreName
+                - "telemetry"
+            Target: "cloud"
           - Id: Subscription2
             Source: !Ref LoadFunction.Version
             Subject: !Join
-                        - "/"
-                        - - !Ref CoreName
-                          - "alert"
-            Target: 'cloud'
+              - "/"
+              - - !Ref CoreName
+                - "alert"
+            Target: "cloud"
   ExtractFunction:
     # Extract raw data from source (e.g., CAN Bus device)
     Type: AWS::Serverless::Function
@@ -176,7 +176,7 @@ Resources:
     Type: Custom::IoTThing
     Properties:
       ServiceToken: !GetAtt CreateThingFunction.Arn
-      ThingName: !Join ["_", [!Ref CoreName, "Core"] ]
+      ThingName: !Join ["_", [!Ref CoreName, "Core"]]
       CertificateArn: !Ref CertificateArn
   CreateThingFunction:
     Type: AWS::Serverless::Function
@@ -216,7 +216,7 @@ Resources:
     Properties:
       BucketName: !Join
         - "-"
-        - - !Join ["-", [!Ref "AWS::StackName", "firehose-events"] ]
+        - - !Join ["-", [!Ref "AWS::StackName", "firehose-events"]]
           - !Select
             - 0
             - !Split
@@ -226,15 +226,16 @@ Resources:
                 - !Split
                   - "/"
                   - !Ref "AWS::StackId"
-      # BucketName: !Join ["-", [!Ref "AWS::StackName", "firehose-events"] ]
       AccessControl: Private
+      VersioningConfiguration:
+        Status: Enabled
   FirehoseDeliveryStream:
     DependsOn:
       - FirehoseDeliveryPolicy
     Type: AWS::KinesisFirehose::DeliveryStream
     Properties:
       ExtendedS3DestinationConfiguration:
-        BucketARN: !Join 
+        BucketARN: !Join
           - ""
           - - "arn:aws:s3:::"
             - !Ref FirehoseBucket
@@ -254,41 +255,51 @@ Resources:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
-        - Effect: Allow
-          Principal:
-            Service: lambda.amazonaws.com
-          Action: sts:AssumeRole
+          - Effect: Allow
+            Principal:
+              Service: lambda.amazonaws.com
+            Action: sts:AssumeRole
       Policies:
-      - PolicyName: root
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-          - Effect: Allow
-            Action:
-            - logs:CreateLogGroup
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-            Resource: arn:aws:logs:*:*:*
-          - Effect: Allow
-            Action:
-            - iot:*
-            Resource: "*"
-          - Effect: Allow
-            Action:
-            - greengrass:*
-            Resource: "*"
-          - Effect: Allow
-            Action:
-            - ec2:DescribeReservedInstancesOfferings
-            Resource: "*"
-          - Effect: Allow
-            Action:
-            - iam:CreateRole
-            - iam:AttachRolePolicy
-            - iam:GetRole
-            - iam:DeleteRole
-            - iam:PassRole
-            Resource: !Join ["", ["arn:aws:iam::", !Ref "AWS::AccountId", ":role/greengrass_cfn_", !Ref "AWS::StackName", "_ServiceRole"] ]
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
+              - Effect: Allow
+                Action:
+                  - iot:*
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - greengrass:*
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - ec2:DescribeReservedInstancesOfferings
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - iam:CreateRole
+                  - iam:AttachRolePolicy
+                  - iam:GetRole
+                  - iam:DeleteRole
+                  - iam:PassRole
+                Resource:
+                  !Join [
+                    "",
+                    [
+                      "arn:aws:iam::",
+                      !Ref "AWS::AccountId",
+                      ":role/greengrass_cfn_",
+                      !Ref "AWS::StackName",
+                      "_ServiceRole",
+                    ],
+                  ]
   GreengrassResourceRole:
     # Role for deployed Lambda functions to a Greengrass core to call other
     # AWS services directly
@@ -297,56 +308,67 @@ Resources:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
-        - Effect: Allow
-          Principal:
-            Service: greengrass.amazonaws.com
-          Action: sts:AssumeRole
+          - Effect: Allow
+            Principal:
+              Service: greengrass.amazonaws.com
+            Action: sts:AssumeRole
       Policies:
-      - PolicyName: root
-        PolicyDocument:
-          Version: '2012-10-17'
-          Statement:
-          - Effect: Allow
-            Action:
-            - logs:CreateLogGroup
-            - logs:CreateLogStream
-            - logs:PutLogEvents
-            Resource: arn:aws:logs:*:*:*
-          - Effect: Allow
-            Action:
-            - iot:*
-            Resource: "*"
-          - Effect: Allow
-            Action:
-            - firehose:PutRecord
-            - firehose:PutRecordBatch
-            - firehose:UpdateDestination
-            Resource: !Join ["", ["arn:aws:firehose:", !Ref "AWS::Region", ":", !Ref "AWS::AccountId", ":deliverystream/", !Ref "FirehoseDeliveryStream"] ]
+        - PolicyName: root
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - logs:CreateLogGroup
+                  - logs:CreateLogStream
+                  - logs:PutLogEvents
+                Resource: arn:aws:logs:*:*:*
+              - Effect: Allow
+                Action:
+                  - iot:*
+                Resource: "*"
+              - Effect: Allow
+                Action:
+                  - firehose:PutRecord
+                  - firehose:PutRecordBatch
+                  - firehose:UpdateDestination
+                Resource:
+                  !Join [
+                    "",
+                    [
+                      "arn:aws:firehose:",
+                      !Ref "AWS::Region",
+                      ":",
+                      !Ref "AWS::AccountId",
+                      ":deliverystream/",
+                      !Ref "FirehoseDeliveryStream",
+                    ],
+                  ]
   FirehoseDeliveryPolicy:
     Type: AWS::IAM::Policy
     Properties:
-      PolicyName: !Join ["_", [!Ref "AWS::StackName", "firehose_policy"] ]
+      PolicyName: !Join ["_", [!Ref "AWS::StackName", "firehose_policy"]]
       PolicyDocument:
         Version: 2012-10-17
         Statement:
           - Effect: Allow
             Action:
-              - 's3:AbortMultipartUpload'
-              - 's3:GetBucketLocation'
-              - 's3:GetObject'
-              - 's3:ListBucket'
-              - 's3:ListBucketMultipartUploads'
-              - 's3:PutObject'
+              - "s3:AbortMultipartUpload"
+              - "s3:GetBucketLocation"
+              - "s3:GetObject"
+              - "s3:ListBucket"
+              - "s3:ListBucketMultipartUploads"
+              - "s3:PutObject"
             Resource:
-              - !Join 
-                - ''
-                - - 'arn:aws:s3:::'
+              - !Join
+                - ""
+                - - "arn:aws:s3:::"
                   - !Ref FirehoseBucket
-              - !Join 
-                - ''
-                - - 'arn:aws:s3:::'
+              - !Join
+                - ""
+                - - "arn:aws:s3:::"
                   - !Ref FirehoseBucket
-                  - '*'
+                  - "*"
       Roles:
         - !Ref FirehoseDeliveryRole
   FirehoseDeliveryRole:
@@ -355,14 +377,14 @@ Resources:
       AssumeRolePolicyDocument:
         Version: 2012-10-17
         Statement:
-          - Sid: ''
+          - Sid: ""
             Effect: Allow
             Principal:
               Service: firehose.amazonaws.com
-            Action: 'sts:AssumeRole'
+            Action: "sts:AssumeRole"
             Condition:
               StringEquals:
-                'sts:ExternalId': !Ref 'AWS::AccountId'
+                "sts:ExternalId": !Ref "AWS::AccountId"
 Outputs:
   # Emit values needed for deployment status
   GreengrassConfig:

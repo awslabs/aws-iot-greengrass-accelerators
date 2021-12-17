@@ -34,15 +34,15 @@ The following architecture shows the process flow for deploying the accelerator.
 base
 ├── README.md             <--- this file
 ├── cdk                   <--- builds and deploys CloudFormation to cloud
-│   ├── bin
-│   ├── cdk.json
-│   ├── components
-│   ├── jest.config.js
-│   ├── lib
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── test
-│   └── tsconfig.json
+│   ├── bin
+│   ├── cdk.json
+│   ├── components
+│   ├── jest.config.js
+│   ├── lib
+│   ├── package-lock.json
+│   ├── package.json
+│   ├── test
+│   └── tsconfig.json
 └── docker                <--- configures and runs Greengrass as a container
     ├── config_docker.py
     ├── templates

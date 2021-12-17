@@ -91,15 +91,15 @@ In normal operation, the Load function delivers the following:
 extract_transform_load/
 ├── README.md                          <-- This file!
 ├── cfn
-│   ├── etl_accelerator-INPUT.cfn.yaml <-- CloudFormation template
-│   └── lambda_functions
+│   ├── etl_accelerator-INPUT.cfn.yaml <-- CloudFormation template
+│   └── lambda_functions
 ├── docker
-│   ├── Dockerfile-greengrass
-│   ├── certs
-│   ├── config
-│   ├── docker-compose.yml
-│   ├── log
-│   ├── redis
+│   ├── Dockerfile-greengrass
+│   ├── certs
+│   ├── config
+│   ├── docker-compose.yml
+│   ├── log
+│   ├── redis
 ├── docs
 └── test
 ```

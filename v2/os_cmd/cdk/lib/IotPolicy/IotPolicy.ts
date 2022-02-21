@@ -3,11 +3,12 @@
 
 import * as _ from "lodash"
 import * as path from "path"
-import * as cdk from "@aws-cdk/core"
-import * as logs from "@aws-cdk/aws-logs"
-import * as iam from "@aws-cdk/aws-iam"
-import * as cr from "@aws-cdk/custom-resources"
-import * as lambda from "@aws-cdk/aws-lambda"
+import { Construct } from 'constructs'
+import * as cdk from "aws-cdk-lib"
+import {aws_logs as logs} from "aws-cdk-lib"
+import {aws_iam as iam} from "aws-cdk-lib"
+import * as cr from "aws-cdk-lib/custom-resources"
+import * as lambda from "aws-cdk-lib/aws-lambda"
 
 export interface Mapping {
   [keys: string]: string
@@ -58,7 +59,7 @@ export interface IotPolicyProps {
  * @ summary The IotThingCertPolicy class.
  */
 
-export class IotPolicy extends cdk.Construct {
+export class IotPolicy extends Construct {
   public readonly thingArn: string
   public readonly iotPolicyArn: string
   public readonly certificateArn: string
@@ -75,7 +76,7 @@ export class IotPolicy extends cdk.Construct {
    * @param {IotPolicyProps} props - user provided props for the construct.
    * @since 1.116.0
    */
-  constructor(scope: cdk.Construct, id: string, props: IotPolicyProps) {
+  constructor(scope: Construct, id: string, props: IotPolicyProps) {
     super(scope, id)
 
     const stackName = cdk.Stack.of(this).stackName
@@ -120,7 +121,7 @@ export class IotPolicy extends cdk.Construct {
   }
 
   // Separate static function to create or return singleton provider
-  static getOrCreateProvider = (scope: cdk.Construct, resourceName: string): cr.Provider => {
+  static getOrCreateProvider = (scope: Construct, resourceName: string): cr.Provider => {
     const stack = cdk.Stack.of(scope)
     const uniqueId = resourceName
     const existing = stack.node.tryFindChild(uniqueId) as cr.Provider

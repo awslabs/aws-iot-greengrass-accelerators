@@ -3,9 +3,10 @@
 
 import * as path from "path"
 import * as seedrandom from "seedrandom"
-import * as cdk from "@aws-cdk/core"
-import * as iam from "@aws-cdk/aws-iam"
-import * as s3 from "@aws-cdk/aws-s3"
+import { Construct } from 'constructs'
+import * as cdk from "aws-cdk-lib"
+import { aws_iam as iam} from "aws-cdk-lib"
+import * as s3 from "aws-cdk-lib/aws-s3"
 import { IotThingCertPolicy } from "./IotThingCertPolicy/IotThingCertPolicy"
 import { IotRoleAlias } from "./IotRoleAlias/IotRoleAlias"
 import { IotThingGroup } from "./IotThingGroup/IotThingGroup"
@@ -14,7 +15,7 @@ import { GreengrassV2Deployment } from "./GreengrassV2Deployment/GreengrassV2Dep
 import * as myConst from "./Constants"
 
 export class BaseImplementationStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props?:cdk.StackProps) {
     super(scope, id, props)
 
     const stackName = cdk.Stack.of(this).stackName

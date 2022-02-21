@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
-import * as lambda from "@aws-cdk/aws-lambda"
+import {aws_lambda as lambda} from "aws-cdk-lib"
 
 export const PYTHON_LAMBDA_RUNTIME: lambda.Runtime = lambda.Runtime.PYTHON_3_8
 

@@ -121,7 +121,7 @@ def create_resources(
         )
         sys.exit(1)
     except c_greengrassv2.exceptions.ConflictException as e:
-        logger.error(f"Componet already exists, {e}")
+        logger.error(f"Component already exists, {e}")
         sys.exit(1)
     except Exception as e:
         logger.error(f"Uncaught error: {e}")

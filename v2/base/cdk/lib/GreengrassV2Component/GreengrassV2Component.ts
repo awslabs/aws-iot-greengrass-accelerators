@@ -2,14 +2,15 @@
 // SPDX-License-Identifier: MIT-0
 
 import * as path from "path"
-import * as cdk from "@aws-cdk/core"
-import * as logs from "@aws-cdk/aws-logs"
-import * as iam from "@aws-cdk/aws-iam"
-import * as s3 from "@aws-cdk/aws-s3"
-import * as cr from "@aws-cdk/custom-resources"
-import * as lambda from "@aws-cdk/aws-lambda"
-import * as assets from "@aws-cdk/aws-s3-assets"
-import { PythonFunction } from "@aws-cdk/aws-lambda-python"
+import { Construct } from 'constructs'
+import * as cdk from "aws-cdk-lib"
+import {aws_logs as logs} from "aws-cdk-lib"
+import {aws_iam as iam} from "aws-cdk-lib"
+import {aws_s3 as s3} from "aws-cdk-lib"
+import * as cr from "aws-cdk-lib/custom-resources"
+import * as lambda from "aws-cdk-lib/aws-lambda"
+import * as assets from "aws-cdk-lib/aws-s3-assets"
+import { PythonFunction } from "@aws-cdk/aws-lambda-python-alpha"
 
 /**
  * @summary The properties for the GreengrassComponent class.
@@ -75,7 +76,7 @@ export interface GreengrassV2ComponentProps {
  * @summary The GreengrassComponent class.
  */
 
-export class GreengrassV2Component extends cdk.Construct {
+export class GreengrassV2Component extends Construct {
   public readonly componentName: string
   public readonly componentVersion: string
   public readonly componentArn: string
@@ -88,7 +89,7 @@ export class GreengrassV2Component extends cdk.Construct {
    * @param {GreengrassV2ComponentProps} props - user provided props for the construct.
    * @since 1.114.0
    */
-  constructor(scope: cdk.Construct, id: string, props: GreengrassV2ComponentProps) {
+  constructor(scope: Construct, id: string, props: GreengrassV2ComponentProps) {
     super(scope, id)
 
     const stackName = cdk.Stack.of(this).stackName
@@ -183,7 +184,7 @@ export class GreengrassV2Component extends cdk.Construct {
     this.componentArn = customResource.getAttString("ComponentArn")
   }
   // Separate static function to create or return singleton provider
-  static getOrCreateProvider = (scope: cdk.Construct, resourceName: string): cr.Provider => {
+  static getOrCreateProvider = (scope: Construct, resourceName: string): cr.Provider => {
     const stack = cdk.Stack.of(scope)
     const uniqueId = resourceName
     const existing = stack.node.tryFindChild(uniqueId) as cr.Provider

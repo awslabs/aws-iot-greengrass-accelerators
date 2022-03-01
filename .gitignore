@@ -148,7 +148,3 @@ cdk.out/
 # Development files
 docker-compose.yml
 temp/
-v2/base/cdk/package-lock.json
-v2/base/cdk/package-lock.json
-v2/etl_simple/cdk/package-lock.json
-v2/os_cmd/cdk/package-lock.json

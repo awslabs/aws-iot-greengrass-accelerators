@@ -35,7 +35,7 @@
   "peerDependencies": {
     "aws-cdk-lib": "^2.0.0",
     "constructs": "^10.0.0"
-  },  
+  },
   "prettier": {
     "tabWidth": 2,
     "semi": false,

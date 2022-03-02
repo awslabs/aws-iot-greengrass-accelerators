@@ -5,9 +5,10 @@
 
 import * as path from "path"
 import * as seedrandom from "seedrandom"
-import * as cdk from "@aws-cdk/core"
-import * as iam from "@aws-cdk/aws-iam"
-import * as s3 from "@aws-cdk/aws-s3"
+import { Construct } from 'constructs'
+import * as cdk from "aws-cdk-lib"
+import {aws_iam as iam} from "aws-cdk-lib"
+import {aws_s3 as s3} from "aws-cdk-lib"
 import { IotPolicy } from "./IotPolicy/IotPolicy"
 import { IotThingGroup } from "../../../base/cdk/lib/IotThingGroup/IotThingGroup"
 import { GreengrassV2Component } from "../../../base/cdk/lib/GreengrassV2Component/GreengrassV2Component"
@@ -16,7 +17,7 @@ import { GreengrassV2Deployment } from "../../../base/cdk/lib/GreengrassV2Deploy
 import * as myConst from "./Constants"
 
 export class EtlSimpleStack extends cdk.Stack {
-  constructor(scope: cdk.Construct, id: string, props?: cdk.StackProps) {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props)
 
     if (cdk.Stack.of(this).stackName.length > 20) {

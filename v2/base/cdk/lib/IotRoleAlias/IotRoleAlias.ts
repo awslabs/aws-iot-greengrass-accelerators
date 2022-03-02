@@ -2,11 +2,12 @@
 // SPDX-License-Identifier: MIT-0
 
 import * as path from "path"
-import * as cdk from "@aws-cdk/core"
-import * as logs from "@aws-cdk/aws-logs"
-import * as iam from "@aws-cdk/aws-iam"
-import * as cr from "@aws-cdk/custom-resources"
-import * as lambda from "@aws-cdk/aws-lambda"
+import * as cdk from "aws-cdk-lib"
+import * as logs from "aws-cdk-lib/aws-logs"
+import * as iam from "aws-cdk-lib/aws-iam"
+import * as cr from "aws-cdk-lib/custom-resources"
+import * as lambda from "aws-cdk-lib/aws-lambda"
+import { Construct } from 'constructs'
 
 /**
  * @summary The properties for the IotRoleAlias class.
@@ -49,7 +50,7 @@ export interface IotRoleAliasProps {
  * @summary The IotRoleAlias class.
  */
 
-export class IotRoleAlias extends cdk.Construct {
+export class IotRoleAlias extends Construct {
   public readonly iamRoleArn: string
   public readonly roleAliasName: string
   public readonly roleAliasArn: string
@@ -64,7 +65,7 @@ export class IotRoleAlias extends cdk.Construct {
    * @param {IotRoleAliasProps} props - user provided props for the construct.
    * @since 1.114.0
    */
-  constructor(scope: cdk.Construct, id: string, props: IotRoleAliasProps) {
+  constructor(scope: Construct, id: string, props: IotRoleAliasProps) {
     super(scope, id)
 
     const stackName = cdk.Stack.of(this).stackName
@@ -127,7 +128,7 @@ export class IotRoleAlias extends cdk.Construct {
   }
 
   // Separate static function to create or return singleton provider
-  static getOrCreateProvider = (scope: cdk.Construct, resourceName: string): cr.Provider => {
+  static getOrCreateProvider = (scope: Construct, resourceName: string): cr.Provider => {
     const stack = cdk.Stack.of(scope)
     const uniqueId = resourceName
     const existing = stack.node.tryFindChild(uniqueId) as cr.Provider

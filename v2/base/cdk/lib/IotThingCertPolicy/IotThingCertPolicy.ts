@@ -3,12 +3,13 @@
 
 import * as _ from "lodash"
 import * as path from "path"
-import * as cdk from "@aws-cdk/core"
-import * as logs from "@aws-cdk/aws-logs"
-import * as iam from "@aws-cdk/aws-iam"
-import * as cr from "@aws-cdk/custom-resources"
-import * as lambda from "@aws-cdk/aws-lambda"
-import { PythonFunction } from "@aws-cdk/aws-lambda-python"
+import * as cdk from "aws-cdk-lib"
+import * as logs from "aws-cdk-lib/aws-logs"
+import * as iam from "aws-cdk-lib/aws-iam"
+import * as cr from "aws-cdk-lib/custom-resources"
+import * as lambda from "aws-cdk-lib/aws-lambda"
+import { PythonFunction } from "@aws-cdk/aws-lambda-python-alpha"
+import { Construct } from 'constructs'
 
 export interface Mapping {
   [keys: string]: string
@@ -70,7 +71,7 @@ export interface IotThingCertPolicyProps {
  * @ summary The IotThingCertPolicy class.
  */
 
-export class IotThingCertPolicy extends cdk.Construct {
+export class IotThingCertPolicy extends Construct {
   public readonly thingArn: string
   public readonly iotPolicyArn: string
   public readonly certificateArn: string
@@ -87,7 +88,7 @@ export class IotThingCertPolicy extends cdk.Construct {
    * @param {IotThingCertPolicyProps} props - user provided props for the construct.
    * @since 1.114.0
    */
-  constructor(scope: cdk.Construct, id: string, props: IotThingCertPolicyProps) {
+  constructor(scope: Construct, id: string, props: IotThingCertPolicyProps) {
     super(scope, id)
 
     const stackName = cdk.Stack.of(this).stackName
@@ -185,7 +186,7 @@ export class IotThingCertPolicy extends cdk.Construct {
   }
 
   // Separate static function to create or return singleton provider
-  static getOrCreateProvider = (scope: cdk.Construct, resourceName: string): cr.Provider => {
+  static getOrCreateProvider = (scope: Construct, resourceName: string): cr.Provider => {
     const stack = cdk.Stack.of(scope)
     const uniqueId = resourceName
     const existing = stack.node.tryFindChild(uniqueId) as cr.Provider

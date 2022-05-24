@@ -1,1 +1,1 @@
-awsiotsdk
+awsiotsdk == 1.11.1

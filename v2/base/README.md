@@ -113,31 +113,39 @@ This approach uses your local system for installation and running the accelerato
    The result of a successful deployment will look like this:
 
    ```bash
-    ✅  base-implementation
-
-   Outputs:
-   base-implementation.CertificatePemParameter = /base-implementation/base-implementation-greengrass-core-FAjEi5wg/certificate_pem
-   base-implementation.CredentialProviderEndpointAddress = c301XXXXXsf1qf.credentials.iot.us-west-2.amazonaws.com
-   base-implementation.DataAtsEndpointAddress = a2l4XXXXXfczky-ats.iot.us-west-2.amazonaws.com
-   base-implementation.IotRoleAliasName = base-implementation-GreengrassV2TokenExchangeRole-FAjEi5wg
-   base-implementation.PrivateKeySecretParameter = /base-implementation/base-implementation-greengrass-core-FAjEi5wg/private_key
-   base-implementation.ThingArn = arn:aws:iot:us-west-2:123456789012:thing/base-implementation-greengrass-core-FAjEi5wg
-   Stack ARN:
-   arn:aws:cloudformation:us-west-2:123456789012:stack/base-implementation/bc6f5210-ee18-11eb-a253-060b98b02c23
+    ✅  gg-accel-base
    ```
+
+Outputs:
+gg-accel-base.CertificateArn = arn:aws:iot:us-west-2:123456789012:cert/d6df4cea2a08c73e041e62850b6f5cb7884e7ca4ec0e80f8383539504a8690b4
+gg-accel-base.CertificatePemParameter = /gg-accel-base/gg-accel-base-greengrass-core-kzH8xKQc/certificate_pem
+gg-accel-base.ComponentBucketArn = arn:aws:s3:::gg-accel-base-ggcomponents-123456789012-us-west-2
+gg-accel-base.CredentialProviderEndpointAddress = c3XXXXXXXXf1qf.credentials.iot.us-west-2.amazonaws.com
+gg-accel-base.DataAtsEndpointAddress = a2l4icd3ffczky-ats.iot.us-west-2.amazonaws.com
+gg-accel-base.IamRoleArn = arn:aws:iam::123456789012:role/gg-accel-base-RoleForIoTRoleAlias-kzH8xKQc
+gg-accel-base.IotPolicyArn = arn:aws:iot:us-west-2:123456789012:policy/gg-accel-base-greengrass-minimal-policy-kzH8xKQc
+gg-accel-base.IotRoleAliasName = gg-accel-base-GreengrassV2TokenExchangeRole-kzH8xKQc
+gg-accel-base.PrivateKeySecretParameter = /gg-accel-base/gg-accel-base-greengrass-core-kzH8xKQc/private_key
+gg-accel-base.RoleAliasArn = arn:aws:iot:us-west-2:123456789012:rolealias/gg-accel-base-GreengrassV2TokenExchangeRole-kzH8xKQc
+gg-accel-base.ThingArn = arn:aws:iot:us-west-2:123456789012:thing/gg-accel-base-greengrass-core-kzH8xKQc
+gg-accel-base.ThingName = gg-accel-base-greengrass-core-kzH8xKQc
+Stack ARN:
+arn:aws:cloudformation:us-west-2:123456789012:stack/gg-accel-base/c358ee30-db73-11ec-b8f0-06957ff291a7
+
+````
 
 1. At this point the CloudFormation stack is deployed. Next, change to the `docker/` directory and run the configuration script (`python3 config_docker.py` script, which will:
 
-   1. Read the local CDK output to determine the CloudFormation stack name
-   1. From the CloudFormation stack output, read the values to:
-      1. Download and save the X.509 certificate, private key, and Amazon CA1 certificate to the `volumes/certs` directory
-      1. Using the stack outputs, generate and save an initial configuration file to `volumes/config`
+1. Read the local CDK output to determine the CloudFormation stack name
+1. From the CloudFormation stack output, read the values to:
+   1. Download and save the X.509 certificate, private key, and Amazon CA1 certificate to the `volumes/certs` directory
+   1. Using the stack outputs, generate and save an initial configuration file to `volumes/config`
 
-   ```bash
-   cd ../docker
-   # Use the same AWS CLI profile from above
-   python3 docker_config.py --profile PROFILE_NAME
-   ```
+```bash
+cd ../docker
+# Use the same AWS CLI profile from above
+python3 docker_config.py --profile PROFILE_NAME
+````
 
 1. Next, start the Greengrass core device. If you intend to run Greengrass on a physical device, copy the contents of the `volumes/certs` and the `volumes/config` directories to your physical device and provision and install Greengrass per the documentation.
 

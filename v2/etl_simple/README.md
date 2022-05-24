@@ -94,11 +94,11 @@ This approach uses your local system for installation and running the accelerato
 
    ```bash
    ✅  gg-accel-etl-simple
-   
+
    Outputs:
    gg-accel-etl-simple.CloudPublishTopic = gg-accel-base-greengrass-core-kzH8xKQc/etl_simple/load
    Stack ARN:
-   arn:aws:cloudformation:eu-central-1:594598670825:stack/gg-accel-etl-simple/870a6f50-09a3-11ec-a262-0ad1fb9d7ee6
+   arn:aws:cloudformation:us-west-2:123456789012:stack/gg-accel-etl-simple/870a6f50-09a3-11ec-a262-0ad1fb9d7ee6
    ```
 
 At this point the CloudFormation stack is deployed and if the AWS IoT Greengrass core is running, it will have received the new deployment. Copy the _CloudPublishTopic_ topic for use when processing the MQTT messages in the Cloud.
@@ -107,10 +107,9 @@ At this point the CloudFormation stack is deployed and if the AWS IoT Greengrass
 
 Once deployed, you can use either Test client from the AWS IoT Core console or via an MQTT client where you can publish and subscribe to topics. The examples below use the Test client.
 
-Create a *subscription* to the `core-name/etl_simple/load` topic from the previous section. This subscription will allow you to receive the *transformed message* from the locally running processes.
+Create a _subscription_ to the `core-name/etl_simple/load` topic from the previous section. This subscription will allow you to receive the _transformed message_ from the locally running processes.
 
 ![](docs/test_client.png)
-
 
 ## Accelerator Cleanup
 
@@ -138,7 +137,6 @@ To stop and completely remove this accelerator, follow these steps:
    At this point, all `etl_simple` resources have been deleted.
 
 1. Review any CloudWatch Logs log groups and delete these if needed.
-
 
 All traces of the component including the thing group and additional AWS IoT Core policy permissions have been removed from the AWS IoT Greengrass core implementation.
 

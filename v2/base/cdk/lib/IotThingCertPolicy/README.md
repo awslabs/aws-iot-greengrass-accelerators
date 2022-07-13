@@ -15,7 +15,7 @@
 <!--END STABILITY BANNER-->
 
 | **Language**                                                                                   | **Package**          |
-| :--------------------------------------------------------------------------------------------- | -------------------- |
+|:-----------------------------------------------------------------------------------------------|----------------------|
 | ![Typescript Logo](https://docs.aws.amazon.com/cdk/api/latest/img/typescript32.png) Typescript | `IotThingCertPolicy` |
 
 ## Overview
@@ -80,19 +80,19 @@ _Parameters_
 
 ## Pattern Construct Props
 
-| **Name**                | **Type**  | **Description**                                                                                                                                                                                                                                                     |
-| :---------------------- | :-------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ------------------------------------ |
-| thingName               | `string`  | Name of the AWS IoT Core policy to create.                                                                                                                                                                                                                          |
-| iotPolicyName           | `string`  | The AWS IoT policy to be created and attached to the certificate. JSON string converted to IoT policy, lodash format for replacement.                                                                                                                               |
-| iotPolicy               | `string`  | An object of parameters and values to be replaced if a Jinja template is provided. For each matching parameter in the policy template, the value will be used.                                                                                                      |
-| policyParameterMapping? | `Mapping` | An object of parameters and values to be replaced if a lodash template is provided. For each matching parameter in the policy template, the value will be used. If not provided, only the `<% thingname %>` mapping will be available for the `iotPolicy` template. |
-| encryptionAlgorithm?    | `string`  | Selects RSA or ECC private key and certificate generation.                                                                                                                                                                                                          | If not provided, `RSA` will be used. |
-| thingName               | `string`  | Name of the AWS IoT Core policy to create.                                                                                                                                                                                                                          |
+**Name**                | **Type**  | **Description**
+------------------------|-----------|--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+thingName               | `string`  | Name of the AWS IoT Core policy to create.
+iotPolicyName           | `string`  | The AWS IoT policy to be created and attached to the certificate. JSON string converted to IoT policy, lodash format for replacement.
+iotPolicy               | `string`  | An object of parameters and values to be replaced if a Jinja template is provided. For each matching parameter in the policy template, the value will be used.
+policyParameterMapping? | `Mapping` | An object of parameters and values to be replaced if a lodash template is provided. For each matching parameter in the policy template, the value will be used. If not provided, only the `<% thingname %>` mapping will be available for the `iotPolicy` template.
+encryptionAlgorithm? | `string` | Selects RSA or ECC private key and certificate generation. | If not provided, `RSA` will be used.
+thingName | `string` | Name of the AWS IoT Core policy to create.
 
 ## Pattern Properties
 
-| **Name**                          | **Type** | **Description**                                                                                                                                                                                                     |
-| :-------------------------------- | :------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Name**| **Type** | **Description**|
+|:----------------------------------|:---------|---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------|
 | certificateArn                    | `string` | Returns an instance containing the AWS IoT certificate arn.                                                                                                                                                         |
 | certificatePemParameter           | `string` | Returns an instance containing the Systems Manager parameter store name of the things certificate.                                                                                                                  |
 | credentialProviderEndpointAddress | `string` | Returns an instance containing the AWS IoT credential provider endpoint. Used to [authorize direct calls to other AWS services](https://docs.aws.amazon.com/iot/latest/developerguide/authorizing-direct-aws.html). |

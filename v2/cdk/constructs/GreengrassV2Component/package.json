@@ -1,0 +1,18 @@
+{
+  "name": "GreengrassV2Component",
+  "version": "0.0.1",
+  "main": "./dist/GreengrassV2Component.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-lambda-python-alpha": "^2.45.0-alpha.0",
+    "aws-cdk-lib": "^2.45.0",
+    "constructs": "^10.1.128",
+    "path": "^0.12.7"
+  },
+  "devDependencies": {
+    "@types/node": "^18.8.4",
+    "typescript": "^4.8.4"
+  }
+}

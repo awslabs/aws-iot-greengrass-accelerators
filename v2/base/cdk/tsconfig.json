@@ -2,9 +2,7 @@
   "compilerOptions": {
     "target": "ES2018",
     "module": "commonjs",
-    "lib": [
-      "es2018"
-    ],
+    "lib": ["es2018"],
     "declaration": true,
     "strict": true,
     "noImplicitAny": true,
@@ -19,12 +17,19 @@
     "inlineSources": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
-    "typeRoots": [
-      "./node_modules/@types"
-    ]
+    "typeRoots": ["./node_modules/@types"],
+    "baseUrl": "lib",
+    "paths": {
+      "@iotConstructs/*": ["../../cdk/constructs/*"],
+      "@stackModules/*": ["../node_modules/*"]
+    }
   },
-  "exclude": [
-    "node_modules",
-    "cdk.out"
-  ]
+  "references": [
+    { "path": "../../cdk/constructs/GreengrassV2Component" },
+    { "path": "../../cdk/constructs/GreengrassV2Deployment" },
+    { "path": "../../cdk/constructs/IotRoleAlias" },
+    { "path": "../../cdk/constructs/IotThingCertPolicy" },
+    { "path": "../../cdk/constructs/IotThingGroup" }
+  ],
+  "exclude": ["node_modules", "cdk.out"]
 }

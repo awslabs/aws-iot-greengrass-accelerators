@@ -3,19 +3,19 @@
 
 import * as path from "path"
 import * as seedrandom from "seedrandom"
-import { Construct } from 'constructs'
+import { Construct } from "constructs"
 import * as cdk from "aws-cdk-lib"
-import { aws_iam as iam} from "aws-cdk-lib"
+import { aws_iam as iam } from "aws-cdk-lib"
 import * as s3 from "aws-cdk-lib/aws-s3"
-import { IotThingCertPolicy } from "./IotThingCertPolicy/IotThingCertPolicy"
-import { IotRoleAlias } from "./IotRoleAlias/IotRoleAlias"
-import { IotThingGroup } from "./IotThingGroup/IotThingGroup"
-import { GreengrassV2Component } from "./GreengrassV2Component/GreengrassV2Component"
-import { GreengrassV2Deployment } from "./GreengrassV2Deployment/GreengrassV2Deployment"
+import { IotThingCertPolicy } from "../../../cdk/constructs/IotThingCertPolicy"
+import { IotRoleAlias } from "../../../cdk/constructs/IotRoleAlias"
+import { IotThingGroup } from "../../../cdk/constructs/IotThingGroup"
+import { GreengrassV2Component } from "../../../cdk/constructs/GreengrassV2Component"
+import { GreengrassV2Deployment } from "../../../cdk/constructs/GreengrassV2Deployment"
 import * as myConst from "./Constants"
 
 export class BaseImplementationStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?:cdk.StackProps) {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props)
 
     const stackName = cdk.Stack.of(this).stackName

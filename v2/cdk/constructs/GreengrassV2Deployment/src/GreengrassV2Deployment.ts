@@ -3,11 +3,11 @@
 
 import * as path from "path"
 import * as cdk from "aws-cdk-lib"
-import {aws_logs as logs} from "aws-cdk-lib"
-import {aws_iam as iam} from "aws-cdk-lib"
+import { aws_logs as logs } from "aws-cdk-lib"
+import { aws_iam as iam } from "aws-cdk-lib"
 import * as cr from "aws-cdk-lib/custom-resources"
 import * as lambda from "aws-cdk-lib/aws-lambda"
-import { Construct } from 'constructs'
+import { Construct } from "constructs"
 
 /**
  * @summary A component definition
@@ -96,7 +96,11 @@ export class GreengrassV2Deployment extends Construct {
    * @param {GreengrassV2DeploymentProps} props - user provided props for the construct.
    * @since 1.114.0
    */
-  constructor(scope: Construct, id: string, props: GreengrassV2DeploymentProps) {
+  constructor(
+    scope: Construct,
+    id: string,
+    props: GreengrassV2DeploymentProps
+  ) {
     super(scope, id)
 
     const stackName = cdk.Stack.of(this).stackName
@@ -104,20 +108,27 @@ export class GreengrassV2Deployment extends Construct {
 
     // Validate and derive final values for resources
 
-    const provider = GreengrassV2Deployment.getOrCreateProvider(this, this.customResourceName)
-    const customResource = new cdk.CustomResource(this, this.customResourceName, {
-      serviceToken: provider.serviceToken,
-      properties: {
-        StackName: stackName,
-        TargetArn: props.targetArn,
-        DeploymentName: props.deploymentName,
-        // object of objects { "compA": {..}, "compB": {...} }
-        Components: this.componentList,
-        IotJobExecution: props.iotJobConfiguration || {},
-        DeploymentPolicies: props.deploymentPolicies || {},
-        Tags: props.tags || {}
+    const provider = GreengrassV2Deployment.getOrCreateProvider(
+      this,
+      this.customResourceName
+    )
+    const customResource = new cdk.CustomResource(
+      this,
+      this.customResourceName,
+      {
+        serviceToken: provider.serviceToken,
+        properties: {
+          StackName: stackName,
+          TargetArn: props.targetArn,
+          DeploymentName: props.deploymentName,
+          // object of objects { "compA": {..}, "compB": {...} }
+          Components: this.componentList,
+          IotJobExecution: props.iotJobConfiguration || {},
+          DeploymentPolicies: props.deploymentPolicies || {},
+          Tags: props.tags || {},
+        },
       }
-    })
+    )
 
     // Custom resource Lambda role permissions
     // Permissions for Creating or cancelling deployment - requires expanded permissions to interact with
@@ -135,9 +146,9 @@ export class GreengrassV2Deployment extends Construct {
           "iot:DescribeThingGroup",
           "iot:GetThingShadow",
           "iot:UpdateJob",
-          "iot:UpdateThingShadow"
+          "iot:UpdateThingShadow",
         ],
-        resources: ["*"]
+        resources: ["*"],
       })
     )
 
@@ -151,7 +162,11 @@ export class GreengrassV2Deployment extends Construct {
   public addComponent = (component: Component) => {
     Object.keys(component).forEach((key) => {
       if (key in this.componentList) {
-        console.error("Duplicate components not allowed. Component ", key, " already part of deployment.")
+        console.error(
+          "Duplicate components not allowed. Component ",
+          key,
+          " already part of deployment."
+        )
         process.exitCode = 1
       } else {
         this.componentList[key] = component[key]
@@ -160,7 +175,10 @@ export class GreengrassV2Deployment extends Construct {
   }
 
   // Separate static function to create or return singleton provider
-  static getOrCreateProvider = (scope: Construct, resourceName: string): cr.Provider => {
+  static getOrCreateProvider = (
+    scope: Construct,
+    resourceName: string
+  ): cr.Provider => {
     const stack = cdk.Stack.of(scope)
     const uniqueId = resourceName
     const existing = stack.node.tryFindChild(uniqueId) as cr.Provider
@@ -170,15 +188,15 @@ export class GreengrassV2Deployment extends Construct {
         runtime: lambda.Runtime.PYTHON_3_8,
         timeout: cdk.Duration.minutes(5),
         handler: "create_deployment.handler",
-        code: lambda.Code.fromAsset(path.join(__dirname, "assets")),
-        logRetention: logs.RetentionDays.ONE_MONTH
+        code: lambda.Code.fromAsset(path.join(__dirname, "..", "assets")),
+        logRetention: logs.RetentionDays.ONE_MONTH,
       })
       // Role permissions are handled by the main constructor
 
       // Create the provider that invokes the Lambda function
       const createThingProvider = new cr.Provider(stack, uniqueId, {
         onEventHandler: createThingFn,
-        logRetention: logs.RetentionDays.ONE_DAY
+        logRetention: logs.RetentionDays.ONE_DAY,
       })
       return createThingProvider
     } else {

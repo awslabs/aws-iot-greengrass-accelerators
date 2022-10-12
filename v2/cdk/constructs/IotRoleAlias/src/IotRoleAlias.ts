@@ -7,7 +7,7 @@ import * as logs from "aws-cdk-lib/aws-logs"
 import * as iam from "aws-cdk-lib/aws-iam"
 import * as cr from "aws-cdk-lib/custom-resources"
 import * as lambda from "aws-cdk-lib/aws-lambda"
-import { Construct } from 'constructs'
+import { Construct } from "constructs"
 
 /**
  * @summary The properties for the IotRoleAlias class.
@@ -71,28 +71,37 @@ export class IotRoleAlias extends Construct {
     const stackName = cdk.Stack.of(this).stackName
 
     // Validate and derive final values for resources
-    const inlinePolicyName = props.iamPolicyName || "DefaultPolicyForIotRoleAlias"
+    const inlinePolicyName =
+      props.iamPolicyName || "DefaultPolicyForIotRoleAlias"
     const iamRoleName = props.iamRoleName || props.iotRoleAliasName
 
     // Create IAM role with permissions
     const iamRole = new iam.Role(this, "IamRole", {
       roleName: props.iamRoleName,
       assumedBy: new iam.ServicePrincipal("credentials.iot.amazonaws.com"),
-      description: "Allow Greengrass token exchange service to obtain temporary credentials",
+      description:
+        "Allow Greengrass token exchange service to obtain temporary credentials",
       inlinePolicies: {
-        [inlinePolicyName]: props.iamPolicy
-      }
+        [inlinePolicyName]: props.iamPolicy,
+      },
     })
 
-    const provider = IotRoleAlias.getOrCreateProvider(this, this.customResourceName)
-    const customResource = new cdk.CustomResource(this, this.customResourceName, {
-      serviceToken: provider.serviceToken,
-      properties: {
-        StackName: stackName,
-        IotRoleAliasName: props.iotRoleAliasName,
-        IamRoleArn: iamRole.roleArn
+    const provider = IotRoleAlias.getOrCreateProvider(
+      this,
+      this.customResourceName
+    )
+    const customResource = new cdk.CustomResource(
+      this,
+      this.customResourceName,
+      {
+        serviceToken: provider.serviceToken,
+        properties: {
+          StackName: stackName,
+          IotRoleAliasName: props.iotRoleAliasName,
+          IamRoleArn: iamRole.roleArn,
+        },
       }
-    })
+    )
 
     // Custom resource Lambda role permissions
     // Permissions for the IAM role created/deleted
@@ -106,9 +115,13 @@ export class IotRoleAlias extends Construct {
           "iam:ListAttachedRolePolicies",
           "iam:ListRolePolicies",
           "iam:PassRole", // Needed to associate IAM role with alias role
-          "iam:PutRolePolicy"
+          "iam:PutRolePolicy",
         ],
-        resources: [`arn:${cdk.Fn.ref("AWS::Partition")}:iam::${cdk.Fn.ref("AWS::AccountId")}:role/${props.iamRoleName}`]
+        resources: [
+          `arn:${cdk.Fn.ref("AWS::Partition")}:iam::${cdk.Fn.ref(
+            "AWS::AccountId"
+          )}:role/${props.iamRoleName}`,
+        ],
       })
     )
     // Permissions for the IoT role alias created/deleted
@@ -116,8 +129,12 @@ export class IotRoleAlias extends Construct {
       new iam.PolicyStatement({
         actions: ["iot:CreateRoleAlias", "iot:DeleteRoleAlias"],
         resources: [
-          `arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:rolealias/${props.iotRoleAliasName}`
-        ]
+          `arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref(
+            "AWS::Region"
+          )}:${cdk.Fn.ref("AWS::AccountId")}:rolealias/${
+            props.iotRoleAliasName
+          }`,
+        ],
       })
     )
 
@@ -128,7 +145,10 @@ export class IotRoleAlias extends Construct {
   }
 
   // Separate static function to create or return singleton provider
-  static getOrCreateProvider = (scope: Construct, resourceName: string): cr.Provider => {
+  static getOrCreateProvider = (
+    scope: Construct,
+    resourceName: string
+  ): cr.Provider => {
     const stack = cdk.Stack.of(scope)
     const uniqueId = resourceName
     const existing = stack.node.tryFindChild(uniqueId) as cr.Provider
@@ -138,15 +158,15 @@ export class IotRoleAlias extends Construct {
         runtime: lambda.Runtime.PYTHON_3_8,
         timeout: cdk.Duration.minutes(1),
         handler: "role_alias.handler",
-        code: lambda.Code.fromAsset(path.join(__dirname, "assets")),
-        logRetention: logs.RetentionDays.ONE_MONTH
+        code: lambda.Code.fromAsset(path.join(__dirname, "..", "assets")),
+        logRetention: logs.RetentionDays.ONE_MONTH,
       })
       // Role permissions are handled by the main constructor
 
       // Create the provider that invokes the Lambda function
       const createThingProvider = new cr.Provider(stack, uniqueId, {
         onEventHandler: createThingFn,
-        logRetention: logs.RetentionDays.ONE_DAY
+        logRetention: logs.RetentionDays.ONE_DAY,
       })
       return createThingProvider
     } else {

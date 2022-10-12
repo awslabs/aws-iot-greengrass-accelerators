@@ -2,15 +2,16 @@
 // SPDX-License-Identifier: MIT-0
 
 import * as path from "path"
-import { Construct } from 'constructs'
+import { Construct } from "constructs"
 import * as cdk from "aws-cdk-lib"
-import {aws_logs as logs} from "aws-cdk-lib"
-import {aws_iam as iam} from "aws-cdk-lib"
-import {aws_s3 as s3} from "aws-cdk-lib"
+import { aws_logs as logs } from "aws-cdk-lib"
+import { aws_iam as iam } from "aws-cdk-lib"
+import { aws_s3 as s3 } from "aws-cdk-lib"
 import * as cr from "aws-cdk-lib/custom-resources"
 import * as lambda from "aws-cdk-lib/aws-lambda"
 import * as assets from "aws-cdk-lib/aws-s3-assets"
 import { PythonFunction } from "@aws-cdk/aws-lambda-python-alpha"
+import exp = require("constants")
 
 /**
  * @summary The properties for the GreengrassComponent class.
@@ -68,11 +69,6 @@ export interface GreengrassV2ComponentProps {
 /**
  * This construct creates an AWS IoT Greengrass component, uploads the artifacts to S3, and publishes
  * the component.
- *
- * @summary Create an AWS IoT Greengrass component.
- */
-
-/**
  * @summary The GreengrassComponent class.
  */
 
@@ -100,42 +96,60 @@ export class GreengrassV2Component extends Construct {
     if (componentPrefixPath !== "") {
       componentPrefixPath += componentPrefixPath.endsWith("/") ? "" : "/"
     }
-    const targetArtifactKeyName = props.targetArtifactKeyName || `${this.componentName}-${this.componentVersion}.zip`
+    const targetArtifactKeyName =
+      props.targetArtifactKeyName ||
+      `${this.componentName}-${this.componentVersion}.zip`
     targetArtifactKeyName.replace(/^\//, "")
 
     // create zip file of artifacts in CDK source bucket as has values
     // will replace as targetArtifactKeyName is user's component bucket
     const componentZipAsset = new assets.Asset(this, "ComponentZipAsset", {
-      path: props.sourceArtifactPath
+      path: props.sourceArtifactPath,
     })
     const recipeFileAsset = new assets.Asset(this, "RecipeFileAsset", {
-      path: props.sourceRecipeFile
+      path: props.sourceRecipeFile,
     })
 
-    const provider = GreengrassV2Component.getOrCreateProvider(this, this.customResourceName)
-    const customResource = new cdk.CustomResource(this, this.customResourceName, {
-      serviceToken: provider.serviceToken,
-      properties: {
-        // resources for lambda
-        StackName: stackName,
-        AssetBucket: componentZipAsset.s3BucketName,
-        ComponentZipAsset: componentZipAsset.s3ObjectKey,
-        ComponentPrefixPath: componentPrefixPath,
-        RecipeFileAsset: recipeFileAsset.s3ObjectKey,
-        ComponentName: props.componentName,
-        ComponentVersion: props.componentVersion,
-        TargetBucket: props.bucket.bucketName,
-        TargetArtifactKeyName: targetArtifactKeyName
+    const provider = GreengrassV2Component.getOrCreateProvider(
+      this,
+      this.customResourceName
+    )
+    const customResource = new cdk.CustomResource(
+      this,
+      this.customResourceName,
+      {
+        serviceToken: provider.serviceToken,
+        properties: {
+          // resources for lambda
+          StackName: stackName,
+          AssetBucket: componentZipAsset.s3BucketName,
+          ComponentZipAsset: componentZipAsset.s3ObjectKey,
+          ComponentPrefixPath: componentPrefixPath,
+          RecipeFileAsset: recipeFileAsset.s3ObjectKey,
+          ComponentName: props.componentName,
+          ComponentVersion: props.componentVersion,
+          TargetBucket: props.bucket.bucketName,
+          TargetArtifactKeyName: targetArtifactKeyName,
+        },
       }
-    })
+    )
 
     // Custom resource Lambda role permissions
     // Permissions for the resource specific calls
     // Access to target bucket
     provider.onEventHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ["s3:PutObject", "s3:GetObject", "s3:ListBucket", "s3:DeleteObject", "s3:GetBucketLocation"],
-        resources: [`arn:aws:s3:::${props.bucket.bucketName}/*`, `arn:aws:s3:::${props.bucket.bucketName}/*`]
+        actions: [
+          "s3:PutObject",
+          "s3:GetObject",
+          "s3:ListBucket",
+          "s3:DeleteObject",
+          "s3:GetBucketLocation",
+        ],
+        resources: [
+          `arn:aws:s3:::${props.bucket.bucketName}/*`,
+          `arn:aws:s3:::${props.bucket.bucketName}/*`,
+        ],
       })
     )
     // Read from staging bucket
@@ -144,8 +158,8 @@ export class GreengrassV2Component extends Construct {
         actions: ["s3:GetObject"],
         resources: [
           `arn:aws:s3:::${componentZipAsset.s3BucketName}/${componentZipAsset.s3ObjectKey}`,
-          `arn:aws:s3:::${recipeFileAsset.s3BucketName}/${recipeFileAsset.s3ObjectKey}`
-        ]
+          `arn:aws:s3:::${recipeFileAsset.s3BucketName}/${recipeFileAsset.s3ObjectKey}`,
+        ],
       })
     )
     // Create component
@@ -153,10 +167,10 @@ export class GreengrassV2Component extends Construct {
       new iam.PolicyStatement({
         actions: ["greengrass:CreateComponentVersion"],
         resources: [
-          `arn:${cdk.Fn.ref("AWS::Partition")}:greengrass:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:components:${
-            props.componentName
-          }`
-        ]
+          `arn:${cdk.Fn.ref("AWS::Partition")}:greengrass:${cdk.Fn.ref(
+            "AWS::Region"
+          )}:${cdk.Fn.ref("AWS::AccountId")}:components:${props.componentName}`,
+        ],
       })
     )
     // Describe component
@@ -164,10 +178,12 @@ export class GreengrassV2Component extends Construct {
       new iam.PolicyStatement({
         actions: ["greengrass:DeleteComponent", "greengrass:DescribeComponent"],
         resources: [
-          `arn:${cdk.Fn.ref("AWS::Partition")}:greengrass:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:components:${
+          `arn:${cdk.Fn.ref("AWS::Partition")}:greengrass:${cdk.Fn.ref(
+            "AWS::Region"
+          )}:${cdk.Fn.ref("AWS::AccountId")}:components:${
             props.componentName
-          }:versions:${props.componentVersion}`
-        ]
+          }:versions:${props.componentVersion}`,
+        ],
       })
     )
 
@@ -175,7 +191,7 @@ export class GreengrassV2Component extends Construct {
     provider.onEventHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
         actions: ["iot:AddThingToThingGroup"],
-        resources: ["*"]
+        resources: ["*"],
       })
     )
     // class public values
@@ -184,25 +200,28 @@ export class GreengrassV2Component extends Construct {
     this.componentArn = customResource.getAttString("ComponentArn")
   }
   // Separate static function to create or return singleton provider
-  static getOrCreateProvider = (scope: Construct, resourceName: string): cr.Provider => {
+  static getOrCreateProvider = (
+    scope: Construct,
+    resourceName: string
+  ): cr.Provider => {
     const stack = cdk.Stack.of(scope)
     const uniqueId = resourceName
     const existing = stack.node.tryFindChild(uniqueId) as cr.Provider
 
     if (existing === undefined) {
       const createThingFn = new PythonFunction(stack, `${uniqueId}-Provider`, {
-        entry: path.join(__dirname, "assets"),
+        entry: path.join(__dirname, "../", "assets"),
         index: "create_component_version.py",
         runtime: lambda.Runtime.PYTHON_3_8,
         timeout: cdk.Duration.minutes(10),
-        logRetention: logs.RetentionDays.ONE_MONTH
+        logRetention: logs.RetentionDays.ONE_MONTH,
       })
       // Role permissions are handled by the main constructor
 
       // Create the provider that invokes the Lambda function
       const createThingProvider = new cr.Provider(stack, uniqueId, {
         onEventHandler: createThingFn,
-        logRetention: logs.RetentionDays.ONE_DAY
+        logRetention: logs.RetentionDays.ONE_DAY,
       })
       return createThingProvider
     } else {

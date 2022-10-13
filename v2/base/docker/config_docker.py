@@ -37,6 +37,10 @@ FILE_PATH_WARNING = """
 *************************************************************************
 """
 
+GITIGNORE_CONTENT = """*
+!.gitignore
+"""
+
 
 def replace(data: dict, match: str, repl):
     """Replace variable with replacement text"""
@@ -76,7 +80,13 @@ def verify_cwd():
 
 
 def clean_config(dirs_to_clean: list):
-    """remove all docker volume files, restore to unconfigured state"""
+    """remove all docker volume files, restore to unconfigured state, which
+    is empty directories with a `.gitignore` file to not include any content
+    when committing code changes
+
+    :param dirs_to_clean: directories to clean out
+    :type dirs_to_clean: list
+    """
 
     print("Cleaning Docker volumes...")
     for dir in dirs_to_clean:
@@ -85,6 +95,8 @@ def clean_config(dirs_to_clean: list):
             print(f"Deleting files in {path}")
             shutil.rmtree(path)
         os.mkdir(path)
+        with open(path / ".gitignore", "w") as f:
+            f.write(GITIGNORE_CONTENT)
         print(f"Directory '{dir} cleaned")
 
 
@@ -171,7 +183,7 @@ def replace_variables(file: str, map: dict):
     with open(Path(file), "r") as f:
         template = f.read()
     for k in map:
-        template = re.sub(fr"\${{{k}}}", map[k], template)
+        template = re.sub(rf"\${{{k}}}", map[k], template)
     return template
 
 
@@ -262,8 +274,3 @@ if __name__ == "__main__":
         f.write(config_template)
     with open(Path("./docker-compose.yml"), "w") as f:
         f.write(docker_compose_template)
-
-# with both valid, write:
-#  cert, key, rootca to volumes/certs/
-#  config to volumes/config/
-#  docker-compose.yml to ./

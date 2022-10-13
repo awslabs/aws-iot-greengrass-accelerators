@@ -7,9 +7,12 @@ services:
   greengrass_accel:
     init: true
     container_name: greengrass-accel
-    image: public.ecr.aws/aws-iot-greengrass/aws-iot-greengrass-v2:2.4.0-0
+    build:
+      context: ./build-files
+      dockerfile: Dockerfile
+    image: aws-iot-greengrass-v2:2.8.0
     ports:
-      # MQTT port for broker
+      # MQTT port for local broker (if deployed)
       - "8883:8883"
       # Optional ports (uncomment if needed for debug console)
       # 1441:1441

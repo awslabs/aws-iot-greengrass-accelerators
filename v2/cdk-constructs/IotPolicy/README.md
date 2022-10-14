@@ -1,4 +1,4 @@
-# aws-apigateway-iot module
+# IoTPolicy
 
 <!--BEGIN STABILITY BANNER-->
 
@@ -16,9 +16,9 @@
 
 ## Overview
 
-This AWS Solutions Construct implements the creation of an [AWS IoT thing](https://docs.aws.amazon.com/iot/latest/developerguide/iot-thing-management.html), [AWS IoT certificate](https://docs.aws.amazon.com/iot/latest/developerguide/x509-client-certs.html), and [AWS IoT Core policy](https://docs.aws.amazon.com/iot/latest/developerguide/iot-policies.html). After creation of the resources, it also associates the _certificate_ with the _policy_ and also the _thing_. It also stores the certificate's X.509 certificate and private in [AWS Systems Manager Parameter Store](https://docs.aws.amazon.com/systems-manager/latest/userguide/systems-manager-parameter-store.html) parameters.
+This AWS Solutions Construct implements the creation of an [AWS IoT Core policy](https://docs.aws.amazon.com/iot/latest/developerguide/iot-policies.html), and optionally, the _certificate arn_ in which to attach this policy.
 
-This construct returns the thing arn, parameter store names, and the IoT data endpoint for use in other constructs or CloudFormation outputs.
+This construct returns the IoT policy arn.
 
 TODO
 
@@ -56,8 +56,8 @@ const myThing = new IotThingCertPolicy(this, "MyThing", {
   iotPolicy: myPolicyTemplate,
   policyParameterMapping: {
     region: cdk.Fn.ref("AWS::Region"),
-    account: cdk.Fn.ref("AWS::AccountId")
-  }
+    account: cdk.Fn.ref("AWS::AccountId"),
+  },
 })
 ```
 

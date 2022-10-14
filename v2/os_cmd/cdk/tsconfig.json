@@ -23,5 +23,11 @@
       "@cdkConstructs/*": ["../../../cdk-constructs/*"]
     }
   },
+  "references": [
+    { "path": "../../cdk-constructs/GreengrassV2Component" },
+    { "path": "../../cdk-constructs/GreengrassV2Deployment" },
+    { "path": "../../cdk-constructs/IotPolicy" },
+    { "path": "../../cdk-constructs/IotThingGroup" }
+  ],
   "exclude": ["node_modules", "cdk.out"]
 }

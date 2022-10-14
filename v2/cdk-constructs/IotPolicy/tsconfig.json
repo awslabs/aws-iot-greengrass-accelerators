@@ -4,6 +4,10 @@
     "module": "commonjs",
     "lib": ["es2018"],
     "declaration": true,
+    "declarationMap": true,
+    "rootDir": "./src",
+    "outDir": "./dist",
+    "composite": true,
     "strict": true,
     "noImplicitAny": true,
     "strictNullChecks": true,
@@ -17,17 +21,7 @@
     "inlineSources": true,
     "experimentalDecorators": true,
     "strictPropertyInitialization": false,
-    "typeRoots": ["./node_modules/@types"],
-    "baseUrl": "./bin",
-    "paths": {
-      "@cdkConstructs/*": ["../../../cdk-constructs/*"]
-    }
+    "typeRoots": ["./node_modules/@types"]
   },
-  "references": [
-    { "path": "../../cdk-constructs/GreengrassV2Component" },
-    { "path": "../../cdk-constructs/GreengrassV2Deployment" },
-    { "path": "../../cdk-constructs/IotPolicy" },
-    { "path": "../../cdk-constructs/IotThingGroup" }
-  ],
-  "exclude": ["node_modules", "cdk.out"]
+  "exclude": ["node_modules", "dist"]
 }

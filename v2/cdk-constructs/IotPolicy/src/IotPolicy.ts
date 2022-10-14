@@ -5,10 +5,10 @@
 
 import * as _ from "lodash"
 import * as path from "path"
-import { Construct } from 'constructs'
+import { Construct } from "constructs"
 import * as cdk from "aws-cdk-lib"
-import {aws_logs as logs} from "aws-cdk-lib"
-import {aws_iam as iam} from "aws-cdk-lib"
+import { aws_logs as logs } from "aws-cdk-lib"
+import { aws_iam as iam } from "aws-cdk-lib"
 import * as cr from "aws-cdk-lib/custom-resources"
 import * as lambda from "aws-cdk-lib/aws-lambda"
 
@@ -62,13 +62,13 @@ export interface IotPolicyProps {
  */
 
 export class IotPolicy extends Construct {
-  public readonly thingArn: string
+  // public readonly thingArn: string
   public readonly iotPolicyArn: string
-  public readonly certificateArn: string
-  public readonly certificatePemParameter: string
-  public readonly privateKeySecretParameter: string
-  public readonly dataAtsEndpointAddress: string
-  public readonly credentialProviderEndpointAddress: string
+  // public readonly certificateArn: string
+  // public readonly certificatePemParameter: string
+  // public readonly privateKeySecretParameter: string
+  // public readonly dataAtsEndpointAddress: string
+  // public readonly credentialProviderEndpointAddress: string
   private customResourceName = "IotPolicyFunction"
 
   /**
@@ -89,32 +89,52 @@ export class IotPolicy extends Construct {
     var policyTemplate = _.template(props.iotPolicy)
     var iotPolicy = policyTemplate(props.policyParameterMapping)
 
-    const provider = IotPolicy.getOrCreateProvider(this, this.customResourceName)
-    const customResource = new cdk.CustomResource(this, this.customResourceName, {
-      serviceToken: provider.serviceToken,
-      properties: {
-        StackName: stackName,
-        IotPolicy: iotPolicy,
-        IoTPolicyName: props.iotPolicyName,
-        CertificateArn: props.certificateArn
+    const provider = IotPolicy.getOrCreateProvider(
+      this,
+      this.customResourceName
+    )
+    const customResource = new cdk.CustomResource(
+      this,
+      this.customResourceName,
+      {
+        serviceToken: provider.serviceToken,
+        properties: {
+          StackName: stackName,
+          IotPolicy: iotPolicy,
+          IoTPolicyName: props.iotPolicyName,
+          CertificateArn: props.certificateArn,
+        },
       }
-    })
+    )
 
     // Custom resource Lambda role permissions
     // Create and delete specific policy
     provider.onEventHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ["iot:CreatePolicy", "iot:DeletePolicy", "iot:DeletePolicyVersion", "iot:ListPolicyVersions", "iot:ListTargetsForPolicy"],
+        actions: [
+          "iot:CreatePolicy",
+          "iot:DeletePolicy",
+          "iot:DeletePolicyVersion",
+          "iot:ListPolicyVersions",
+          "iot:ListTargetsForPolicy",
+        ],
         resources: [
-          `arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref("AWS::Region")}:${cdk.Fn.ref("AWS::AccountId")}:policy/${props.iotPolicyName}`
-        ]
+          `arn:${cdk.Fn.ref("AWS::Partition")}:iot:${cdk.Fn.ref(
+            "AWS::Region"
+          )}:${cdk.Fn.ref("AWS::AccountId")}:policy/${props.iotPolicyName}`,
+        ],
       })
     )
     // Actions without resource types
     provider.onEventHandler.role?.addToPrincipalPolicy(
       new iam.PolicyStatement({
-        actions: ["iot:AttachPolicy", "iot:DetachPolicy", "iot:ListAttachedPolicies", "iot:UpdateCertificate"],
-        resources: ["*"]
+        actions: [
+          "iot:AttachPolicy",
+          "iot:DetachPolicy",
+          "iot:ListAttachedPolicies",
+          "iot:UpdateCertificate",
+        ],
+        resources: ["*"],
       })
     )
 
@@ -123,7 +143,10 @@ export class IotPolicy extends Construct {
   }
 
   // Separate static function to create or return singleton provider
-  static getOrCreateProvider = (scope: Construct, resourceName: string): cr.Provider => {
+  static getOrCreateProvider = (
+    scope: Construct,
+    resourceName: string
+  ): cr.Provider => {
     const stack = cdk.Stack.of(scope)
     const uniqueId = resourceName
     const existing = stack.node.tryFindChild(uniqueId) as cr.Provider
@@ -131,17 +154,17 @@ export class IotPolicy extends Construct {
     if (existing === undefined) {
       const createThingFn = new lambda.Function(stack, `${uniqueId}-Provider`, {
         handler: "iot_policy.handler",
-        code: lambda.Code.fromAsset(path.join(__dirname, "assets")),
+        code: lambda.Code.fromAsset(path.join(__dirname, "..", "assets")),
         runtime: lambda.Runtime.PYTHON_3_8,
         timeout: cdk.Duration.minutes(1),
-        logRetention: logs.RetentionDays.ONE_MONTH
+        logRetention: logs.RetentionDays.ONE_MONTH,
       })
       // Role permissions are handled by the main constructor
 
       // Create the provider that invokes the Lambda function
       const createThingProvider = new cr.Provider(stack, uniqueId, {
         onEventHandler: createThingFn,
-        logRetention: logs.RetentionDays.ONE_DAY
+        logRetention: logs.RetentionDays.ONE_DAY,
       })
       return createThingProvider
     } else {

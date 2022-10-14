@@ -201,13 +201,11 @@ This command will return an error for missing attributes.
 }
 ```
 
-As you run there and other commands, review the log file output. Also, the main Python code located here:
+As you run there and other commands, review the log file output. Also, the main Python code located below sas additional details on the `format` and `timeout` attributes.:
 
 ```shell
 aws-iot-greengrass-accelerators/v2/base/cdk/components/ggAccel.example.HelloWorld/artifacts/ggAccel.example.HelloWorld/1.0.0/hello_world.py
 ```
-
-Has additional details on the `format` and `timeout` attributes.
 
 By investigating the component's recipe file, artifacts, and and the commands that create and publish the component via the CDK, you should now have a better understanding of:
 

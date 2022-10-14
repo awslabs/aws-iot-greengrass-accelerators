@@ -7,7 +7,6 @@ FROM amazonlinux:2
 ARG GREENGRASS_RELEASE_VERSION=2.8.1
 ARG GREENGRASS_ZIP_FILE=greengrass-${GREENGRASS_RELEASE_VERSION}.zip
 ARG GREENGRASS_RELEASE_URI=https://d2s8p88vqu9w66.cloudfront.net/releases/${GREENGRASS_ZIP_FILE}
-# ARG GREENGRASS_ZIP_SHA256=greengrass.zip.sha256
 
 # Author
 LABEL maintainer="AWS IoT Greengrass"
@@ -33,16 +32,13 @@ RUN env
 
 # Entrypoint script to install and run Greengrass
 COPY "greengrass-entrypoint.sh" /
-# COPY "${GREENGRASS_ZIP_SHA256}" /
 
 # Install Greengrass v2 dependencies
 RUN yum update -y && yum install -y python37 tar unzip wget sudo procps which && \
     amazon-linux-extras enable python3.8 && yum install -y python3.8 java-11-amazon-corretto-headless && \
-    # wget $GREENGRASS_RELEASE_URI && sha256sum -c ${GREENGRASS_ZIP_SHA256} && \
     wget $GREENGRASS_RELEASE_URI &&  \
     rm -rf /var/cache/yum && \
     chmod +x /greengrass-entrypoint.sh && \
-    # mkdir -p /opt/greengrassv2 $GGC_ROOT_PATH && unzip $GREENGRASS_ZIP_FILE -d /opt/greengrassv2 && rm $GREENGRASS_ZIP_FILE && rm $GREENGRASS_ZIP_SHA256
     mkdir -p /opt/greengrassv2 $GGC_ROOT_PATH && unzip $GREENGRASS_ZIP_FILE -d /opt/greengrassv2 && rm $GREENGRASS_ZIP_FILE
 
 # modify /etc/sudoers

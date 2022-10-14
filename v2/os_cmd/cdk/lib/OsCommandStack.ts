@@ -3,14 +3,14 @@
 
 import * as path from "path"
 import * as seedrandom from "seedrandom"
-import { Construct } from 'constructs'
+import { Construct } from "constructs"
 import * as cdk from "aws-cdk-lib"
-import {aws_iam as iam} from "aws-cdk-lib"
-import {aws_s3 as s3} from "aws-cdk-lib"
+import { aws_iam as iam } from "aws-cdk-lib"
+import { aws_s3 as s3 } from "aws-cdk-lib"
 import { IotPolicy } from "./IotPolicy/IotPolicy"
-import { IotThingGroup } from "../../../base/cdk/lib/IotThingGroup/IotThingGroup"
-import { GreengrassV2Component } from "../../../base/cdk/lib/GreengrassV2Component/GreengrassV2Component"
-import { GreengrassV2Deployment } from "../../../base/cdk/lib/GreengrassV2Deployment/GreengrassV2Deployment"
+import { IotThingGroup } from "@cdkConstructs/IotThingGroup"
+import { GreengrassV2Component } from "@cdkConstructs/GreengrassV2Component"
+import { GreengrassV2Deployment } from "@cdkConstructs/GreengrassV2Deployment"
 
 import * as myConst from "./Constants"
 
@@ -24,7 +24,10 @@ export class OsCommandStack extends cdk.Stack {
     }
     const parentStack = this.node.tryGetContext("baseStack")
     if (parentStack === undefined) {
-      console.error('Parent stack must be provided with --context baseStack="gg-accel-base" argument for "cdk deploy" or "cdk destroy"')
+      console.error(
+        "\x1b[31m%s\x1b[0m",
+        'Parent stack must be provided with --context baseStack="gg-accel-base" argument for "cdk deploy" or "cdk destroy"'
+      )
       process.exitCode = 1
     }
 

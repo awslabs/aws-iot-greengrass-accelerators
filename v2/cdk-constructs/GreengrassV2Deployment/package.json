@@ -6,9 +6,9 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@types/node": "^18.8.4",
-    "aws-cdk-lib": "^2.45.0",
-    "constructs": "^10.1.128",
-    "path": "^0.12.7"
+    "@types/node": "18.8.4",
+    "aws-cdk-lib": "2.45.0",
+    "constructs": "10.1.128",
+    "path": "0.12.7"
   }
 }

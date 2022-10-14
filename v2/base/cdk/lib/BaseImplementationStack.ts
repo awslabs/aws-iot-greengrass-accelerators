@@ -166,10 +166,10 @@ export class BaseImplementationStack extends cdk.Stack {
     // Add core public components
     greengrassDeployment.addComponent({
       "aws.greengrass.Nucleus": {
-        componentVersion: "2.8.0"
+        componentVersion: "2.8.1"
       },
       "aws.greengrass.Cli": {
-        componentVersion: "2.8.0"
+        componentVersion: "2.8.1"
       }
     })
     greengrassDeployment.addComponent({

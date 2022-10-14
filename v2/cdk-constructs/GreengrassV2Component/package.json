@@ -7,8 +7,8 @@
   },
   "dependencies": {
     "@types/node": "18.8.4",
-    "@aws-cdk/aws-lambda-python-alpha": "2.45.0-alpha.0",
-    "aws-cdk-lib": "2.45.0",
+    "@aws-cdk/aws-lambda-python-alpha": "2.46.0-alpha.0",
+    "aws-cdk-lib": "2.46.0",
     "constructs": "10.1.128",
     "path": "0.12.7"
   }

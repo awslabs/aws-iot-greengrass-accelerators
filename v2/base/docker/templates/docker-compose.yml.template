@@ -10,7 +10,7 @@ services:
     build:
       context: ./build-files
       dockerfile: Dockerfile
-    image: aws-iot-greengrass-v2:2.8.0
+    image: aws-iot-greengrass-v2:2.8.1
     ports:
       # MQTT port for local broker (if deployed)
       - "8883:8883"

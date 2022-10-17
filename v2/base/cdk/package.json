@@ -7,15 +7,16 @@
     "cdk": "bin/app.js"
   },
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -b",
     "watch": "tsc -w",
     "test": "jest",
-    "cdk": "cdk"
+    "cdk": "cdk",
+    "postinstall": "(cd ../../cdk-constructs/GreengrassV2Component && npm install) && (cd ../../cdk-constructs/GreengrassV2Deployment && npm install) && (cd ../../cdk-constructs/IotPolicy && npm install) && (cd ../../cdk-constructs/IotRoleAlias && npm install) && (cd ../../cdk-constructs/IotThingCertPolicy && npm install) && (cd ../../cdk-constructs/IotThingGroup && npm install)"
   },
   "devDependencies": {
     "@aws-cdk/assert": "2.46.0",
     "@types/archiver": "5.1.1",
-    "@types/jest": "^29.1.2",
+    "@types/jest": "29.1.2",
     "@types/lodash": "4.14.186",
     "@types/node": "18.8.3",
     "@types/seedrandom": "3.0.1",

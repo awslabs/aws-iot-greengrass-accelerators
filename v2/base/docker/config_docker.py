@@ -18,6 +18,9 @@ parser = argparse.ArgumentParser()
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument("--profile", help="Your AWS CLI profile name")
 group.add_argument(
+    "--use-envars", action="store_true", help="Use AWS CLI environment variables"
+)
+group.add_argument(
     "--clean",
     const=True,
     type=bool,
@@ -219,7 +222,12 @@ if __name__ == "__main__":
 
     # read and populate stack outputs from cloud
     try:
-        session = boto3.Session(profile_name=args.profile, region_name=region)
+        if args.profile:
+            # Credentials from AWS CLI profile
+            session = boto3.Session(profile_name=args.profile, region_name=region)
+        else:
+            # Credentials from system environment (--use-envars)
+            session = boto3.Session(region_name=region)
         cloudformation = session.resource("cloudformation")
         stack = cloudformation.Stack(stackname)
         stack.load()

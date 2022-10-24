@@ -69,10 +69,10 @@ python3 config_docker.py --clean
 python3 config_docker.py --use-envars
 docker-compose up -d
 
-# wait until greengrass.log stablizes (fully deployed)
-# wait_logfile $SCRIPT_DIR/../v2/base/docker/volues/gg_root/logs/greengrass.log 5m && \
-# echo -e "Received empty jobs in notification . {ThingName=gg-accel-base-greengrass-core"
-exit 0
+# wait until greengrass.log stablizes (fully deployed and helloworld has exited)
+wait_logfile $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/ggAccel.example.HelloWorld.log "600"
+wait_str $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/ggAccel.example.HelloWorld.log "exitCode=0, serviceName=ggAccel.example.HelloWorld" "120"
+
 
 
 
@@ -92,7 +92,7 @@ exit 0
 
 # docker-compose stop base
 cd $SCRIPT_DIR/../v2/base/docker
-docker-compose stop
+docker-compose down
 python3 config_docker.py --clean
 
 

@@ -73,9 +73,6 @@ docker-compose up -d
 wait_logfile $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/ggAccel.example.HelloWorld.log "600"
 wait_str $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/ggAccel.example.HelloWorld.log "exitCode=0, serviceName=ggAccel.example.HelloWorld" "120"
 
-
-
-
 # Test `base` parts (helloworld output)
 
 # Build and deploy os_cmd

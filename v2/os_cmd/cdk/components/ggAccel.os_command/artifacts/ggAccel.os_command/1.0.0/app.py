@@ -28,7 +28,7 @@ Response message structure (JSON):
     "response": "total 17688\n-rw-r--r--   1 ggc_user  staff     8939 Apr 30 16:37 README.md\n"
 }
 - If response is greater than 128KiB, exit_code will be set to 255 and "payload too long" response.
-- Malformed request with set exit_code  to 255 and "malformed request/missing transaction id/etc" response.
+- Malformed request will set exit_code to 255 and "malformed request/missing transaction id/etc" response.
 
 """
 
@@ -45,7 +45,7 @@ from greengrassipcsdk import iotcore
 
 TIMEOUT = 10
 RESPONSE_FORMAT = "json"
-MSG_INVALID_JSON = "Request message was not a valid JSON obect"
+MSG_INVALID_JSON = "Request message was not a valid JSON object"
 MSG_MISSING_ATTRIBUTE = "The attributes 'txid' and 'command' missing from request"
 MSG_TIMEOUT = f"Command timed out, limit of {TIMEOUT} seconds"
 
@@ -68,8 +68,6 @@ args = parser.parse_args()
 
 
 # Main process to receive and deliver messages to event handlers
-
-
 def handler(topic, message: json) -> None:
     """Main function to receive and process commands"""
 

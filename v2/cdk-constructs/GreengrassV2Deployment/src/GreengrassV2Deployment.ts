@@ -55,11 +55,20 @@ export interface GreengrassV2DeploymentProps {
   /**
    * Optional deployment polices for failure handling, component update, and
    * validity of the policy
-   * TODO - define interface and logic
    *
    * @default - None
    */
-  readonly deploymentPolicies?: object
+  // readonly deploymentPolicies?: object
+  readonly deploymentPolicies?: {
+    failureHandlingPolicy?: "ROLLBACK" | "DO_NOTHING"
+    componentUpdatePolicy?: {
+      timeoutInSeconds: number
+      action: "NOTIFY_COMPONENTS" | "SKIP_NOTIFY_COMPONENTS"
+    }
+    configurationValidationPolicy?: {
+      timeoutInSeconds: number
+    }
+  }
   /**
    * Optional tags to add to deployment
    * TODO - logic and method to add tags

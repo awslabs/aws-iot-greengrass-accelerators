@@ -20,14 +20,35 @@ def get_aws_client(name):
     )
 
 
-def create_deployment(target_arn: str, deployment_name: str, components: object):
+def create_deployment(
+    target_arn: str,
+    deployment_name: str,
+    components: object,
+    deployment_policies: object,
+):
+    """Creates a Greengrass deployment
+
+    :param target_arn: Arn of the target IoT thing or thing group
+    :type target_arn: str
+    :param deployment_name: The name of the deployment
+    :type deployment_name: str
+    :param components: The components to deploy. This is a dictionary, where each key is the name of a component, and each key's value is the version and configuration to deploy for that component.
+    :type components: object
+    :param deployment_policies: The deployment policies for the deployment. These policies define how the deployment updates components and handles failure.
+    :type deployment_policies: object
+    :return: response
+    :rtype: dict
+    """
     c_greengrassv2 = get_aws_client("greengrassv2")
     result = {}
 
     # Create deployment
     try:
         response = c_greengrassv2.create_deployment(
-            targetArn=target_arn, deploymentName=deployment_name, components=components
+            targetArn=target_arn,
+            deploymentName=deployment_name,
+            components=components,
+            deploymentPolicies=deployment_policies,
         )
         result["deploymentId"] = response["deploymentId"]
         result["iotJobId"] = response["iotJobId"]
@@ -76,7 +97,7 @@ def handler(event, context):
                     deployment_name=props["DeploymentName"],
                     components=props["Components"],
                     # iot_job_execution=props["IotJobExecution"],
-                    # deployment_policies=props["DeploymentPolicies"],
+                    deployment_policies=props["DeploymentPolicies"],
                     # tags=props["Tags"]
                 )
                 # Populate Pascal

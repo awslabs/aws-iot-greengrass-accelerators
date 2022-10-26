@@ -69,21 +69,45 @@ python3 config_docker.py --clean
 python3 config_docker.py --use-envars
 docker-compose up -d
 
-# wait until greengrass.log stablizes (fully deployed and helloworld has exited)
+# Wait until greengrass.log stablizes (fully deployed and helloworld has exited)
+# Then verify `base` component (helloworld output)
 wait_logfile $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/ggAccel.example.HelloWorld.log "600"
-wait_str $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/ggAccel.example.HelloWorld.log "exitCode=0, serviceName=ggAccel.example.HelloWorld" "120"
-
-# Test `base` parts (helloworld output)
+wait_str $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/ggAccel.example.HelloWorld.log "exitCode=0, serviceName=ggAccel.example.HelloWorld" "180"
 
 # Build and deploy os_cmd
+cd $SCRIPT_DIR/../v2/os_cmd/cdk
+npm install
+npm run build
+cdk deploy --context baseStack="gg-accel-base" --require-approval "never" --ci
+# wait until os_cmd log file has valid output
+LOG_FILE="ggAccel.os_command.log"
+wait_logfile $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/$LOG_FILE "600"
+wait_str $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/$LOG_FILE "/greengrass/v2/ipc.socket:0> connected." "180"
 
-# wait until os_cmd log file has valid output (or timeout after XXX minutes)
+
+exit 0
 
 # cdk destory os_cmd
+cd $SCRIPT_DIR
+cd ../v2/os_cmd/cdk
+cdk destroy --context baseStack="gg-accel-base" --force --ci
 
 # Build and deploy etl_simple
+cd $SCRIPT_DIR/../v2/etl_simple/cdk
+npm install
+npm run build
+cdk deploy --context baseStack="gg-accel-base" --require-approval "never" --ci
+# wait until os_cmd log file has valid output
 
-# wait until etl-simple log file has valid output (or timeout after XXX minutes)
+exit 0
+
+# wait until etl_simple log file has valid output
+# LOG_FILE="ggAccel.os_command.log"
+# wait_logfile $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/$LOG_FILE "600"
+# wait_str $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/$LOG_FILE "/greengrass/v2/ipc.socket:0> connected." "180"
+
+
+
 
 # cdk destroy etl_simple
 

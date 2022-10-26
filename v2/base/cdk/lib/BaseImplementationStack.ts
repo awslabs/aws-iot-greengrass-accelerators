@@ -162,6 +162,10 @@ export class BaseImplementationStack extends cdk.Stack {
           }
         }
       }
+      // Optionally deployment policies can be added to the deployment
+      // deploymentPolicies: {
+      //   failureHandlingPolicy: "DO_NOTHING"
+      // }
     })
     // Add core public components
     greengrassDeployment.addComponent({

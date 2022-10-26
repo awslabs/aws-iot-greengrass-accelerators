@@ -31,7 +31,7 @@ Manifests:
       os: linux
     Lifecycle:
       Install: |-
-        python3 -m pip install --user  -r {artifacts:decompressedPath}/ggAccel.os_command/requirements.txt
+        python3 -m pip install -r {artifacts:decompressedPath}/ggAccel.os_command/requirements.txt -t .
       Run:
         Script: |-
           echo "Starting command processor"

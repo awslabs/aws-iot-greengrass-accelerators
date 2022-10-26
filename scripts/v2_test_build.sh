@@ -84,9 +84,6 @@ LOG_FILE="ggAccel.os_command.log"
 wait_logfile $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/$LOG_FILE "600"
 wait_str $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/$LOG_FILE "/greengrass/v2/ipc.socket:0> connected." "180"
 
-
-exit 0
-
 # cdk destory os_cmd
 cd $SCRIPT_DIR
 cd ../v2/os_cmd/cdk
@@ -97,19 +94,15 @@ cd $SCRIPT_DIR/../v2/etl_simple/cdk
 npm install
 npm run build
 cdk deploy --context baseStack="gg-accel-base" --require-approval "never" --ci
-# wait until os_cmd log file has valid output
-
-exit 0
 
 # wait until etl_simple log file has valid output
-# LOG_FILE="ggAccel.os_command.log"
-# wait_logfile $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/$LOG_FILE "600"
-# wait_str $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/$LOG_FILE "/greengrass/v2/ipc.socket:0> connected." "180"
-
-
-
-
-# cdk destroy etl_simple
+LOG_FILE="ggAccel.etl_simple.load.log"
+wait_logfile $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/$LOG_FILE "600"
+wait_str $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/$LOG_FILE "serviceName=ggAccel.etl_simple.load, currentState=RUNNING" "180"
+# cdk destory etl_simple
+cd $SCRIPT_DIR
+cd ../v2/etl_simple/cdk
+cdk destroy --context baseStack="gg-accel-base" --force --ci
 
 # docker-compose stop base
 cd $SCRIPT_DIR/../v2/base/docker

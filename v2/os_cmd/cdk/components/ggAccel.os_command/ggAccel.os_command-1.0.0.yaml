@@ -31,11 +31,12 @@ Manifests:
       os: linux
     Lifecycle:
       Install: |-
-        python3 -m pip install -r {artifacts:decompressedPath}/ggAccel.os_command/requirements.txt -t .
+        python3.8 -m pip install -r {artifacts:decompressedPath}/ggAccel.os_command/requirements.txt -t .
       Run:
         Script: |-
           echo "Starting command processor"
-          python3 -u {artifacts:decompressedPath}/ggAccel.os_command/app.py --request-topic {iot:thingName}/{configuration:/request_topic} --response-topic {iot:thingName}/{configuration:/response_topic}
+          export PYTHONPATH=.
+          python3.8 -u {artifacts:decompressedPath}/ggAccel.os_command/app.py --request-topic {iot:thingName}/{configuration:/request_topic} --response-topic {iot:thingName}/{configuration:/response_topic}
     Artifacts:
       # Artifact sources will be compressed as a zip file and named as ComponentName.zip in an S3 bucket with
       # the prefix/name of ComponentName/ComponentVersion/ComponentName.zip to match the style used by AWS

@@ -12,12 +12,8 @@
         "aws.greengrass.ipc.pubsub": {
           "ggAccel.etl_simple.extract:pubsub:1": {
             "policyDescription": "Allows access to publish to all local topics.",
-            "operations": [
-              "aws.greengrass#PublishToTopic"
-            ],
-            "resources": [
-              "*"
-            ]
+            "operations": ["aws.greengrass#PublishToTopic"],
+            "resources": ["*"]
           }
         }
       }
@@ -29,16 +25,18 @@
         "os": "linux"
       },
       "Lifecycle": {
-        "Setenv" : {
-          "FILE_PATH" : "{artifacts:decompressedPath}/ggAccel.etl_simple.extract"
+        "Setenv": {
+          "FILE_PATH": "{artifacts:decompressedPath}/ggAccel.etl_simple.extract"
         },
-        "Install": "pip3 install -r {artifacts:decompressedPath}/ggAccel.etl_simple.extract/requirements.txt",
-        "Run": "python3 -u {artifacts:decompressedPath}/ggAccel.etl_simple.extract/extract.py --publish-topic '{iot:thingName}/{configuration:/topic_extr_pub}'\n"
+        "Install": "python3.8 -m pip install -r {artifacts:decompressedPath}/ggAccel.etl_simple.extract/requirements.txt -t .\n",
+        "Run": "export PYTHONPATH=.\npython3.8 -u {artifacts:decompressedPath}/ggAccel.etl_simple.extract/extract.py --publish-topic '{iot:thingName}/{configuration:/topic_extr_pub}'\n"
       },
-      "Artifacts": [{
-        "URI": "s3://COMPONENT_BUCKET/COMPONENT_NAME/COMPONENT_VERSION/ggAccel.etl_simple.extract.zip",
-        "Unarchive": "ZIP"
-      }]
+      "Artifacts": [
+        {
+          "URI": "s3://COMPONENT_BUCKET/COMPONENT_NAME/COMPONENT_VERSION/ggAccel.etl_simple.extract.zip",
+          "Unarchive": "ZIP"
+        }
+      ]
     }
   ],
   "Lifecycle": {}

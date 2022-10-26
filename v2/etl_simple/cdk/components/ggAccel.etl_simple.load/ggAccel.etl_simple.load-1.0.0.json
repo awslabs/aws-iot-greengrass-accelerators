@@ -13,23 +13,15 @@
         "aws.greengrass.ipc.pubsub": {
           "ggAccel.etl_simple.load:pubsub:1": {
             "policyDescription": "Allows access to subscribe to all local topics and publish to the Cloud.",
-            "operations": [
-              "aws.greengrass#SubscribeToTopic"
-            ],
-            "resources": [
-              "*"
-            ]
+            "operations": ["aws.greengrass#SubscribeToTopic"],
+            "resources": ["*"]
           }
         },
         "aws.greengrass.ipc.mqttproxy": {
           "ggAccel.etl_simple.load:pubsub:mqttproxy:1": {
             "policyDescription": "Allows access to publish to all topics in the Cloud.",
-            "operations": [
-              "aws.greengrass#PublishToIoTCore"
-            ],
-            "resources": [
-              "*"
-            ]
+            "operations": ["aws.greengrass#PublishToIoTCore"],
+            "resources": ["*"]
           }
         }
       }
@@ -41,13 +33,15 @@
         "os": "linux"
       },
       "Lifecycle": {
-        "Install": "pip3 install -r {artifacts:decompressedPath}/ggAccel.etl_simple.load/requirements.txt",
-        "Run": "python3 -u {artifacts:decompressedPath}/ggAccel.etl_simple.load/load.py --request-topic '{iot:thingName}/{configuration:/topic_load_sub}' --publish-topic '{iot:thingName}/{configuration:/topic_load_pub}'\n"
+        "Install": "python3.8 -m pip install -r {artifacts:decompressedPath}/ggAccel.etl_simple.load/requirements.txt -t .",
+        "Run": "export PYTHONPATH=.\npython3.8 -u {artifacts:decompressedPath}/ggAccel.etl_simple.load/load.py --request-topic '{iot:thingName}/{configuration:/topic_load_sub}' --publish-topic '{iot:thingName}/{configuration:/topic_load_pub}'\n"
       },
-      "Artifacts": [{
-        "URI": "s3://COMPONENT_BUCKET/COMPONENT_NAME/COMPONENT_VERSION/ggAccel.etl_simple.load.zip",
-        "Unarchive": "ZIP"
-      }]
+      "Artifacts": [
+        {
+          "URI": "s3://COMPONENT_BUCKET/COMPONENT_NAME/COMPONENT_VERSION/ggAccel.etl_simple.load.zip",
+          "Unarchive": "ZIP"
+        }
+      ]
     }
   ],
   "Lifecycle": {}

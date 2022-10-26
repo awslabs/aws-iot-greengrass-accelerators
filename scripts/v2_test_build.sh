@@ -85,8 +85,7 @@ wait_logfile $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/$LOG_FILE "600"
 wait_str $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/$LOG_FILE "/greengrass/v2/ipc.socket:0> connected." "180"
 
 # cdk destory os_cmd
-cd $SCRIPT_DIR
-cd ../v2/os_cmd/cdk
+cd $SCRIPT_DIR/../v2/os_cmd/cdk
 cdk destroy --context baseStack="gg-accel-base" --force --ci
 
 # Build and deploy etl_simple
@@ -100,8 +99,7 @@ LOG_FILE="ggAccel.etl_simple.load.log"
 wait_logfile $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/$LOG_FILE "600"
 wait_str $SCRIPT_DIR/../v2/base/docker/volumes/gg_root/logs/$LOG_FILE "serviceName=ggAccel.etl_simple.load, currentState=RUNNING" "180"
 # cdk destory etl_simple
-cd $SCRIPT_DIR
-cd ../v2/etl_simple/cdk
+cd $SCRIPT_DIR/../v2/etl_simple/cdk
 cdk destroy --context baseStack="gg-accel-base" --force --ci
 
 # docker-compose stop base

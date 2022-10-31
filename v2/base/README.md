@@ -4,16 +4,17 @@
 
 This is the base accelerator that deploys a single instance of an AWS IoT Greengrass core device and all supporting resources for operation, including:
 
-- Thing - Virtual representation of the Greengrass core device (along with certificate and private key)
-- Thing group - The thing is part of this group and the target for the Greengrass deployment
-- IoT Core role alias - Used by the credential provider to vend AWS credentials to Greengrass components
-- IAM role - Referred to by the role alias, contains the inline IAM policy of minimal permissions for the Greengrass core device
-- Greengrass component - An example component (recipe and artifacts) deployable to Greengrass cores. Part of the Greengrass deployment
-- Greengrass deployment - A list of public and private components targeting the members of the thing group
+- **Thing** - Virtual representation of the Greengrass core device (along with certificate and private key)
+- **Thing group** - The thing is part of this group and the target for the Greengrass deployment
+- **IoT Core role alias** - Used by the credential provider to vend AWS credentials to Greengrass components
+- **IAM role** - Referred to by the role alias, contains the inline IAM policy of minimal permissions for the Greengrass core device
+- **Greengrass component** - An example component (recipe and artifacts) deployable to Greengrass cores. Part of the Greengrass deployment
+- **Greengrass deployment** - A list of public and private components targeting the members of the thing group
 
-Once this is fully deployed, a fully functional AWS IoT Greengrass environment will be running via a Docker container with the components deployed and running on the Greengrass core device.
+Once this is fully deployed, a fully functional AWS IoT Greengrass environment will be running as a Docker container, with the components deployed and running on the Greengrass core device.
 
-All other version 2 accelerators leverage the resources created by this stack, then extend them by creating additional components, a thing group specific to the other accelerators, and a deployment that targets the new thing group.
+All other version 2 accelerators leverage the resources created by this base stack, then extend them by creating additional components, a thing group specific to the
+accelerator, and a deployment that targets the new thing group.
 
 ## Base Implementation Use Case
 
@@ -25,35 +26,34 @@ The following architecture shows the process flow for deploying the accelerator.
 
 ![Base Implementation Process Steps](docs/arch1.svg)
 
-1. CDK is used locally to create the CloudFormation stack and deploy to the cloud.
-1. The stack creates all the resources for the accelerator. Of note, the _Deployment_ targets the _Thing Group_ where the Greengrass core device resides.
+1. CDK command line interface (CLI) is used locally to create the CloudFormation stack and deploy to the cloud.
+1. The stack creates all the resources for the accelerator, where the _Deployment_ targets the _Thing Group_ that includes the Greengrass core device.
 1. Locally, the `config_docker.py` script is run to populate the _certs_ and _config_ directories from the local CDK stack and CloudFormation output in the cloud.
-1. When the local Docker container is started, it reads the configuration settings and then receives the _Deployment_ from the cloud.
+1. When the local Docker container is started, it reads the configuration settings, does an initial setup and configuration of Greengrass within the container, and then receives the _Deployment_ from the cloud. Once all components are downloaded, installed, and operational, the local Docker container continues to run.
 
 ## Folder Structure
 
 ```text
-base
-├── README.md             <--- this file
-├── cdk                   <--- builds and deploys CloudFormation to cloud
-│   ├── bin
-│   ├── cdk.json
-│   ├── components
-│   ├── jest.config.js
-│   ├── lib
-│   ├── package-lock.json
-│   ├── package.json
-│   ├── test
-│   └── tsconfig.json
-└── docker                <--- configures and runs Greengrass as a container
-    ├── config_docker.py
-    ├── templates
-    └── volumes
+├── base
+│   ├── README.md         <--- this file
+│   ├── cdk               <--- builds and deploys CloudFormation to cloud
+│   │   ├── bin
+│   │   ├── cdk.json
+│   │   ├── components
+│   │   ├── jest.config.js
+│   │   ├── lib
+│   │   ├── package-lock.json
+│   │   ├── package.json
+│   │   ├── test
+│   │   └── tsconfig.json
+│   ├── docker            <--- configures and runs Greengrass as a container
+│   └── docs
+├── cdk-constructs        <--- common CDK constructs used by all accelerators
 ```
 
-There are two main aspects to using the accelerator. First, from the `cdk/` directory is used to build and deploy a complete AWS IoT Greengrass stack in the cloud. Once complete, all resources exist in the cloud and are available for the next step which is configuring and running Greengrass locally.
+There are two main aspects to using the accelerator. First, from the `cdk/` directory, the CDK CLI is used to build and deploy a complete AWS IoT Greengrass stack in the cloud. Once complete, all resources exist in the cloud and are available for the next step which is configuring and running Greengrass locally.
 
-The second step is running commands from the `docker/` directory once the stack has been deployed. First, running `python config_docker.py` will populate the initial configuration file and download the credentials for AWS IoT Greengrass to run. Then, `docker compose up` will start the core device and complete the deployment of resources.
+Once the stack has been successfully deployed, the second step is running commands from the `docker/` directory . First, running `python config_docker.py`(or `python3`) will populate the initial configuration file and download the credentials for AWS IoT Greengrass to run. Then, `docker compose up` will start the core device and complete the deployment of resources.
 
 ## Deploying the Accelerator
 
@@ -61,7 +61,9 @@ The second step is running commands from the `docker/` directory once the stack 
 >
 > :exclamation: Although not recommended, this stack can be deployed more than once--but requires changing the stack name and modifying the resources deployed. Please see the _Frequently Asked Questions_ section for more details.
 
-This accelerator is designed to deploy as a combination of AWS CloudFormation stacks in the cloud and run AWS IoT Greengrass as a Docker container on your local system or through [AWS Cloud9](https://aws.amazon.com/cloud9/). This provides a consistent and quick approach to testing or investigating functionality without impacting or leaving behind unneeded artifacts locally, or in the cloud. To launch this accelerator as a Docker container, there are a few prerequisites and steps to complete. It is assumed you have basic experience with AWS IoT via the console and have familiarity with the command line interface (CLI).
+This accelerator is designed to deploy as a set of AWS CloudFormation resources as a parent stack in the cloud, and then run AWS IoT Greengrass as a Docker container on your local system or through [AWS Cloud9](https://aws.amazon.com/cloud9/). This provides a consistent approach to testing or investigating functionality without impacting or leaving behind unneeded artifacts locally, or in the cloud when the CloudFormation stack is deleted/destroyed. To launch this accelerator as a Docker container, there are a few prerequisites and steps to complete.
+
+It is assumed you have basic experience with AWS IoT via the console and have familiarity with the command line interface (CLI).
 
 ### Prerequisites
 
@@ -74,7 +76,7 @@ The following is a list of prerequisites to deploy the accelerator:
 
 There are two installation and deployment methods outlines below:
 
-- If you are familiar with Nodejs, Python and working with the command line on your local system, select the [Create and Launch the Accelerator Locally](#create-and-launch-the-accelerator-locally) method.
+- If you are familiar with Nodejs, Python, and working with the command line on your local system, select the [Create and Launch the Accelerator Locally](#create-and-launch-the-accelerator-locally) method.
 - For all others, use the [Step-by-Step: Create and Launch the Accelerator via AWS Cloud9](#step-by-step-create-and-launch-the-accelerator-via-aws-cloud9) method.
 
 ### Create and Launch the Accelerator Locally
@@ -90,7 +92,7 @@ This approach uses your local system for installation and running the accelerato
 1. Install and bootstrap the CDK:
 
    ```bash
-   npx install -g aws-cdk
+   npm install -g aws-cdk
    # replace PROFILE_NAME with your specific AWS CLI profile that has username and region defined
    export CDK_DEPLOY_ACCOUNT=$(aws sts get-caller-identity --profile PROFILE_NAME --query Account --output text)
    # Set REGION to where the bootstrap resources will be deployed
@@ -112,7 +114,7 @@ This approach uses your local system for installation and running the accelerato
    cdk --profile PROFILE_NAME deploy
    ```
 
-   The result of a successful deployment will look like this:
+   The result of a successful deployment will look similar to this:
 
    ```bash
     ✅  gg-accel-base
@@ -135,7 +137,7 @@ This approach uses your local system for installation and running the accelerato
    arn:aws:cloudformation:us-west-2:123456789012:stack/gg-accel-base/c358ee30-db73-11ec-b8f0-06957ff291a7
    ```
 
-1. At this point the CloudFormation stack is deployed. Next, change to the `docker/` directory and run the configuration script `python3 config_docker.py`, which will:
+1. At this point the CloudFormation stack is successfully deployed. Next, change to the `docker/` directory and run the configuration script `python3 config_docker.py` (or `python3`), which will:
 
    1. Read the local CDK output to determine the CloudFormation stack name
    1. From the CloudFormation stack output, read the values to:
@@ -148,14 +150,15 @@ This approach uses your local system for installation and running the accelerato
    python3 docker_config.py --profile PROFILE_NAME
    ```
 
-   > **NOTE:** The first time `python3 config_docker.py` is run, the script will download the Greengrass nucleus assets and create a Dockerfile to build the Greengrass image as the Greengrass images are no longer published to public repositories. It will take a longer time to run depending upon network speed and local system performance.
+   > **NOTE:** The first time `python3 config_docker.py` is run, the script will download the Greengrass nucleus assets and create a Dockerfile to build the Greengrass image locally. The Greengrass images are no longer published to public repositories. It will take additional time to run depending upon network speed and local system performance.
 
-1. Next, start the Greengrass core device. If you intend to run Greengrass on a physical device, copy the contents of the `volumes/certs` and the `volumes/config` directories to your physical device and provision and install Greengrass per the documentation.
+1. Next, start the Greengrass core device. If you intend to run Greengrass on a physical device, copy the contents of the `volumes/certs` and the `volumes/config` directories to your physical device and provision and install Greengrass per the public documentation.
 
-   > **NOTE:** The first time `docker compose up` is run, it will take longer to startup as Docker will need to download the AWS IoT Greengrass image. Subsequent runs will only take a few additional seconds.
+   > **NOTE:** The first time `docker compose up` is run, it will take longer to startup as Docker will need to download the AWS IoT Greengrass image, components, and then complete the installation and configuration. Subsequent runs will only take a few seconds to complete.
 
    ```bash
-   docker-compose up
+   # Depending upon docker version, this may also be docker-compose
+   docker compose up
    ```
 
 At this point, the CloudFormation stack has been deployed and the AWS IoT Greengrass container is running. Continue to the [Investigating the Accelerator](#investigating-the-accelerator) section for your accelerator for additional details.
@@ -172,9 +175,9 @@ The `volumes/gg_root` will contain the various Greengrass core device files. Of 
 
 > :bulb: All steps below use a Cloud9 IDE in the same account and region where the accelerator will be run.
 
-Prior to launching the accelerator container locally, the AWS CDK is used to generate a CloudFormation template and deploy it. From the AWS Cloud9 console, follow these steps to create and launch the stack via CDK.
+Prior to launching the accelerator as a container on AWS Cloud9, the AWS CDK is used to generate a CloudFormation template and deploy it. From the Cloud9 console, follow these steps to create and launch the stack via CDK.
 
-1. Create a new Cloud9 IDE and make sure that **Amazon Linux 2** and **t3.small** are selected.
+1. Create a new Cloud9 IDE and make sure that **Amazon Linux 2** and **t3.medium** or larger is selected. At least 4GiB of RAM is needed for CDK to complete installation and building of the assets for deployment.
 
    :exclamation:The following steps **will not** work if Ubuntu is selected.
 
@@ -252,7 +255,7 @@ Prior to launching the accelerator container locally, the AWS CDK is used to gen
 
 As a base accelerator, the main interaction with this accelerator is to ensure it is running correctly, understand the directory structure, and access various log files. You can review the output of the _Hello World_ example component by looking at the contents of the log file in `docker/volumes/gg_root/logs/ggAccel.example.HelloWorld.log`.
 
-Other accelerators use this stack's resources to build additional Greengrass components and deployments and a thing group. When the Docker container is restarted the Greengrass core device will merge all deployments into a single one.
+Other accelerators use this stack's resources to build additional Greengrass components, deployments, and a thing group. When other accelerators are deployed, the Greengrass core device will merge all deployments into a single one.
 
 ### Accelerator Cleanup
 

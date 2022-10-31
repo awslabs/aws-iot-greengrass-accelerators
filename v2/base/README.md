@@ -1,3 +1,5 @@
+<!-- markdownlint-disable MD033 -->
+
 # AWS IoT Greengrass V2 Base Implementation
 
 This is the base accelerator that deploys a single instance of an AWS IoT Greengrass core device and all supporting resources for operation, including:
@@ -13,11 +15,11 @@ Once this is fully deployed, a fully functional AWS IoT Greengrass environment w
 
 All other version 2 accelerators leverage the resources created by this stack, then extend them by creating additional components, a thing group specific to the other accelerators, and a deployment that targets the new thing group.
 
-# Base Implementation Use Case
+## Base Implementation Use Case
 
 This accelerator demonstrates the ability to automate the creation and deployment of resources for a complete Greengrass implementation. It is a prerequisite for all other version 2 accelerators, utilizing the same Greengrass core device.
 
-# Design Pattern
+## Design Pattern
 
 The following architecture shows the process flow for deploying the accelerator.
 
@@ -28,7 +30,7 @@ The following architecture shows the process flow for deploying the accelerator.
 1. Locally, the `config_docker.py` script is run to populate the _certs_ and _config_ directories from the local CDK stack and CloudFormation output in the cloud.
 1. When the local Docker container is started, it reads the configuration settings and then receives the _Deployment_ from the cloud.
 
-# Folder Structure
+## Folder Structure
 
 ```text
 base
@@ -53,7 +55,7 @@ There are two main aspects to using the accelerator. First, from the `cdk/` dire
 
 The second step is running commands from the `docker/` directory once the stack has been deployed. First, running `python config_docker.py` will populate the initial configuration file and download the credentials for AWS IoT Greengrass to run. Then, `docker compose up` will start the core device and complete the deployment of resources.
 
-# Deploying the Accelerator
+## Deploying the Accelerator
 
 > **NOTE:** All accelerators use the same structure and steps to deploy, even if the actual output of the steps differ slightly.
 >
@@ -61,7 +63,7 @@ The second step is running commands from the `docker/` directory once the stack 
 
 This accelerator is designed to deploy as a combination of AWS CloudFormation stacks in the cloud and run AWS IoT Greengrass as a Docker container on your local system or through [AWS Cloud9](https://aws.amazon.com/cloud9/). This provides a consistent and quick approach to testing or investigating functionality without impacting or leaving behind unneeded artifacts locally, or in the cloud. To launch this accelerator as a Docker container, there are a few prerequisites and steps to complete. It is assumed you have basic experience with AWS IoT via the console and have familiarity with the command line interface (CLI).
 
-## Prerequisites
+### Prerequisites
 
 The following is a list of prerequisites to deploy the accelerator:
 
@@ -75,7 +77,7 @@ There are two installation and deployment methods outlines below:
 - If you are familiar with Nodejs, Python and working with the command line on your local system, select the [Create and Launch the Accelerator Locally](#create-and-launch-the-accelerator-locally) method.
 - For all others, use the [Step-by-Step: Create and Launch the Accelerator via AWS Cloud9](#step-by-step-create-and-launch-the-accelerator-via-aws-cloud9) method.
 
-## Create and Launch the Accelerator Locally
+### Create and Launch the Accelerator Locally
 
 This approach uses your local system for installation and running the accelerator. It requires certain pre-requisites to be installed. If you like to run from a consistent environment, see the next section for deploying using AWS Cloud9.
 
@@ -172,87 +174,87 @@ The `volumes/gg_root` will contain the various Greengrass core device files. Of 
 
 Prior to launching the accelerator container locally, the AWS CDK is used to generate a CloudFormation template and deploy it. From the AWS Cloud9 console, follow these steps to create and launch the stack via CDK.
 
-1.  Create a new Cloud9 IDE and make sure that **Amazon Linux 2** and **t3.small** are selected.
+1. Create a new Cloud9 IDE and make sure that **Amazon Linux 2** and **t3.small** are selected.
 
-    :exclamation:The following steps **will not** work if Ubuntu is selected.
+   :exclamation:The following steps **will not** work if Ubuntu is selected.
 
-1.  Once the Cloud9 environment starts, follow [these steps](https://docs.aws.amazon.com/cloud9/latest/user-guide/move-environment.html#move-environment-resize) to resize the disk. Create the `resize.sh` file and run `bash resize.sh 40` to extend the disk to 40GiB.
+1. Once the Cloud9 environment starts, follow [these steps](https://docs.aws.amazon.com/cloud9/latest/user-guide/move-environment.html#move-environment-resize) to resize the disk. Create the `resize.sh` file and run `bash resize.sh 40` to extend the disk to 40GiB.
 
-1.  _Pre-requisites_ (only needs be run once and the Cloud9 environment will reboot) - From the Cloud9 IDE, open a new _Window->New Terminal_ window and run these commands:
+1. _Pre-requisites_ (only needs be run once and the Cloud9 environment will reboot) - From the Cloud9 IDE, open a new _Window->New Terminal_ window and run these commands:
 
-    ```bash
-    # Cloud9 Commands - change as needed for local development environment
-    # Install pre-requisites, bootstrap CDK for use in account/region, and reboot
-    npm uninstall -g cdk
-    npm install -g aws-cdk@latest
-    npm install -g npm
-    sudo yum install iptables-services -y
-    # Bootstrap CDK for current AWS account and region where Cloud9 runs
-    ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
-    REGION=$(aws configure get region)
-    cdk bootstrap aws://$ACCOUNT/$REGION
-    sudo curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
-    sudo chmod +x /usr/local/bin/docker-compose
-    pip3 install --user boto3
-    # Enable soft/hard links
-    sudo cat <<EOF | sudo tee /etc/sysctl.d/98-cloud9-greengrass.conf
-    fs.protected_hardlinks = 1
-    fs.protected_symlinks = 1
-    EOF
-    # Complete, reboot environment
-    sudo reboot
-    ```
+   ```bash
+   # Cloud9 Commands - change as needed for local development environment
+   # Install pre-requisites, bootstrap CDK for use in account/region, and reboot
+   npm uninstall -g cdk
+   npm install -g aws-cdk@latest
+   npm install -g npm
+   sudo yum install iptables-services -y
+   # Bootstrap CDK for current AWS account and region where Cloud9 runs
+   ACCOUNT=$(aws sts get-caller-identity --query Account --output text)
+   REGION=$(aws configure get region)
+   cdk bootstrap aws://$ACCOUNT/$REGION
+   sudo curl -L "https://github.com/docker/compose/releases/download/1.25.3/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
+   sudo chmod +x /usr/local/bin/docker-compose
+   pip3 install --user boto3
+   # Enable soft/hard links
+   sudo cat <<EOF | sudo tee /etc/sysctl.d/98-cloud9-greengrass.conf
+   fs.protected_hardlinks = 1
+   fs.protected_symlinks = 1
+   EOF
+   # Complete, reboot environment
+   sudo reboot
+   ```
 
-1.  Build and deploy. Once Cloud9 has restarted, issue these commands. If the terminal window is unresponsive, open a new one.
+1. Build and deploy. Once Cloud9 has restarted, issue these commands. If the terminal window is unresponsive, open a new one.
 
-    > **NOTE:** The first time `cdk deploy` is run, it will take longer as there are Docker images required to build some of the resources. You will see _a lot_ of Docker-related messages in your terminal session as it downloads and builds the initial resources. Subsequent runs will only take a few additional seconds.
+   > **NOTE:** The first time `cdk deploy` is run, it will take longer as there are Docker images required to build some of the resources. You will see _a lot_ of Docker-related messages in your terminal session as it downloads and builds the initial resources. Subsequent runs will only take a few additional seconds.
 
-    Run each command separately to get an understanding
+   Run each command separately to get an understanding
 
-    ```bash
-    # After reboot open a new terminal window and issue these commands
-    # NOTE: If terminal window spins when restarted, close the terminal window and launch a new one
-    cd ~/environment
-    # Clone the repository
-    git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
-    # Change path to accelerator you wish to run. This accelerator, "base",
-    # is shown below
-    cd ~/environment/aws-iot-greengrass-accelerators/v2/base/cdk
+   ```bash
+   # After reboot open a new terminal window and issue these commands
+   # NOTE: If terminal window spins when restarted, close the terminal window and launch a new one
+   cd ~/environment
+   # Clone the repository
+   git clone https://github.com/awslabs/aws-iot-greengrass-accelerators.git
+   # Change path to accelerator you wish to run. This accelerator, "base",
+   # is shown below
+   cd ~/environment/aws-iot-greengrass-accelerators/v2/base/cdk
 
-    # Build and deploy the CDK (CloudFormation stack)
-    npm install
-    npm run build
-    cdk deploy
+   # Build and deploy the CDK (CloudFormation stack)
+   npm install
+   npm run build
+   cdk deploy
 
-    # Acknowledge the creation above, then change to docker and configure initial parameters
-    cd ../docker
-    python3 config_docker.py --profile default
+   # Acknowledge the creation above, then change to docker and configure initial parameters
+   cd ../docker
+   python3 config_docker.py --profile default
 
-    # Build and start the Greengrass docker container. First time will take longer to build and deploy resources
-    docker-compose up
-    ```
+   # Build and start the Greengrass docker container. First time will take longer to build and deploy resources
+   docker-compose up
+   ```
 
-1.  At this point, the CloudFormation stack has been deployed and the Greengrass container is running as a foreground process in the terminal. The CloudFormation stack will also trigger an initial deployment of all resources to the Greengrass Core, so the Lambda functions, Stream Manager, and docker containers are also running.
+1. At this point, the CloudFormation stack has been deployed and the Greengrass container is running as a foreground process in the terminal. The CloudFormation stack will also trigger an initial deployment of all resources to the Greengrass Core, so the Lambda functions, Stream Manager, and docker containers are also running.
 
-1.  :exclamation: The Docker containers run as the root process in Cloud9 (and other Linux environments). If you wish to look at log or deployment files locally, it is easiest to launch another terminal tab and set the user to root:
+1. :exclamation: The Docker containers run as the root process in Cloud9 (and other Linux environments). If you wish to look at log or deployment files locally, it is easiest to launch another terminal tab and set the user to root:
 
-    ```bash
-    sudo su -
-    cd /home/ec2-user/environment/aws-iot-greengrass-accelerators/v2/base/docker/volumes/gg_root/logs
-    # You can now cat|more|less|tail files from here
-    tail -F greengrass.log
-    ...
-    ```
+   ```bash
+   sudo su -
+   cd /home/ec2-user/environment/aws-iot-greengrass-accelerators/v2/base/docker/volumes/gg_root/logs
+   # You can now cat|more|less|tail files from here
+   tail -F greengrass.log
+   ...
+   ```
 
-    </details>
+   </details>
 
-## Investigating the Accelerator
+### Investigating the Accelerator
 
 As a base accelerator, the main interaction with this accelerator is to ensure it is running correctly, understand the directory structure, and access various log files. You can review the output of the _Hello World_ example component by looking at the contents of the log file in `docker/volumes/gg_root/logs/ggAccel.example.HelloWorld.log`.
 
 Other accelerators use this stack's resources to build additional Greengrass components and deployments and a thing group. When the Docker container is restarted the Greengrass core device will merge all deployments into a single one.
 
-## Accelerator Cleanup
+### Accelerator Cleanup
 
 To stop and completely remove this accelerator, follow these steps:
 
@@ -318,10 +320,15 @@ It is not recommended to deploy a second stack as-is without making changes firs
 1. By default, the AWS CloudFormation stack name of `gg-accel-base` is used. Deploy the copied stack with a unique stack name by setting the environment variable `STACK_NAME` to a new name to use for the stack.
 
    ```shell
-   $ STACK_NAME="gg-accel-base2" cdk deploy --profile PROFILE_NAME
+   $ STACK_NAME="gg-accel-base-unique" cdk deploy --profile PROFILE_NAME
+   >>> build steps <<<
+   (NOTE: There may be security-related changes not in this list. See https://github.com/aws/aws-cdk/issues/1299)
+
+   Do you wish to deploy these changes (y/n)? y
+   ...
    ```
 
-Once completed, the new stack will be available. To destroy the stack, pass in the same `STACK_NAME` value and run the command `STACK_NAME="gg-accel-base2" cdk destroy --profile PROFILE_NAME`
+Once completed, the new stack will be available. To destroy the stack, pass in the same `STACK_NAME` value and run the command `STACK_NAME="gg-accel-unique" cdk destroy --profile PROFILE_NAME`
 
 ## Implementation Notes
 

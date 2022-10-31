@@ -1,5 +1,5 @@
 {
-  "name": "GreengrassV2Component",
+  "name": "greengrass-v2-component",
   "version": "1.0.0",
   "main": "./dist/GreengrassV2Component.js",
   "scripts": {

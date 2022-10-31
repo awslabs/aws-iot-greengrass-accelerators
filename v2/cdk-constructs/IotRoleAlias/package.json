@@ -1,5 +1,5 @@
 {
-  "name": "IotRoleAlias",
+  "name": "iot-role-alias",
   "version": "1.0.0",
   "main": "./dist/IotRoleAlias.js",
   "scripts": {

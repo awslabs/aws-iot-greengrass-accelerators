@@ -1,5 +1,5 @@
 {
-  "name": "IotThingCertPolicy",
+  "name": "iot-thing-cert-policy",
   "version": "1.0.0",
   "main": "./dist/IotThingCertPolicy.js",
   "scripts": {

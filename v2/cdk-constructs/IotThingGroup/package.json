@@ -1,5 +1,5 @@
 {
-  "name": "IotThingGroup",
+  "name": "iot-thing-group",
   "version": "1.0.0",
   "main": "./dist/IotThingGroup.js",
   "scripts": {

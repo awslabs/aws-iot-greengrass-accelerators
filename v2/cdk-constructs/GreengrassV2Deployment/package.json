@@ -1,5 +1,5 @@
 {
-  "name": "GreengrassV2Deployment",
+  "name": "greengrass-v2-deployment",
   "version": "1.0.0",
   "main": "./dist/GreengrassV2Deployment.js",
   "scripts": {

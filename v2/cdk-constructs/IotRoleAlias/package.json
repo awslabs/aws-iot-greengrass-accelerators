@@ -1,14 +1,14 @@
 {
   "name": "IotRoleAlias",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "main": "./dist/IotRoleAlias.js",
   "scripts": {
     "build": "tsc"
   },
   "dependencies": {
-    "@types/node": "18.8.4",
-    "aws-cdk-lib": "2.46.0",
-    "constructs": "10.1.128",
+    "@types/node": "18.11.8",
+    "aws-cdk-lib": "2.49.0",
+    "constructs": "10.1.145",
     "path": "0.12.7"
   }
 }

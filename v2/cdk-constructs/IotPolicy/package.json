@@ -1,15 +1,15 @@
 {
   "name": "IotPolicy",
-  "version": "0.0.1",
+  "version": "1.0.0",
   "main": "./dist/IotPolicy.js",
   "scripts": {
     "build": "tsc"
   },
   "dependencies": {
-    "@aws-cdk/aws-lambda-python-alpha": "2.46.0-alpha.0",
-    "@types/node": "18.8.4",
-    "aws-cdk-lib": "2.46.0",
-    "constructs": "10.1.128",
+    "@aws-cdk/aws-lambda-python-alpha": "2.49.0-alpha.0",
+    "@types/node": "18.11.8",
+    "aws-cdk-lib": "2.49.0",
+    "constructs": "10.1.145",
     "lodash": "4.17.21",
     "path": "0.12.7"
   },

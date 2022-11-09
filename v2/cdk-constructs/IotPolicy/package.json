@@ -14,6 +14,6 @@
     "path": "0.12.7"
   },
   "devDependencies": {
-    "@types/lodash": "^4.14.186"
+    "@types/lodash": "4.14.186"
   }
 }

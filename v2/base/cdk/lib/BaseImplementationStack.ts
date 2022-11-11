@@ -3,19 +3,19 @@
 
 import * as path from "path"
 import * as seedrandom from "seedrandom"
-import { Construct } from 'constructs'
+import { Construct } from "constructs"
 import * as cdk from "aws-cdk-lib"
-import { aws_iam as iam} from "aws-cdk-lib"
+import { aws_iam as iam } from "aws-cdk-lib"
 import * as s3 from "aws-cdk-lib/aws-s3"
-import { IotThingCertPolicy } from "./IotThingCertPolicy/IotThingCertPolicy"
-import { IotRoleAlias } from "./IotRoleAlias/IotRoleAlias"
-import { IotThingGroup } from "./IotThingGroup/IotThingGroup"
-import { GreengrassV2Component } from "./GreengrassV2Component/GreengrassV2Component"
-import { GreengrassV2Deployment } from "./GreengrassV2Deployment/GreengrassV2Deployment"
+import { IotThingCertPolicy } from "@cdkConstructs/IotThingCertPolicy"
+import { IotRoleAlias } from "@cdkConstructs/IotRoleAlias"
+import { IotThingGroup } from "@cdkConstructs/IotThingGroup"
+import { GreengrassV2Component } from "@cdkConstructs/GreengrassV2Component"
+import { GreengrassV2Deployment } from "@cdkConstructs/GreengrassV2Deployment"
 import * as myConst from "./Constants"
 
 export class BaseImplementationStack extends cdk.Stack {
-  constructor(scope: Construct, id: string, props?:cdk.StackProps) {
+  constructor(scope: Construct, id: string, props?: cdk.StackProps) {
     super(scope, id, props)
 
     const stackName = cdk.Stack.of(this).stackName
@@ -162,19 +162,23 @@ export class BaseImplementationStack extends cdk.Stack {
           }
         }
       }
+      // Optionally deployment policies can be added to the deployment
+      // deploymentPolicies: {
+      //   failureHandlingPolicy: "DO_NOTHING"
+      // }
     })
     // Add core public components
     greengrassDeployment.addComponent({
       "aws.greengrass.Nucleus": {
-        componentVersion: "2.4.0"
+        componentVersion: "2.8.1"
       },
       "aws.greengrass.Cli": {
-        componentVersion: "2.4.0"
+        componentVersion: "2.8.1"
       }
     })
     greengrassDeployment.addComponent({
       "aws.greengrass.LocalDebugConsole": {
-        componentVersion: "2.2.2",
+        componentVersion: "2.2.6",
         configurationUpdate: {
           merge: JSON.stringify({
             httpsEnabled: "false"

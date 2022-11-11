@@ -143,6 +143,7 @@ yarn.lock
 cdk.context.json
 .cdk.staging/
 cdk.out/
+dist/
 *.tabl.json
 
 # Development files

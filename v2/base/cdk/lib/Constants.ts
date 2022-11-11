@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
-import {aws_lambda as lambda} from "aws-cdk-lib"
+import { aws_lambda as lambda } from "aws-cdk-lib"
 
 export const PYTHON_LAMBDA_RUNTIME: lambda.Runtime = lambda.Runtime.PYTHON_3_8
 
@@ -45,7 +45,12 @@ export const greengrassCoreMinimalIoTPolicy = `{
     },
     {
       "Effect": "Allow",
-      "Action": ["greengrass:GetComponentVersionArtifact", "greengrass:ResolveComponentCandidates", "greengrass:GetDeploymentConfiguration"],
+      "Action": [
+        "greengrass:GetComponentVersionArtifact",
+        "greengrass:ResolveComponentCandidates",
+        "greengrass:GetDeploymentConfiguration",
+        "greengrass:ListThingGroupsForCoreDevice"
+      ],
       "Resource": "*"
     }
   ]

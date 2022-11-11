@@ -18,6 +18,9 @@ parser = argparse.ArgumentParser()
 group = parser.add_mutually_exclusive_group(required=True)
 group.add_argument("--profile", help="Your AWS CLI profile name")
 group.add_argument(
+    "--use-envars", action="store_true", help="Use AWS CLI environment variables"
+)
+group.add_argument(
     "--clean",
     const=True,
     type=bool,
@@ -35,6 +38,10 @@ FILE_PATH_WARNING = """
 *** the value below, or the Greengrass service will not start.        ***
 ***                                                                   ***
 *************************************************************************
+"""
+
+GITIGNORE_CONTENT = """*
+!.gitignore
 """
 
 
@@ -76,7 +83,13 @@ def verify_cwd():
 
 
 def clean_config(dirs_to_clean: list):
-    """remove all docker volume files, restore to unconfigured state"""
+    """remove all docker volume files, restore to unconfigured state, which
+    is empty directories with a `.gitignore` file to not include any content
+    when committing code changes
+
+    :param dirs_to_clean: directories to clean out
+    :type dirs_to_clean: list
+    """
 
     print("Cleaning Docker volumes...")
     for dir in dirs_to_clean:
@@ -85,6 +98,8 @@ def clean_config(dirs_to_clean: list):
             print(f"Deleting files in {path}")
             shutil.rmtree(path)
         os.mkdir(path)
+        with open(path / ".gitignore", "w") as f:
+            f.write(GITIGNORE_CONTENT)
         print(f"Directory '{dir} cleaned")
 
 
@@ -171,7 +186,7 @@ def replace_variables(file: str, map: dict):
     with open(Path(file), "r") as f:
         template = f.read()
     for k in map:
-        template = re.sub(fr"\${{{k}}}", map[k], template)
+        template = re.sub(rf"\${{{k}}}", map[k], template)
     return template
 
 
@@ -207,7 +222,12 @@ if __name__ == "__main__":
 
     # read and populate stack outputs from cloud
     try:
-        session = boto3.Session(profile_name=args.profile, region_name=region)
+        if args.profile:
+            # Credentials from AWS CLI profile
+            session = boto3.Session(profile_name=args.profile, region_name=region)
+        else:
+            # Credentials from system environment (--use-envars)
+            session = boto3.Session(region_name=region)
         cloudformation = session.resource("cloudformation")
         stack = cloudformation.Stack(stackname)
         stack.load()
@@ -262,8 +282,3 @@ if __name__ == "__main__":
         f.write(config_template)
     with open(Path("./docker-compose.yml"), "w") as f:
         f.write(docker_compose_template)
-
-# with both valid, write:
-#  cert, key, rootca to volumes/certs/
-#  config to volumes/config/
-#  docker-compose.yml to ./

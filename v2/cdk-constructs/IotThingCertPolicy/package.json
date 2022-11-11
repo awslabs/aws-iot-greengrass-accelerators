@@ -1,0 +1,19 @@
+{
+  "name": "iot-thing-cert-policy",
+  "version": "1.0.0",
+  "main": "./dist/IotThingCertPolicy.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "dependencies": {
+    "@aws-cdk/aws-lambda-python-alpha": "2.49.0-alpha.0",
+    "@types/node": "18.11.8",
+    "aws-cdk-lib": "2.49.0",
+    "constructs": "10.1.145",
+    "lodash": "4.17.21",
+    "path": "0.12.7"
+  },
+  "devDependencies": {
+    "@types/lodash": "4.14.186"
+  }
+}

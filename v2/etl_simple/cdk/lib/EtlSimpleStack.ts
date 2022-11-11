@@ -5,14 +5,14 @@
 
 import * as path from "path"
 import * as seedrandom from "seedrandom"
-import { Construct } from 'constructs'
+import { Construct } from "constructs"
 import * as cdk from "aws-cdk-lib"
-import {aws_iam as iam} from "aws-cdk-lib"
-import {aws_s3 as s3} from "aws-cdk-lib"
-import { IotPolicy } from "./IotPolicy/IotPolicy"
-import { IotThingGroup } from "../../../base/cdk/lib/IotThingGroup/IotThingGroup"
-import { GreengrassV2Component } from "../../../base/cdk/lib/GreengrassV2Component/GreengrassV2Component"
-import { GreengrassV2Deployment } from "../../../base/cdk/lib/GreengrassV2Deployment/GreengrassV2Deployment"
+import { aws_iam as iam } from "aws-cdk-lib"
+import { aws_s3 as s3 } from "aws-cdk-lib"
+import { IotPolicy } from "@cdkConstructs/IotPolicy"
+import { IotThingGroup } from "@cdkConstructs/IotThingGroup"
+import { GreengrassV2Component } from "@cdkConstructs/GreengrassV2Component"
+import { GreengrassV2Deployment } from "@cdkConstructs/GreengrassV2Deployment"
 
 import * as myConst from "./Constants"
 
@@ -107,10 +107,24 @@ export class EtlSimpleStack extends cdk.Stack {
       bucket: componentBucket,
       artifactZipPrefix: `${etlSimpleExtractComponentName}/${etlSimpleExtractComponentVersion}/`,
       targetArtifactKeyName: `${etlSimpleExtractComponentName}.zip`,
-      sourceArtifactPath: path.join(__dirname, "..", "components", etlSimpleExtractComponentName, "artifacts", etlSimpleExtractComponentName, etlSimpleExtractComponentVersion),
-      sourceRecipeFile: path.join(__dirname, "..", "components", etlSimpleExtractComponentName, `${etlSimpleExtractComponentName}-${etlSimpleExtractComponentVersion}.json`)
+      sourceArtifactPath: path.join(
+        __dirname,
+        "..",
+        "components",
+        etlSimpleExtractComponentName,
+        "artifacts",
+        etlSimpleExtractComponentName,
+        etlSimpleExtractComponentVersion
+      ),
+      sourceRecipeFile: path.join(
+        __dirname,
+        "..",
+        "components",
+        etlSimpleExtractComponentName,
+        `${etlSimpleExtractComponentName}-${etlSimpleExtractComponentVersion}.json`
+      )
     })
-    
+
     const etlSimpleTransformComponentName = "ggAccel.etl_simple.transform"
     const etlSimpleTransformComponentVersion = "1.0.0"
     const etlSimpleTransformComponent = new GreengrassV2Component(this, "EtlSimpleTransformComponent", {
@@ -119,10 +133,24 @@ export class EtlSimpleStack extends cdk.Stack {
       bucket: componentBucket,
       artifactZipPrefix: `${etlSimpleTransformComponentName}/${etlSimpleTransformComponentVersion}/`,
       targetArtifactKeyName: `${etlSimpleTransformComponentName}.zip`,
-      sourceArtifactPath: path.join(__dirname, "..", "components", etlSimpleTransformComponentName, "artifacts", etlSimpleTransformComponentName, etlSimpleTransformComponentVersion),
-      sourceRecipeFile: path.join(__dirname, "..", "components", etlSimpleTransformComponentName, `${etlSimpleTransformComponentName}-${etlSimpleTransformComponentVersion}.json`)
+      sourceArtifactPath: path.join(
+        __dirname,
+        "..",
+        "components",
+        etlSimpleTransformComponentName,
+        "artifacts",
+        etlSimpleTransformComponentName,
+        etlSimpleTransformComponentVersion
+      ),
+      sourceRecipeFile: path.join(
+        __dirname,
+        "..",
+        "components",
+        etlSimpleTransformComponentName,
+        `${etlSimpleTransformComponentName}-${etlSimpleTransformComponentVersion}.json`
+      )
     })
-    
+
     const etlSimpleLoadComponentName = "ggAccel.etl_simple.load"
     const etlSimpleLoadComponentVersion = "1.0.0"
     const etlSimpleLoadComponent = new GreengrassV2Component(this, "EtlSimpleLoadComponent", {
@@ -131,8 +159,22 @@ export class EtlSimpleStack extends cdk.Stack {
       bucket: componentBucket,
       artifactZipPrefix: `${etlSimpleLoadComponentName}/${etlSimpleLoadComponentVersion}/`,
       targetArtifactKeyName: `${etlSimpleLoadComponentName}.zip`,
-      sourceArtifactPath: path.join(__dirname, "..", "components", etlSimpleLoadComponentName, "artifacts", etlSimpleLoadComponentName, etlSimpleLoadComponentVersion),
-      sourceRecipeFile: path.join(__dirname, "..", "components", etlSimpleLoadComponentName, `${etlSimpleLoadComponentName}-${etlSimpleLoadComponentVersion}.json`)
+      sourceArtifactPath: path.join(
+        __dirname,
+        "..",
+        "components",
+        etlSimpleLoadComponentName,
+        "artifacts",
+        etlSimpleLoadComponentName,
+        etlSimpleLoadComponentVersion
+      ),
+      sourceRecipeFile: path.join(
+        __dirname,
+        "..",
+        "components",
+        etlSimpleLoadComponentName,
+        `${etlSimpleLoadComponentName}-${etlSimpleLoadComponentVersion}.json`
+      )
     })
 
     // create deployment -- cancel deployment

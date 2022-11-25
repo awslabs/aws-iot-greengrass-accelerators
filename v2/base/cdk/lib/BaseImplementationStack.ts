@@ -35,6 +35,7 @@ export class BaseImplementationStack extends cdk.Stack {
     const componentBucket = new s3.Bucket(this, "ComponentBucket", {
       bucketName: componentBucketName,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
+      encryption: s3.BucketEncryption.S3_MANAGED,
       autoDeleteObjects: true
     })
 

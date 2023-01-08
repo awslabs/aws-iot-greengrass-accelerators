@@ -36,7 +36,7 @@ def replace(data, match, repl):
     elif isinstance(data, list):
         return [replace(i, match, repl) for i in data]
     else:
-        return data.replace(match, repl)
+        return str(data).replace(match, repl)
 
 
 def create_resources(

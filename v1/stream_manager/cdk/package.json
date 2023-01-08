@@ -20,12 +20,12 @@
     "typescript": "~4.5.4"
   },
   "dependencies": {
-    "@aws-cdk/aws-cloudformation": "^1.135.0",
-    "@aws-cdk/aws-greengrass": "^1.135.0",
-    "@aws-cdk/aws-iotanalytics": "^1.135.0",
-    "@aws-cdk/aws-kinesis": "^1.135.0",
-    "@aws-cdk/aws-lambda": "^1.135.0",
-    "@aws-cdk/core": "^1.135.0",
+    "@aws-cdk/aws-cloudformation": "^1.187.0",
+    "@aws-cdk/aws-greengrass": "^1.187.0",
+    "@aws-cdk/aws-iotanalytics": "^1.187.0",
+    "@aws-cdk/aws-kinesis": "^1.187.0",
+    "@aws-cdk/aws-lambda": "^1.187.0",
+    "@aws-cdk/core": "^1.187.0",
     "uuid": "^8.3.2"
   }
 }

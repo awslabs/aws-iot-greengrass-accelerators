@@ -1,22 +1,22 @@
-# AWS IoT Greengrass V2 SiteWise Deployment
+# AWS IoT Greengrass V2 AWS IoT SiteWise Deployment
 
-This deployment, SiteWise Deployment, extends the capabilities of the [base](../base) accelerator stack by adding a new thing group, and Greengrass deployment for the existing Greengrass core. The functionality of the Greengrass deployment leverages several AWS-provided components with the ability to ingest data from an OPC UA endpoint using a SiteWise gateway component and stream the data to IoT SiteWise.
+This deployment, AWS IoT SiteWise Deployment, extends the capabilities of the [base](../base) accelerator stack by adding a new thing group, and Greengrass deployment for the existing Greengrass core. The functionality of the Greengrass deployment leverages several AWS-provided components with the ability to ingest data from an OPC UA endpoint using an AWS IoT SiteWise gateway component and stream the data to AWS IoT SiteWise.
 
 This is deployed as a [nested stack](https://docs.aws.amazon.com/AWSCloudFormation/latest/UserGuide/using-cfn-nested-stacks.html) where the root stack is the base implementation accelerator. This stack creates the following resources:
 
 - Thing group - A group specific to this accelerator, the existing thing is added and targeted for the new component
-- IoT policy - An AWS IoT policy attached to the existing certificate extending the ability to publish batch property values to IoT SiteWise
+- IoT policy - An AWS IoT policy attached to the existing certificate extending the ability to publish batch property values to AWS IoT SiteWise
 - Greengrass deployment - The Greengrass components targeted for the new Thing group.
 
 Once this is fully deployed, the Greengrass core device will receive and deploy the required components immediately or when next started.
 
 > **NOTE:** This accelerator is intended for educational use only and should not be used as the basis for production workloads without fully reviewing the component and it's artifacts.
 
-## SiteWise Deployment Use Case
+## AWS IoT SiteWise Deployment Use Case
 
-This accelerator demonstrates the capability for ingesting data from an OPC UA endpoint such in a factory, plant or other Operational Technology (OT) environment and streaming the data to [AWS IoT SiteWise](https://aws.amazon.com/iot-sitewise/).
+This accelerator demonstrates the capability for ingesting data from an OPC UA endpoint such as in a factory, plant or other Operational Technology (OT) environment and streaming these data to [AWS IoT SiteWise](https://aws.amazon.com/iot-sitewise/).
 
-In a practical setting, this appraoch can be used to collect and organise industrial data, by reading data directly from servers and historians over the OPC-UA protocol. Once ingested, data can be visualised and analysed to react to anomalises or identify differences across facilities.
+In a practical setting, this appraoch can be used to collect and organise industrial data, by reading data directly from servers and historians over the OPC-UA protocol. Once ingested, data can be visualised and analysed to react to anomalies or identify differences across facilities.
 
 For additional information on applicable use cases please explore the following workshops:
 
@@ -28,17 +28,17 @@ For additional information on applicable use cases please explore the following 
 
 The following architecture shows the deployment of this accelerator (aligned to the base implementation).
 
-![SiteWise Deployment Architecture](docs/arch.svg)
+![AWS IoT SiteWise Deployment Architecture](docs/arch.svg)
 
 1. The CDK stack creates a new thing group (`sitewise-group`), adds the existing `thing-core`, and deploys the required components. The two thing group deployments are merged and sent to the Greengrass core.
 1. The OPC UA collector component starts and ingests data from the configured OPC UA endpoint.
-1. The data are sent to the SiteWise edge publisher component via the local stream manager.
-1. The SiteWise edge publisher component publishes the data to AWS IoT SiteWise, via the newly created SiteWise gateway associated with the Greengrass deployment.
+1. The data are sent to the AWS IoT SiteWise publisher component via the local stream manager.
+1. The AWS IoT SiteWise publisher component publishes the data to AWS IoT SiteWise, via the newly created AWS IoT SiteWise gateway associated with the Greengrass deployment.
 
 ## Folder Structure
 
 ```text
-sitewise
+aws_iot_sitewise
 ├── README.md             <--- this file
 ├── cdk                   <--- builds and deploys CloudFormation to cloud
 │   ├── bin
@@ -75,14 +75,14 @@ The following is a list of prerequisites to deploy the accelerator:
 
 This approach uses your local system for installation and running the accelerator, but the same commands can be used if testing from AWS Cloud9.
 
-1. Change into the `v2/sitewise/cdk/` directory for the accelerator, then build and deploy the CloudFormation stack:
+1. Change into the `v2/aws_iot_sitewise/cdk/` directory for the accelerator, then build and deploy the CloudFormation stack:
 
    > **NOTE:** The first time `cdk deploy` is run, it will take longer as there are Docker images required to build some of the resources. You will see Docker-related messages in your terminal session. Subsequent runs will only take a few additional seconds.
 
    ```bash
    # Please note the need to substitute the real values for `OPC_UA_IP` and `OPC_UA_PORT` to construct a valid `OPC_UA_ENDPOINT` value.
    export OPC_UA_ENDPOINT=opc.tcp://OPC_UA_IP:OPC_UA_PORT/discovery
-   cd aws-iot-greengrass-accelerators/v2/sitewise/cdk
+   cd aws-iot-greengrass-accelerators/v2/aws_iot_sitewise/cdk
    npm install
    npm run build
    # replace PROFILE_NAME with your specific AWS CLI profile that has username and region defined.
@@ -114,7 +114,7 @@ To stop and completely remove this accelerator, follow these steps:
 1. With the container stopped, change to the component's CDK directory and issue the command to _destroy_ the CloudFormation stack:
 
    ```bash
-   cd aws-iot-greengrass-accelerators/v2/sitewise/cdk
+   cd aws-iot-greengrass-accelerators/v2/aws_iot_sitewise/cdk
    # For Cloud9
    cdk destroy --context baseStack="gg-accel-base"
    # For locally running (replace PROFILE_NAME with one used to create stack)
@@ -122,9 +122,9 @@ To stop and completely remove this accelerator, follow these steps:
    cdk destroy --profile PROFILE_NAME --context baseStack="gg-accel-base"
    ```
 
-   > **NOTE:** This will only destroy the `sitewise` component resources and not the base stack. Also, since the components have already been deployed to the Greengrass core, they will continue to run unless are locally deleted via the `greengrass-cli`, or the Greengrass configuration is reset.
+   > **NOTE:** This will only destroy the `aws_iot_sitewise` component resources and not the base stack. Also, since the components have already been deployed to the Greengrass core, they will continue to run unless are locally deleted via the `greengrass-cli`, or the Greengrass configuration is reset.
 
-   At this point, all `sitewise` resources have been deleted.
+   At this point, all `aws_iot_sitewise` resources have been deleted.
 
 1. Review any CloudWatch Logs log groups and delete these if needed.
 
@@ -134,4 +134,4 @@ All traces of the component including the thing group and additional AWS IoT Cor
 
 #### Should I use this code for my production workloads?
 
-In its current form, no. This component is not suitable for production workloads and intended to demonstrate the capabilities of Greengrass for data ingestion using OPC UA. To be production-ready would require support for additional configuration options to support various autehentication mechanisms to cater for different OPC UA endpoint configurations.
+In its current form, no. This component is not suitable for production workloads and intended to demonstrate the capabilities of AWS IoT Greengrass for data ingestion using OPC UA. To be production-ready the accelerator would require support for additional configuration options such as authentication mechanisms to cater for different OPC UA endpoint configurations.

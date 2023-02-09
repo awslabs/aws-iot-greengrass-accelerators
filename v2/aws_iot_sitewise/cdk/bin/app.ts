@@ -14,5 +14,5 @@ new SiteWiseStack(app, name, {
     region: process.env.CDK_DEPLOY_REGION || process.env.CDK_DEFAULT_REGION
   },
   stackName: name,
-  description: "Greengrass Accelerator v2 - SiteWise Component"
+  description: "Greengrass Accelerator v2 - AWS IoT SiteWise Component"
 })

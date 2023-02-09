@@ -44,7 +44,7 @@ export class SiteWiseStack extends cdk.Stack {
     const opcUaEndpoint = new cdk.CfnParameter(this, "opcUaEndpoint", {
       type: "String",
       description:
-        "The OPC-UA endpoint to be used by the SiteWise gateway."
+        "The OPC-UA endpoint to be used by the AWS IoT SiteWise gateway."
     })
 
     // Layered constructs - each constructs derived values can be used for subsequent constructs
@@ -108,7 +108,7 @@ export class SiteWiseStack extends cdk.Stack {
       "SiteWiseGreengrassDeployment",
       {
         targetArn: deploymentGroup.thingGroupArn,
-        deploymentName: `${this.stackName} - SiteWise deployment`,
+        deploymentName: `${this.stackName} - AWS IoT SiteWise deployment`,
         component: {
           "aws.iot.SiteWiseEdgeCollectorOpcua": { componentVersion: "2.1.3" },
           "aws.iot.SiteWiseEdgePublisher": { componentVersion: "2.2.3" },
@@ -130,7 +130,7 @@ export class SiteWiseStack extends cdk.Stack {
           capabilityConfiguration: JSON.stringify({
             sources: [
               {
-                name: "IginitionOPCUAServer",
+                name: "OPCUAServer",
                 endpoint: {
                   certificateTrust: { type: "TrustAny" },
                   endpointUri: opcUaEndpoint.valueAsString,

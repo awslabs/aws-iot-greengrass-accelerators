@@ -16,8 +16,8 @@ The current V2 accelerators are:
   - This accelerator deploys additional functionality on to the _Base Implementation_ stack to demonstrate sending an operating system command as an MQTT message from AWS IoT Core, running the command locally, and publishing back the command output to another MQTT topic in the cloud.
 - [Extract, Transform, and Load  - Simple Implementation](v2/etl_simple)
   - This accelerator deploys additional functionality on to the _Base Implementation_ stack to demonstrate how to extract, transform, and load (ETL) data from a local device to the cloud. This accelerator breaks the three steps into discrete processes, decoupled by using [Interprocess Communcation](https://docs.aws.amazon.com/greengrass/v2/developerguide/interprocess-communication.html).
-- [SiteWise Deployment](v2/sitewise)
-  - This accelerator deploys additional functionality on to the _Base Implementation_ stack to demonstrate a basic AWS IoT SiteWise deployment. Specifically, it leverages the IoT SiteWise OPC-UA collector component to collect data from a configurable OPC-UA endpoint.
+- [AWS IoT SiteWise Deployment](v2/aws_iot_sitewise)
+  - This accelerator deploys additional functionality on to the _Base Implementation_ stack to demonstrate a basic AWS IoT SiteWise deployment. Specifically, it leverages the AWS IoT SiteWise OPC-UA collector component to collect data from a configurable OPC-UA endpoint.
 
 ## Accelerators for AWS IoT Greengrass V1
 

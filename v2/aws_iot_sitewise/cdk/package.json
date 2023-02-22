@@ -10,6 +10,7 @@
     "watch": "tsc -w",
     "test": "jest",
     "cdk": "cdk",
+    "opcua-server": "ts-node opcua-server.ts",
     "postinstall": "(cd ../../cdk-constructs/GreengrassV2Component && npm install) && (cd ../../cdk-constructs/GreengrassV2Deployment && npm install) && (cd ../../cdk-constructs/IotPolicy && npm install) && (cd ../../cdk-constructs/IotRoleAlias && npm install) && (cd ../../cdk-constructs/IotThingCertPolicy && npm install) && (cd ../../cdk-constructs/IotThingGroup && npm install)"
   },
   "devDependencies": {
@@ -22,6 +23,7 @@
     "aws-cdk": "2.49.0",
     "constructs": "10.1.145",
     "jest": "29.2.2",
+    "node-opcua": "^2.91.0",
     "ts-jest": "29.0.3",
     "ts-node": "10.9.1",
     "tsconfig-paths": "4.1.0",

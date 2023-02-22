@@ -1,7 +1,7 @@
 // Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
 // SPDX-License-Identifier: MIT-0
 
-import * as path from "path"
+import * as os from "os"
 import * as seedrandom from "seedrandom"
 import { Construct } from "constructs"
 import * as cdk from "aws-cdk-lib"
@@ -12,6 +12,7 @@ import { GreengrassV2Deployment } from "@cdkConstructs/GreengrassV2Deployment"
 import { aws_iotsitewise as sitewise } from "aws-cdk-lib"
 
 import * as myConst from "./Constants"
+import { SampleAssetModel } from "./SampleAssetModel"
 
 export class SiteWiseStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -35,17 +36,32 @@ export class SiteWiseStack extends cdk.Stack {
     // suffix to use for all stack resources to make unique
     // In this stack all resources will use the format STACKNAME-RESOURCENAME-RANDOMSUFFIX
     const stackRandom: string = makeid(8, parentStack)
+    const hostname: string = os.hostname()
 
     // Load parameters from parent stack
     const thingArn = cdk.Fn.importValue(`${parentStack}-ThingArn`)
     const thingName = cdk.Fn.importValue(`${parentStack}-ThingName`)
     const certificateArn = cdk.Fn.importValue(`${parentStack}-CertificateArn`)
     const iamRoleArn = cdk.Fn.importValue(`${parentStack}-IamRoleArn`)
+
+    // Additional local parameters
     const opcUaEndpoint = new cdk.CfnParameter(this, "opcUaEndpoint", {
       type: "String",
       description:
-        "The OPC-UA endpoint to be used by the AWS IoT SiteWise gateway."
+        "The OPC-UA endpoint to be used by the AWS IoT SiteWise gateway.",
+      default: `opc.tcp://${hostname}:26543`
     })
+    const deploySampleAssetModel = new cdk.CfnParameter(
+      this,
+      "deploySampleAssetModel",
+      {
+        type: "String",
+        allowedValues: ["true", "false"],
+        description:
+          "Whether to deploy the sample asset model to the AWS IoT SiteWise gateway.",
+        default: "true"
+      }
+    )
 
     // Layered constructs - each constructs derived values can be used for subsequent constructs
 
@@ -65,7 +81,7 @@ export class SiteWiseStack extends cdk.Stack {
       policyParameterMapping: {
         thingname: thingName,
         region: cdk.Fn.ref("AWS::Region"),
-        account: cdk.Fn.ref("AWS::AccountId"),
+        account: cdk.Fn.ref("AWS::AccountId")
       }
     })
 
@@ -116,6 +132,14 @@ export class SiteWiseStack extends cdk.Stack {
         }
       }
     )
+
+    if (deploySampleAssetModel.valueAsString === "true") {
+      const sampleAssetModel = new SampleAssetModel(
+        this,
+        "SampleAssetModel",
+        {}
+      )
+    }
 
     const siteWiseGw = new sitewise.CfnGateway(this, "SitewiseGateway", {
       gatewayName: `${this.stackName}-Gateway`,

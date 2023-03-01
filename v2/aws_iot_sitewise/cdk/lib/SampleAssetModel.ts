@@ -5,16 +5,14 @@ import { Construct } from "constructs"
 import * as cdk from "aws-cdk-lib"
 import { aws_iotsitewise as sitewise } from "aws-cdk-lib"
 
-export interface SampleAssetModelProps {}
+export interface SampleAssetModelProps {
+  condition: cdk.CfnCondition
+}
 
 export class SampleAssetModel extends Construct {
   public readonly ref: string
 
   private assetModel: sitewise.CfnAssetModel
-
-  private composeLogicalId(idStub: string): string {
-    return idStub
-  }
 
   constructor(scope: Construct, id: string, props: SampleAssetModelProps) {
     super(scope, id)
@@ -25,33 +23,27 @@ export class SampleAssetModel extends Construct {
         "This is an asset model for the AWS IoT SiteWise Greengrass v2 Accelerator.",
       assetModelProperties: [
         {
-            name: 'Type',
-            dataType: 'STRING',
-            logicalId: this.composeLogicalId('SampleAssetModelTypeAttribute'),
-            type: {
-                typeName: 'Attribute',
-                attribute: { defaultValue: 'Test Device' }
-            }
+          name: "Type",
+          dataType: "STRING",
+          logicalId: "SampleAssetModelType",
+          type: {
+            typeName: "Attribute",
+            attribute: { defaultValue: "Test Device" }
+          }
         },
         {
-          name: "FreeMemory",
+          name: "FanSpeed",
           dataType: "DOUBLE",
-          logicalId: this.composeLogicalId(
-            "SampleAssetModelFreeMemory"
-          ),
-          unit: "%",
+          logicalId: "SampleAssetModelFanSpeed",
+          unit: "rpm",
           type: {
             typeName: "Measurement"
           }
-        },
+        }
       ]
     })
 
-    new cdk.CfnOutput(this, "SampleAssetModelId", {
-      value: this.assetModel.ref,
-      description: "LogicalID of sample asset model."
-    })
-
+    this.assetModel.cfnOptions.condition = props.condition
     this.ref = this.assetModel.ref
   }
 }

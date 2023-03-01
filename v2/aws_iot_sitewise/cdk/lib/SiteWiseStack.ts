@@ -13,6 +13,7 @@ import { aws_iotsitewise as sitewise } from "aws-cdk-lib"
 
 import * as myConst from "./Constants"
 import { SampleAssetModel } from "./SampleAssetModel"
+import { SampleAsset } from "./SampleAsset"
 
 export class SiteWiseStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props?: cdk.StackProps) {
@@ -44,7 +45,7 @@ export class SiteWiseStack extends cdk.Stack {
     const certificateArn = cdk.Fn.importValue(`${parentStack}-CertificateArn`)
     const iamRoleArn = cdk.Fn.importValue(`${parentStack}-IamRoleArn`)
 
-    // Additional local parameters
+    // Additional local parameters and conditions
     const opcUaEndpoint = new cdk.CfnParameter(this, "opcUaEndpoint", {
       type: "String",
       description:
@@ -60,6 +61,16 @@ export class SiteWiseStack extends cdk.Stack {
         description:
           "Whether to deploy the sample asset model to the AWS IoT SiteWise gateway.",
         default: "true"
+      }
+    )
+    const deploySampleAssetModelCondition = new cdk.CfnCondition(
+      this,
+      "DeploySampleAssetModelCondition",
+      {
+        expression: cdk.Fn.conditionEquals(
+          deploySampleAssetModel.valueAsString,
+          "true"
+        )
       }
     )
 
@@ -133,14 +144,26 @@ export class SiteWiseStack extends cdk.Stack {
       }
     )
 
-    if (deploySampleAssetModel.valueAsString === "true") {
-      const sampleAssetModel = new SampleAssetModel(
-        this,
-        "SampleAssetModel",
-        {}
-      )
-    }
+    // Sample asset models and x2 assets to match local OPC-UA demo server
+    const sampleAssetModel = new SampleAssetModel(this, "SampleAssetModel", {
+      condition: deploySampleAssetModelCondition
+    })
 
+    const sampleAsset1 = new SampleAsset(this, "SampleAsset1", {
+      assetModelId: sampleAssetModel.ref,
+      assetName: "East Wing Fan",
+      propertyAlias: "/AnyCompany/1/Generator/FanSpeed",
+      condition: deploySampleAssetModelCondition
+    })
+
+    const sampleAsset2 = new SampleAsset(this, "SampleAsset2", {
+      assetModelId: sampleAssetModel.ref,
+      assetName: "West Wing Fan",
+      propertyAlias: "/AnyCompany/2/Generator/FanSpeed",
+      condition: deploySampleAssetModelCondition
+    })
+
+    // AWS IoT SiteWise gateway
     const siteWiseGw = new sitewise.CfnGateway(this, "SitewiseGateway", {
       gatewayName: `${this.stackName}-Gateway`,
       gatewayPlatform: {

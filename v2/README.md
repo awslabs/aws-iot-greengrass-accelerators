@@ -14,3 +14,5 @@ Once the _base_ has been deployed and tested, you can then select one of the oth
   - This accelerator deploys additional functionality on to the _Base Implementation_ stack to demonstrate sending an operating system command as an MQTT message from AWS IoT Core, running the command locally, and publishing back the command output to another MQTT topic in the cloud.
 - [Extract, Transform, and Load - Simple Implementation](etl_simple)
   - This accelerator deploys additional functionality on to the _Base Implementation_ stack to demonstrate how to extract, transform, and load (ETL) data from a local device to the cloud. This accelerator breaks the three steps into discrete processes, decoupled by using [Interprocess Communication](https://docs.aws.amazon.com/greengrass/v2/developerguide/interprocess-communication.html).
+- [AWS IoT SiteWise Deployment](aws_iot_sitewise)
+  - This accelerator deploys additional functionality on to the _Base Implementation_ stack to demonstrate a basic AWS IoT SiteWise deployment.

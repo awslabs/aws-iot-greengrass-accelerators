@@ -147,7 +147,7 @@ This approach uses your local system for installation and running the accelerato
    ```bash
    cd ../docker
    # Use the same AWS CLI profile from above
-   python3 docker_config.py --profile PROFILE_NAME
+   python3 config_docker.py --profile PROFILE_NAME
    ```
 
    > **NOTE:** The first time `python3 config_docker.py` is run, the script will download the Greengrass nucleus assets and create a Dockerfile to build the Greengrass image locally. The Greengrass images are no longer published to public repositories. It will take additional time to run depending upon network speed and local system performance.

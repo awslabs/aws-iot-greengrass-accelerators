@@ -29,7 +29,7 @@
   },
   "dependencies": {
     "@aws-cdk/aws-lambda-python-alpha": "2.49.0-alpha.0",
-    "aws-cdk-lib": "2.49.0",
+    "aws-cdk-lib": "2.80.0",
     "lodash": "4.17.21",
     "path": "0.12.7",
     "seedrandom": "3.0.5",

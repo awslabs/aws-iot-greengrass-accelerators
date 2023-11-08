@@ -175,9 +175,6 @@ def get_recipe(componentLocation:str, componentName: str):
 
 def replace(data, match, repl):
     """Replace variable with replacement text"""
-    #print("data:", data)
-    #print("match:", match)
-    #print("replacement:",repl)
     if isinstance(data, dict):
         return {k: replace(v, match, repl) for k, v in data.items()}
     elif isinstance(data, list):

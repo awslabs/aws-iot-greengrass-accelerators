@@ -105,6 +105,3 @@ if __name__ == '__main__':
     print("Greengrass resource created:")
     print(json.dumps(result, indent=4))
     print("ThingArn: ", result["ThingArn"])
-
-#    resource_handler.write_manifest(result)
-#    resource_handler.write_env_file(result)

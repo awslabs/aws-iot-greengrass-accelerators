@@ -1,4 +1,4 @@
-# CDK-Less Greengrass Version 2 Accelerators
+# CDK-Less AWS IoT Greengrass Version 2 Accelerators
 
 This version of the accelerators is meant to target systems with limited capabilities where is not possible to install docker locally (for custom resource deployment). For example, windows 10 gateways, where the Linux subsystem, needed to run containers, is not present, either for limitation in the hardware or because they host a custom Windows OS version where for security reasons is not possible to run linux containers.
 
@@ -13,11 +13,12 @@ The accelerators consist in 5 python scripts performing:
 - Python 3.7 or later
 - Docker (any version)
 - (optional) aws cli
-- (windows only) Java Runtime Environment (JRE) version 8 or greater. 
+- (Windows only) Java Runtime Environment (JRE) version 8 or greater. 
 
-## 1. Installing Greengrass on docker (Linux/MacOS)
+## 1. InstallingAWS IoT Greengrass on docker (Linux/MacOS)
 
 ```bash
+pip install -r requirements.txt
 python3 gg-docker-deploy.py <thing name>
 ```
 
@@ -54,7 +55,7 @@ services:
     version: 2.11.2
 ```
 
-## 2. Running Greengrass in docker
+## 2. Running AWS IoT Greengrass in docker
 
 Similarly to the other accelerators, the Graangrass instance can be execute with the following commands.
 
@@ -63,7 +64,7 @@ cd docker
 docker compose up
 ```
 
-## 3. Cleaning up Greengrass environment
+## 3. Cleaning up AWS IoT Greengrass environment
 
 To delete all resources create by the previous script, simply execute:
 
@@ -89,6 +90,7 @@ psexec -s cmd /c cmdkey /generic:ggc_user /user:ggc_user /pass:<some password>
 For Windows systems that do not support docker linux containers, the following script takes care of running the greengrass installer, using the same configuration files created in paragraph #1 above.
 
 ```bash
+pip install -r win-requirements.txt
 python win-gg-installer.py
 ```
 
@@ -105,7 +107,7 @@ sc query greengrass
 
 # Component framework
 
-The accelerator defines a simplified way of implementing and deployment Greengrass components:
+The accelerator defines a simplified way of implementing and deployment AWS IoT Greengrass components:
 1. The components are defined in a subfolder of ***ggComponents***. 
 2. The subfolder name *is* the name of the component and **MUST** contain a "recipe.yaml" file defining the component version, behaviour, lifecycle, etc. and an "artifacts" subfolder with all executables, scripts, libraries, etc. implementing the component behaviour.
 
@@ -124,7 +126,7 @@ This is how the resulting directory hierarchy looks like:
 
 ## Component deployment
 
-A greengrass deployment is defined by:
+Aa AWS IoT Greengrass deployment is defined by:
 
 1. a deployment target, either a single "thing" or a "thing group"
 2. a list of components 

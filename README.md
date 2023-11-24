@@ -28,15 +28,20 @@ The current V2 accelerators are:
 
 # CDK-Less AWS IoT Greengrass Version 2 Accelerators
 
-This version of the accelerators is meant to target systems with limited capabilities where is not possible to install docker locally (for custom resource deployment). For example, windows 10 gateways, where the Linux subsystem, needed to run containers, is not present, either for limitation in the hardware or because they host a custom Windows OS version where for security reasons is not possible to run linux containers.
-
-The accelerators consist in 5 python scripts performing:
-* Resource deployment/deletion for Greengrass on docker
-* components deployment/deletion
-* Windows native greengrass installation
+This version of the accelerators aims at:
+ - deploying all cloud resources needed by AWS IoT Greengrass without making use of CDK;
+ - execute AWS IoT Greengrass inside a docker container, similarly to the solution contained in [v2](v2/base/docker/), if the hosting platform supports Linux containers;  
+ - install and execute AWS IoT Greengrass on Windows systems that do not support Linux containers and cannot use the solution in [v2](v2/base/docker/). On such systems the use of CDK based accelerators is not possible because the accelerators use CDK custom resources that requires docker to execute on the host platform;
+ - define a simplified AWS IoT Greengrass component development framework for both docker and Windows setup;
+ 
+The accelerators consist of 5 python scripts performing:
+* Resource deployment/deletion for AWS IoT Greengrass
+* components deployment/deletion 
+* Windows native AWS IoT Greengrass installation
 
 - [Instructions](no-cdk/README.md)
-- [core deployment](no-cdk/gg-docker-deploy.py)
+- [Architecture](no-cdk/arch.drawio.png)
+- [core deployment](no-cdk/gg-core-deploy.py)
 - [component framework](no-cdk/ggComponents/)
 - [Windows installation](no-cdk/win-gg-install.py)
-- 
+  

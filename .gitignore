@@ -149,3 +149,4 @@ dist/
 # Development files
 docker-compose.yml
 temp/
+no-cdk/.$arch.drawio.bkp

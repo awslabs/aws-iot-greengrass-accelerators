@@ -24,3 +24,24 @@ The current V2 accelerators are:
 - [Extract, Transform, and Load](v1/extract_transform_load)
 - [Machine Learning Inference](v1/machine_learning_inference)
 - [Stream Manager](v1/stream_manager) (and Docker Application Management)
+
+
+# CDK-Less AWS IoT Greengrass Version 2 Accelerators
+
+This version of the accelerators aims at:
+ - deploying all cloud resources needed by AWS IoT Greengrass without making use of CDK;
+ - execute AWS IoT Greengrass inside a docker container, similarly to the solution contained in [v2](v2/base/docker/), if the hosting platform supports Linux containers;  
+ - install and execute AWS IoT Greengrass on Windows systems that do not support Linux containers and cannot use the solution in [v2](v2/base/docker/). On such systems the use of CDK based accelerators is not possible because the accelerators use CDK custom resources that requires docker to execute on the host platform;
+ - define a simplified AWS IoT Greengrass component development framework for both docker and Windows setup;
+ 
+The accelerators consist of 5 python scripts performing:
+* Resource deployment/deletion for AWS IoT Greengrass
+* components deployment/deletion 
+* Windows native AWS IoT Greengrass installation
+
+- [Instructions](no-cdk/README.md)
+- [Architecture](no-cdk/arch.drawio.png)
+- [core deployment](no-cdk/gg-core-deploy.py)
+- [component framework](no-cdk/ggComponents/)
+- [Windows installation](no-cdk/win-gg-install.py)
+  

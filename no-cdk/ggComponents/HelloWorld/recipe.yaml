@@ -1,0 +1,46 @@
+# Copyright Amazon.com, Inc. or its affiliates. All Rights Reserved.
+# SPDX-License-Identifier: MIT-0
+
+# Template recipe file
+# Derived COMPONENT_NAME, COMPONENT_VERSION, COMPONENT_BUCKET,
+# and ARTIFACT_KEY_NAME variables during CDK construct creation.
+# These values are replaced with values passed to the GreengrassV2Component construct.
+# NOTE: This file is not fully compliant until processed.
+---
+RecipeFormatVersion: 2020-01-25
+ComponentName: COMPONENT_NAME
+ComponentVersion: "1.0.0"
+ComponentDescription: Hello World
+ComponentPublisher: BrunoVitali
+ComponentConfiguration:
+  DefaultConfiguration:
+    Message: "WORLD!!"
+ 
+Manifests:
+  - Platform:
+      os: linux
+    Lifecycle:
+      run:
+        Setenv:
+          "WORK_DIR": "{work:path}"
+          "ROOT_PATH": "{kernel:rootPath}"
+        Script: python3 -u {artifacts:decompressedPath}/COMPONENT_NAME/main.py  "{configuration:/Message}"
+    Artifacts:
+      - URI: s3://COMPONENT_BUCKET/COMPONENT_NAME/COMPONENT_VERSION/COMPONENT_NAME.zip
+        Unarchive: ZIP
+        Permission:
+          Execute: OWNER
+
+  - Platform:
+      os: windows
+    Lifecycle:
+      run:
+        Setenv:
+          "WORK_DIR": "{work:path}"
+          "ROOT_PATH": "{kernel:rootPath}"
+        Script: python -u {artifacts:decompressedPath}/COMPONENT_NAME/main.py  "{configuration:/Message}"
+    Artifacts:
+      - URI: s3://COMPONENT_BUCKET/COMPONENT_NAME/COMPONENT_VERSION/COMPONENT_NAME.zip
+        Unarchive: ZIP
+        Permission:
+          Execute: OWNER

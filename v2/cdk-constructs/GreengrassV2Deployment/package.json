@@ -7,8 +7,8 @@
   },
   "dependencies": {
     "@types/node": "18.11.8",
-    "aws-cdk-lib": "2.49.0",
-    "constructs": "10.1.145",
+    "aws-cdk-lib": "2.131.0",
+    "constructs": "10.3.0",
     "path": "0.12.7"
   }
 }

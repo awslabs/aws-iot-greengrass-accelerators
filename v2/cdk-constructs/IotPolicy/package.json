@@ -6,14 +6,14 @@
     "build": "tsc"
   },
   "dependencies": {
-    "@aws-cdk/aws-lambda-python-alpha": "2.49.0-alpha.0",
+    "@aws-cdk/aws-lambda-python-alpha": "2.131.0-alpha.0",
     "@types/node": "18.11.8",
-    "aws-cdk-lib": "2.49.0",
-    "constructs": "10.1.145",
+    "aws-cdk-lib": "2.131.0",
+    "constructs": "10.3.0",
     "lodash": "4.17.21",
     "path": "0.12.7"
   },
   "devDependencies": {
-    "@types/lodash": "4.14.186"
+    "@types/lodash": "4.14.202"
   }
 }

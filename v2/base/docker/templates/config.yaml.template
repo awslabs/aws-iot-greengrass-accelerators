@@ -8,7 +8,7 @@ system:
 services:
   aws.greengrass.Nucleus:
     componentType: "NUCLEUS"
-    version: "2.8.0"
+    version: "2.10.3"
     configuration:
       awsRegion: "${AWS_REGION}"
       iotRoleAlias: "${IOT_ROLE_ALIAS}"

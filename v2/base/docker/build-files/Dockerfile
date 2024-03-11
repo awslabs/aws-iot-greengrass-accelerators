@@ -4,7 +4,7 @@
 FROM amazonlinux:2
 
 # Replace the args to lock to a specific version
-ARG GREENGRASS_RELEASE_VERSION=2.8.1
+ARG GREENGRASS_RELEASE_VERSION=2.10.3
 ARG GREENGRASS_ZIP_FILE=greengrass-${GREENGRASS_RELEASE_VERSION}.zip
 ARG GREENGRASS_RELEASE_URI=https://d2s8p88vqu9w66.cloudfront.net/releases/${GREENGRASS_ZIP_FILE}
 
@@ -15,7 +15,7 @@ LABEL greengrass-version=${GREENGRASS_RELEASE_VERSION}
 
 # Set up Greengrass v2 execution parameters
 # TINI_KILL_PROCESS_GROUP allows forwarding SIGTERM to all PIDs in the PID group so Greengrass can exit gracefully
-ENV TINI_KILL_PROCESS_GROUP=1 \ 
+ENV TINI_KILL_PROCESS_GROUP=1 \
     GGC_ROOT_PATH=/greengrass/v2 \
     PROVISION=false \
     AWS_REGION=us-east-1 \
@@ -36,7 +36,7 @@ COPY "greengrass-entrypoint.sh" /
 # Install Greengrass v2 dependencies
 RUN yum update -y && yum install -y python37 tar unzip wget sudo procps which && \
     amazon-linux-extras enable python3.8 && yum install -y python3.8 java-11-amazon-corretto-headless && \
-    wget $GREENGRASS_RELEASE_URI &&  \
+    wget $GREENGRASS_RELEASE_URI && \
     rm -rf /var/cache/yum && \
     chmod +x /greengrass-entrypoint.sh && \
     mkdir -p /opt/greengrassv2 $GGC_ROOT_PATH && unzip $GREENGRASS_ZIP_FILE -d /opt/greengrassv2 && rm $GREENGRASS_ZIP_FILE

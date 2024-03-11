@@ -171,15 +171,15 @@ export class BaseImplementationStack extends cdk.Stack {
     // Add core public components
     greengrassDeployment.addComponent({
       "aws.greengrass.Nucleus": {
-        componentVersion: "2.8.1"
+        componentVersion: "2.10.3"
       },
       "aws.greengrass.Cli": {
-        componentVersion: "2.8.1"
+        componentVersion: "2.10.3"
       }
     })
     greengrassDeployment.addComponent({
       "aws.greengrass.LocalDebugConsole": {
-        componentVersion: "2.2.6",
+        componentVersion: "2.3.0",
         configurationUpdate: {
           merge: JSON.stringify({
             httpsEnabled: "false"

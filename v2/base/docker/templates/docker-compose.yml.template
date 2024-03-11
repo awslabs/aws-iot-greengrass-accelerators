@@ -10,7 +10,7 @@ services:
     build:
       context: ./build-files
       dockerfile: Dockerfile
-    image: aws-iot-greengrass-v2:2.8.1
+    image: x86_64/aws-iot-greengrass-v2:2.10.3
     ports:
       # MQTT port for local broker (if deployed)
       - "8883:8883"
@@ -23,7 +23,7 @@ services:
       # (certs/, config/) and the Greengrass root
 
       # Contains current state of Greengrass. Clear when testing fresh deployment
-      - ./volumes/gg_root:/greengrass/v2
+      - ./volumes/gg_root/logs:/greengrass/v2/logs:delegated
 
       # Default config for bootstrapping install and principals
       - ./volumes/config:/tmp/config/:ro
